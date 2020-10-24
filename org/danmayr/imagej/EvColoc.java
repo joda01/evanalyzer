@@ -12,24 +12,26 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
+import org.danmayr.imagej.EvColocDialog;
+
 
 public class EvColoc implements PlugIn {
 
+	EvColocDialog dialog = new EvColocDialog();
+
+
 	@Override
 	public void run(String arg) {
-		ImagePlus imp = IJ.getImage();
+		dialog.setVisible(true);
+	/*	ImagePlus imp = IJ.getImage();
 		
-		
-		JDialog win = new JDialog();
-		win.setSize(800, 600);
-		win.setVisible(true);
 		
 		IJ.run(imp, "Invert", "");
 		IJ.wait(1000);
-		IJ.run(imp, "Invert", "");
+		IJ.run(imp, "Invert", "");*/
 	}
 
-	public static void main(final String... args) {
+	public static void main(String[] args) {
 		IJ.log("Hello, World!");
 
 
