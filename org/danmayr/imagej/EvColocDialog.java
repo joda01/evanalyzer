@@ -2,6 +2,7 @@ package org.danmayr.imagej;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 ///
 ///
@@ -12,6 +13,8 @@ public class EvColocDialog extends JFrame {
 
     private JTextField mInputFolder = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
+    private JTextField mMinParticleSize = new JTextField("5");
+    private JTextField mMaxParticleSize = new JTextField("999999999");
     private JButton mbInputFolder;
     private JButton mbOutputFolder;
     private JButton mbStart;
@@ -20,16 +23,20 @@ public class EvColocDialog extends JFrame {
     private JComboBox mRedChannel;
     private JComboBox mThersholdMethod;
     private Analyzer mActAnalyzer = null;
+    private JCheckBox mEnhanceContrastRed;
+    private JCheckBox mEnhanceContrastGreen;
+    private JPanel mMenu;
 
     ///
     /// Constructor
     ///
     public EvColocDialog() {
 
-        setLayout(new GridBagLayout());
+        GridBagLayout layout = new GridBagLayout();
+        setLayout(layout);
 
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(2, 2, 2, 5); // top padding
+        c.insets = new Insets(5, 5, 5, 5); // top padding
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -49,7 +56,7 @@ public class EvColocDialog extends JFrame {
         mbInputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                OpenDirectoryChooser(mInputFolder);
+                OpenDirectoryChooser(mInputFolder, mOutputFolder);
             }
         });
         this.add(mbInputFolder, c);
@@ -72,22 +79,10 @@ public class EvColocDialog extends JFrame {
         mbOutputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                OpenDirectoryChooser(mOutputFolder);
+                OpenDirectoryChooser(mOutputFolder, null);
             }
         });
         this.add(mbOutputFolder, c);
-
-        ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy = 3;
-        this.add(new JLabel("Nr. of channels:"), c);
-
-        String[] nrOfChanneld = { "2.0", "1.0" };
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        c.gridy = 3;
-        this.add(new JComboBox<String>(nrOfChanneld), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -120,13 +115,17 @@ public class EvColocDialog extends JFrame {
         c.gridx = 1;
         c.gridy = 6;
         c.gridwidth = 2;
-        this.add(new JCheckBox("Enhance contrast for C=0"), c);
+        mEnhanceContrastGreen = new JCheckBox("Enhance contrast for green channel");
+        mEnhanceContrastGreen.setContentAreaFilled(false);
+        this.add(mEnhanceContrastGreen, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 7;
         c.gridwidth = 2;
-        this.add(new JCheckBox("Enhance contrast for C=1"), c);
+        mEnhanceContrastRed = new JCheckBox("Enhance contrast for red channel");
+        mEnhanceContrastRed.setContentAreaFilled(false);
+        this.add(mEnhanceContrastRed, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -138,7 +137,7 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 8;
-        this.add(new JTextField(5), c);
+        this.add(mMinParticleSize, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -149,13 +148,14 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 9;
-        this.add(new JTextField(999999999), c);
+        this.add(mMaxParticleSize, c);
 
         ////////////////////////////////////////////////////
-        JPanel menu = new JPanel(new FlowLayout());
+        mMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        mMenu.setBackground(Color.WHITE);
 
         mbStart = new JButton();
-        mbStart = new JButton(new ImageIcon(getClass().getResource("open.png")));
+        mbStart = new JButton(new ImageIcon(getClass().getResource("start.png")));
         mbStart.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -163,10 +163,10 @@ public class EvColocDialog extends JFrame {
             }
         });
         mbStart.setText("Start");
-        menu.add(mbStart);
+        mMenu.add(mbStart);
 
         mCancle = new JButton();
-        mCancle = new JButton(new ImageIcon(getClass().getResource("open.png")));
+        mCancle = new JButton(new ImageIcon(getClass().getResource("stop.png")));
         mCancle.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -174,12 +174,13 @@ public class EvColocDialog extends JFrame {
             }
         });
         mCancle.setText("Cancle");
-        menu.add(mCancle);
+        mCancle.setEnabled(false);
+        mMenu.add(mCancle);
 
         c.gridx = 0;
         c.gridy = 10;
-        c.gridwidth = 2;
-        this.add(menu, c);
+        c.gridwidth = 3;
+        this.add(mMenu, c);
 
         ////////////////////////////////////////////////////
         c.gridx = 0;
@@ -189,6 +190,20 @@ public class EvColocDialog extends JFrame {
         mProgressbar.setString("0");
         this.add(mProgressbar, c);
 
+        // Logo
+        c.gridx = 0;
+        c.gridy = 12;
+        c.gridwidth = 2;
+        this.add(new JLabel(new ImageIcon(getClass().getResource("logo.jpg"))), c);
+
+        c.gridx = 0;
+        c.gridy = 13;
+        c.gridwidth = 3;
+        this.add(new JLabel("(c) 2019 - 2020 J.D.  | v1.0.0", SwingConstants.RIGHT), c);
+
+        // Pack it
+        setBackground(Color.WHITE);
+        getContentPane().setBackground(Color.WHITE);
         pack();
         this.setAlwaysOnTop(true);
         this.setResizable(false);
@@ -206,24 +221,61 @@ public class EvColocDialog extends JFrame {
     }
 
     public void startAnalyse() {
+        mbStart.setEnabled(false);
+        mCancle.setEnabled(true);
+        String error = "";
         AnalyseSettings sett = new AnalyseSettings();
         sett.mInputFolder = mInputFolder.getText();
+        File parentFile = new File(sett.mInputFolder);
+        if(false == parentFile.exists()){
+            error = "Please select an existing input folder!\n";
+        }
         sett.mOutputFolder = mOutputFolder.getText();
-        sett.mRedChannel = Integer.parseInt(mRedChannel.getSelectedItem().toString());
+        if(sett.mOutputFolder.length()<=0){
+            error = "Please select an output folder!\n";
+        }
+        try {
+            sett.mRedChannel = Integer.parseInt(mRedChannel.getSelectedItem().toString());
+        } catch (NumberFormatException ex) {
+            error = "Wrong selected channel!\n";
+        }
         sett.mThersholdMethod = mThersholdMethod.getSelectedItem().toString();
+        sett.mEnhanceContrastForGreen = mEnhanceContrastGreen.isSelected();
+        sett.mEnhanceContrastForRed = mEnhanceContrastRed.isSelected();
+        try {
+            sett.mMinParticleSize = Integer.parseInt(mMinParticleSize.getText());
+        } catch (NumberFormatException ex) {
+            error += "Min particle size wrong!\n";
+        }
+        try {
+            sett.mMaxParticleSize = Integer.parseInt(mMaxParticleSize.getText());
+        } catch (NumberFormatException ex) {
+            error += "Max particle size wrong!\n";
+        }
 
-        mActAnalyzer = new Analyzer(this, sett);
-        mActAnalyzer.start();
+        if (error.length() <= 0) {
+            mActAnalyzer = new Analyzer(this, sett);
+            mActAnalyzer.start();
+        } else {
+            JOptionPane.showMessageDialog(new JFrame(), error, "Dialog", JOptionPane.WARNING_MESSAGE);
+            finishedAnalyse();
+        }
     }
 
     public void cancleAnalyse() {
         if (mActAnalyzer != null) {
+            mCancle.setEnabled(false);
             mActAnalyzer.cancle();
             mProgressbar.setString("Canceling...");
         }
     }
 
-    public void OpenDirectoryChooser(JTextField textfield) {
+    public void finishedAnalyse() {
+        mbStart.setEnabled(true);
+        mCancle.setEnabled(false);
+    }
+
+    public void OpenDirectoryChooser(JTextField textfieldInput, JTextField textfieldOutput) {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new java.io.File("."));
         chooser.setDialogTitle("select folder");
@@ -231,7 +283,14 @@ public class EvColocDialog extends JFrame {
         chooser.setAcceptAllFileFilterUsed(false);
         int result = chooser.showOpenDialog(this);
         if (result != JFileChooser.CANCEL_OPTION) {
-            textfield.setText(chooser.getSelectedFile().getAbsolutePath());
+            String selectedPath = chooser.getSelectedFile().getAbsolutePath();
+            textfieldInput.setText(selectedPath);
+            if (null != textfieldOutput) {
+                if (textfieldOutput.getText().length() <= 0) {
+                    String outputPath = selectedPath + File.separator + "results";
+                    textfieldOutput.setText(outputPath);
+                }
+            }
         }
     }
 }

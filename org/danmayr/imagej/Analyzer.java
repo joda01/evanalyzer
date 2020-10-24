@@ -49,14 +49,23 @@ public class Analyzer extends Thread {
      * Start the analyse thread
      */
     public void run() {
+
+        // Prepare results folder
+       prepareOutputFolder();
+
+
         mFoundFiles.clear();
         mDialog.setProgressBarMaxSize(mFoundFiles.size());
         mDialog.setProgressBarValue(0);
 
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(mFileFilter));
         walkThroughFiles();
+        mDialog.finishedAnalyse();
     }
 
+    /**
+     * Cancle the process after the actual image has been finished
+     */
     public void cancle(){
         mStopping = true;
     }
@@ -72,6 +81,9 @@ public class Analyzer extends Thread {
             closeAllWindow();
             WindowManager.closeAllWindows();
             mDialog.setProgressBarValue(value);
+            if(true == mStopping){
+                break;
+            }
         }
     }
 
@@ -120,14 +132,18 @@ public class Analyzer extends Thread {
 
             // Process red channel
             if (null != redChannel) {
-                EnhanceContrast(redChannel);
+                if(true == mAnalyseSettings.mEnhanceContrastForRed){
+                    EnhanceContrast(redChannel);
+                }
                 ApplyFilter(redChannel);
                 ApplyTherhold(redChannel);
             }
 
             // Process green channel
             if (null != greenChannel) {
-                EnhanceContrast(greenChannel);
+                if(true == mAnalyseSettings.mEnhanceContrastForGreen){
+                    EnhanceContrast(greenChannel);
+                }
                 ApplyFilter(greenChannel);
                 ApplyTherhold(greenChannel);
             }
@@ -155,6 +171,14 @@ public class Analyzer extends Thread {
         } else {
             IJ.log("No image loaded");
         }
+    }
+
+    private void prepareOutputFolder(){
+        File parentFile = new File(mAnalyseSettings.mOutputFolder);
+        if (parentFile != null && !parentFile.exists()) {
+            parentFile.mkdirs();
+        }
+        IJ.log(parentFile.getAbsolutePath());
     }
 
     private void EnhanceContrast(ImagePlus img) {
