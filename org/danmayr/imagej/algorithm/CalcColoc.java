@@ -24,16 +24,7 @@ import ij.plugin.frame.*;
 import java.awt.*;
 import org.danmayr.imagej.gui.EvColocDialog;
 
-public class CalcColoc extends Thread {
-
-    // PlugIn mPlugin;
-    AnalyseSettings mAnalyseSettings;
-    EvColocDialog mDialog;
-    ArrayList<File> mFoundFiles = new ArrayList<>();
-    boolean mStopping = false;
-
-    // Temporary storag
-    String mAlloverStatistics;
+public class CalcColoc extends BasicAlgorithm {
 
     // Constants for result index
     static int RESULT_FILE_IDX_AREA_SIZE = 1;
@@ -49,60 +40,7 @@ public class CalcColoc extends Thread {
      * @param analyseSettings
      */
     public CalcColoc(EvColocDialog dialog, AnalyseSettings analyseSettings) {
-        mAnalyseSettings = analyseSettings;
-        mDialog = dialog;
-    }
-
-    /**
-     * Start the analyse thread
-     */
-    public void run() {
-
-        // Prepare results folder
-        prepareOutputFolder();
-
-        mAlloverStatistics = "file;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
-        mFoundFiles.clear();
-        mDialog.setProgressBarMaxSize(mFoundFiles.size());
-        mDialog.setProgressBarValue(0);
-
-        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
-        walkThroughFiles();
-        writeAllOverStatisticToFile();
-        mDialog.finishedAnalyse();
-    }
-
-    /**
-     * Cancle the process after the actual image has been finished
-     */
-    public void cancle() {
-        mStopping = true;
-    }
-
-    /**
-     * Walk through all found files and analyse each image after the other
-     */
-    public void walkThroughFiles() {
-        int value = 0;
-        for (File file : mFoundFiles) {
-            value++;
-            analyseImage(file);
-            closeAllWindow();
-            WindowManager.closeAllWindows();
-            mDialog.setProgressBarValue(value);
-            if (true == mStopping) {
-                break;
-            }
-        }
-    }
-
-    private void closeAllWindow() {
-        ImagePlus img;
-        while (null != WindowManager.getCurrentImage()) {
-            img = WindowManager.getCurrentImage();
-            img.changes = false;
-            img.close();
-        }
+        super(dialog, analyseSettings);
     }
 
     /**
@@ -110,7 +48,8 @@ public class CalcColoc extends Thread {
      * 
      * @param imageFile
      */
-    public void analyseImage(File imageFile) {
+    @Override
+    protected void analyseImage(File imageFile) {
         IJ.run("Bio-Formats Importer", "open=[" + imageFile.getAbsoluteFile().toString()
                 + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT series_1 c_begin_1=1 c_end_1=2 c_step_1=1");
 
@@ -188,14 +127,6 @@ public class CalcColoc extends Thread {
         }
     }
 
-    private void prepareOutputFolder() {
-        File parentFile = new File(mAnalyseSettings.mOutputFolder);
-        if (parentFile != null && !parentFile.exists()) {
-            parentFile.mkdirs();
-        }
-        IJ.log(parentFile.getAbsolutePath());
-    }
-
     private void EnhanceContrast(ImagePlus img) {
         IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
     }
@@ -220,33 +151,6 @@ public class CalcColoc extends Thread {
         imp = imp.flatten();
         IJ.saveAs(imp, "Jpeg",
                 mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged_overlay.jpg");
-    }
-
-    /**
-     * List all images in directory and subdirectory
-     * 
-     * @param files
-     */
-    public void findFiles(File[] files) {
-        for (File file : files) {
-            if (file.isDirectory()) {
-                findFiles(file.listFiles());
-            } else if (file.getName().endsWith(".vsi")) {
-                mFoundFiles.add(file);
-                mDialog.setProgressBarMaxSize(mFoundFiles.size());
-            }
-        }
-    }
-
-    private void writeAllOverStatisticToFile() {
-        try {
-            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
-            writer.write(mAlloverStatistics);
-            writer.close();
-        } catch (IOException ex) {
-
-        }
     }
 
     /**
