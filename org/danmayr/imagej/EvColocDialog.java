@@ -19,6 +19,7 @@ public class EvColocDialog extends JFrame {
     private JButton mbOutputFolder;
     private JButton mbStart;
     private JButton mCancle;
+    private JButton mClose;
     private JProgressBar mProgressbar = new JProgressBar();
     private JComboBox mRedChannel;
     private JComboBox mThersholdMethod;
@@ -176,6 +177,18 @@ public class EvColocDialog extends JFrame {
         mCancle.setText("Cancle");
         mCancle.setEnabled(false);
         mMenu.add(mCancle);
+
+        mClose = new JButton();
+        mClose = new JButton(new ImageIcon(getClass().getResource("close.png")));
+        mClose.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                dispose();
+            }
+        });
+        mClose.setText("Close");
+        mMenu.add(mClose);
+
 
         c.gridx = 0;
         c.gridy = 10;
