@@ -1,4 +1,4 @@
-package org.danmayr.imagej;
+package org.danmayr.imagej.algorithm;
 
 public class AnalyseSettings {
     public String mInputFolder;

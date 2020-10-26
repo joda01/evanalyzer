@@ -1,4 +1,4 @@
-package org.danmayr.imagej;
+package org.danmayr.imagej.algorithm;
 
 import ij.*;
 import ij.process.*;
@@ -22,9 +22,9 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
-import org.danmayr.imagej.EvColocDialog;
+import org.danmayr.imagej.gui.EvColocDialog;
 
-public class Analyzer extends Thread {
+public class CalcColoc extends Thread {
 
     // PlugIn mPlugin;
     AnalyseSettings mAnalyseSettings;
@@ -48,7 +48,7 @@ public class Analyzer extends Thread {
      * @param dialog
      * @param analyseSettings
      */
-    Analyzer(EvColocDialog dialog, AnalyseSettings analyseSettings) {
+    public CalcColoc(EvColocDialog dialog, AnalyseSettings analyseSettings) {
         mAnalyseSettings = analyseSettings;
         mDialog = dialog;
     }
@@ -238,14 +238,13 @@ public class Analyzer extends Thread {
         }
     }
 
-
-    private void writeAllOverStatisticToFile(){
-        try{
-        String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
-        writer.write(mAlloverStatistics);
-        writer.close();
-        }catch(IOException ex){
+    private void writeAllOverStatisticToFile() {
+        try {
+            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
+            writer.write(mAlloverStatistics);
+            writer.close();
+        } catch (IOException ex) {
 
         }
     }

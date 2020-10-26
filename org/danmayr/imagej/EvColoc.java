@@ -12,7 +12,7 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
-import org.danmayr.imagej.EvColocDialog;
+import org.danmayr.imagej.gui.EvColocDialog;
 
 
 public class EvColoc implements PlugIn {
