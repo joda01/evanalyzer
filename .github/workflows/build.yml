@@ -26,6 +26,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Build plugin
         run: |
+          cd $GITHUB_WORKSPACE,
           echo Hello, world!,
           build.sh,
           echo Finished!,
