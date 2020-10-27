@@ -16,17 +16,16 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/vscode/devcontainers/java:0-8
+    container: 
+      image: mcr.microsoft.com/vscode/devcontainers/java:0-8
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
       - name: Build plugin
         run: |
-          cd $GITHUB_WORKSPACE,
+          ls -l,
           echo Hello, world!,
           build.sh,
           echo Finished!,
