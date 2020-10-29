@@ -193,7 +193,6 @@ public class EvColocDialog extends JFrame {
         mClose.setText("Close");
         mMenu.add(mClose);
 
-
         c.gridx = 0;
         c.gridy = 10;
         c.gridwidth = 3;
@@ -244,11 +243,11 @@ public class EvColocDialog extends JFrame {
         AnalyseSettings sett = new AnalyseSettings();
         sett.mInputFolder = mInputFolder.getText();
         File parentFile = new File(sett.mInputFolder);
-        if(false == parentFile.exists()){
+        if (false == parentFile.exists()) {
             error = "Please select an existing input folder!\n";
         }
         sett.mOutputFolder = mOutputFolder.getText();
-        if(sett.mOutputFolder.length()<=0){
+        if (sett.mOutputFolder.length() <= 0) {
             error = "Please select an output folder!\n";
         }
         try {
@@ -303,10 +302,8 @@ public class EvColocDialog extends JFrame {
             String selectedPath = chooser.getSelectedFile().getAbsolutePath();
             textfieldInput.setText(selectedPath);
             if (null != textfieldOutput) {
-                if (textfieldOutput.getText().length() <= 0) {
-                    String outputPath = selectedPath + File.separator + "results";
-                    textfieldOutput.setText(outputPath);
-                }
+                String outputPath = selectedPath + File.separator + "results";
+                textfieldOutput.setText(outputPath);
             }
         }
     }
