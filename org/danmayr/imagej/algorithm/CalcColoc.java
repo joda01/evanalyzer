@@ -125,7 +125,7 @@ public class CalcColoc extends BasicAlgorithm {
             // Merge red and green channels
             MergeChannels(redChannel, greenChannel, imageFile, rm);
 
-            calculateColoc(imageFile.getName(), new File(fileNameResultRedChannel), new File(fileNameGreenChannel));
+            calculateColoc(imageFile.getName(),imageFile.getAbsolutePath(), new File(fileNameResultRedChannel), new File(fileNameGreenChannel));
 
         } else {
             IJ.log("No image loaded");
@@ -162,10 +162,11 @@ public class CalcColoc extends BasicAlgorithm {
      * Calculats the colocalization of the given image
      * 
      * @param filename
+     * @param directory
      * @param redChannelResult
      * @param greenChannelResult
      */
-    private void calculateColoc(String filename, File redChannelResult, File greenChannelResult) {
+    private void calculateColoc(String filename, String directory, File redChannelResult, File greenChannelResult) {
 
         try {
             String[] redFileRead = new String(
@@ -271,7 +272,7 @@ public class CalcColoc extends BasicAlgorithm {
             writer.close();
 
             try {
-                String retVal = filename + ";" + Double.toString(numberOfTooSmallParticles) + ";"
+                String retVal = filename +";"+ directory +";" + Double.toString(numberOfTooSmallParticles) + ";"
                         + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
                         + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
                         + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"

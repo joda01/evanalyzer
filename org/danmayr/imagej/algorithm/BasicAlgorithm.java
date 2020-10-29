@@ -49,7 +49,7 @@ abstract public class BasicAlgorithm extends Thread {
         // Prepare results folder
         prepareOutputFolder();
 
-        mAlloverStatistics = "file;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
+        mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
         mFoundFiles.clear();
         mDialog.setProgressBarMaxSize(mFoundFiles.size());
         mDialog.setProgressBarValue(0);
