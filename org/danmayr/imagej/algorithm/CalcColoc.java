@@ -71,10 +71,10 @@ public class CalcColoc extends BasicAlgorithm {
                 ImagePlus img = WindowManager.getImage(actTitle);
 
                 // Red Channel selection
-                if (true == actTitle.endsWith("C=" + Integer.toString(mAnalyseSettings.mRedChannel))) {
-                    redChannel = img;
-                } else {
+                if (true == actTitle.endsWith("C=" + Integer.toString(mAnalyseSettings.mGreenChannel))) {
                     greenChannel = img;
+                } else {
+                    redChannel = img;
                 }
             }
 

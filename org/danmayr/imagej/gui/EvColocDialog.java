@@ -25,7 +25,7 @@ public class EvColocDialog extends JFrame {
     private JButton mCancle;
     private JButton mClose;
     private JProgressBar mProgressbar = new JProgressBar();
-    private JComboBox mRedChannel;
+    private JComboBox mGreenChannel;
     private JComboBox mThersholdMethod;
     private CalcColoc mActAnalyzer = null;
     private JCheckBox mEnhanceContrastRed;
@@ -95,12 +95,12 @@ public class EvColocDialog extends JFrame {
         c.gridy = 4;
         this.add(new JLabel("Green channel:"), c);
 
-        String[] redChannel = { "0", "1" };
+        String[] channels = { "0", "1" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 4;
-        mRedChannel = new JComboBox<String>(redChannel);
-        this.add(mRedChannel, c);
+        mGreenChannel = new JComboBox<String>(channels);
+        this.add(mGreenChannel, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -252,7 +252,7 @@ public class EvColocDialog extends JFrame {
             error = "Please select an output folder!\n";
         }
         try {
-            sett.mRedChannel = Integer.parseInt(mRedChannel.getSelectedItem().toString());
+            sett.mGreenChannel = Integer.parseInt(mGreenChannel.getSelectedItem().toString());
         } catch (NumberFormatException ex) {
             error = "Wrong selected channel!\n";
         }
