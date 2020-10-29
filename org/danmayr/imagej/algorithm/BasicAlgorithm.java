@@ -31,8 +31,74 @@ abstract public class BasicAlgorithm extends Thread {
     ArrayList<File> mFoundFiles = new ArrayList<>();
     boolean mStopping = false;
 
+    protected class MeasurementStruct {
+        public MeasurementStruct(String dir){
+            mDirectory = dir;
+        }
+
+        public void add(
+            double numberOfTooSmallParticles,
+            double numberOfTooBigParticles,
+            double numberOfColocEvs,
+            double numberOfNotColocEvs,
+            double numberOfGfpOnly,
+            double numberOfCy3Only,
+            double numerOfFounfGfp,
+            double numberOfFoundCy3){
+
+            this.numberOfTooSmallParticles += numberOfTooSmallParticles;
+            this.numberOfTooBigParticles += numberOfTooBigParticles;
+            this.numberOfColocEvs += numberOfColocEvs;
+            this.numberOfNotColocEvs += numberOfNotColocEvs;
+            this.numberOfGfpOnly += numberOfGfpOnly;
+            this.numberOfCy3Only += numberOfCy3Only;
+            this.numerOfFounfGfp += numerOfFounfGfp;
+            this.numberOfFoundCy3 += numberOfFoundCy3;
+            mNumberOfValues++;
+        }
+
+
+        public void calcMean(){
+            if(mNumberOfValues != 0){
+                numberOfTooSmallParticles/=mNumberOfValues;
+                numberOfTooBigParticles/=mNumberOfValues;
+                numberOfColocEvs/=mNumberOfValues;
+                numberOfNotColocEvs/=mNumberOfValues;
+                numberOfGfpOnly/=mNumberOfValues;
+                numberOfCy3Only/=mNumberOfValues;
+                numerOfFounfGfp/=mNumberOfValues;
+                numberOfFoundCy3/=mNumberOfValues;
+                mNumberOfValues /=mNumberOfValues;
+                mNumberOfValues = 0;
+            }
+        }
+
+        public String mDirectory="";
+        public double numberOfTooSmallParticles= 0;
+        public double numberOfTooBigParticles= 0;
+        public double numberOfColocEvs= 0;
+        public double numberOfNotColocEvs= 0;
+        public double numberOfGfpOnly= 0;
+        public double numberOfCy3Only= 0;
+        public double numerOfFounfGfp= 0;
+        public double numberOfFoundCy3= 0;
+        public double mNumberOfValues = 0;
+
+        public String toString(){
+            //  mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
+            String retVal = "Mean" + ";" + mDirectory + ";" + Double.toString(numberOfTooSmallParticles) + ";"
+            + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
+            + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
+            + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
+            + Double.toString(numberOfFoundCy3);
+            return retVal;
+        }
+    }
+
     // Temporary storag
     protected String mAlloverStatistics;
+    protected TreeMap<String, MeasurementStruct> mMeanValues = new TreeMap<String, MeasurementStruct>();
+
 
     public BasicAlgorithm(EvColocDialog dialog, AnalyseSettings analyseSettings) {
         mAnalyseSettings = analyseSettings;
@@ -53,6 +119,7 @@ abstract public class BasicAlgorithm extends Thread {
         mFoundFiles.clear();
         mDialog.setProgressBarMaxSize(mFoundFiles.size());
         mDialog.setProgressBarValue(0);
+        mMeanValues.clear();
 
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
         walkThroughFiles();
@@ -120,6 +187,17 @@ abstract public class BasicAlgorithm extends Thread {
     private void writeAllOverStatisticToFile() {
         try {
             String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
+            
+            for (Map.Entry<String, MeasurementStruct> entry : mMeanValues.entrySet()) {
+                MeasurementStruct struct = entry.getValue();
+                
+                struct.calcMean();
+                String mean = struct.toString();
+                mAlloverStatistics = mAlloverStatistics + mean + "\n";
+            }            
+            
+            
+            
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
             writer.write(mAlloverStatistics);
             writer.close();

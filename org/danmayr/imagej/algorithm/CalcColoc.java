@@ -98,13 +98,11 @@ public class CalcColoc extends BasicAlgorithm {
             IJ.run(greenChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
             IJ.run(redChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
-
             // Calculate the sum of both images
             ImageCalculator ic = new ImageCalculator();
             RoiManager rm = new RoiManager();
             ImagePlus sumImage = ic.run("Max create", greenChannel, redChannel);
             IJ.run(sumImage, "Set Scale...", "distance=0 known=0 unit=pixel global");
-
 
             // Analyze particles
             IJ.run(sumImage, "Analyze Particles...", "clear add");
@@ -125,7 +123,8 @@ public class CalcColoc extends BasicAlgorithm {
             // Merge red and green channels
             MergeChannels(redChannel, greenChannel, imageFile, rm);
 
-            calculateColoc(imageFile.getName(),imageFile.getAbsolutePath(), new File(fileNameResultRedChannel), new File(fileNameGreenChannel));
+            calculateColoc(imageFile.getName(), imageFile.getParent(), new File(fileNameResultRedChannel),
+                    new File(fileNameGreenChannel));
 
         } else {
             IJ.log("No image loaded");
@@ -272,11 +271,20 @@ public class CalcColoc extends BasicAlgorithm {
             writer.close();
 
             try {
-                String retVal = filename +";"+ directory +";" + Double.toString(numberOfTooSmallParticles) + ";"
+                String retVal = filename + ";" + directory + ";" + Double.toString(numberOfTooSmallParticles) + ";"
                         + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
                         + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
                         + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
                         + Double.toString(numberOfFoundCy3) + "\n";
+
+                MeasurementStruct struct = mMeanValues.get(directory);
+                if (null == struct) {
+                    struct = new MeasurementStruct(directory);
+                    mMeanValues.put(directory, struct);
+                }
+                struct.add(numberOfTooSmallParticles, numberOfTooBigParticles, numberOfColocEvs, numberOfNotColocEvs,
+                        numberOfGfpOnly, numberOfCy3Only, numerOfFounfGfp, numberOfFoundCy3);
+
                 mAlloverStatistics += retVal;
             } catch (NumberFormatException ex) {
                 String retVal = filename + " ERROR\n";
@@ -287,4 +295,5 @@ public class CalcColoc extends BasicAlgorithm {
 
         }
     }
+
 }

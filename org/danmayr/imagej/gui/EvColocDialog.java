@@ -215,7 +215,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 13;
         c.gridwidth = 3;
-        this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.0.3", SwingConstants.RIGHT), c);
+        this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.1.0", SwingConstants.RIGHT), c);
 
         // Pack it
         setBackground(Color.WHITE);
