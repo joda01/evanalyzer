@@ -1,1 +1,0 @@
-file;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs
