@@ -22,6 +22,8 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
+
+import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 abstract public class BasicAlgorithm extends Thread {
@@ -98,6 +100,7 @@ abstract public class BasicAlgorithm extends Thread {
     // Temporary storag
     protected String mAlloverStatistics;
     protected TreeMap<String, MeasurementStruct> mMeanValues = new TreeMap<String, MeasurementStruct>();
+	private String convertCsvToXls;
 
 
     public BasicAlgorithm(EvColocDialog dialog, AnalyseSettings analyseSettings) {
@@ -187,6 +190,8 @@ abstract public class BasicAlgorithm extends Thread {
     private void writeAllOverStatisticToFile() {
         try {
             String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
+            String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+
             
             for (Map.Entry<String, MeasurementStruct> entry : mMeanValues.entrySet()) {
                 MeasurementStruct struct = entry.getValue();
@@ -201,6 +206,9 @@ abstract public class BasicAlgorithm extends Thread {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
             writer.write(mAlloverStatistics);
             writer.close();
+
+            convertCsvToXls = CsvToExcel.convertCsvToXls(outputfilenameXlsx, outputfilename);
+
         } catch (IOException ex) {
 
         }

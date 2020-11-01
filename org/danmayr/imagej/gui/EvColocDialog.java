@@ -7,6 +7,7 @@ import org.danmayr.imagej.algorithm.CalcColoc;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 
 ///
 ///
@@ -24,6 +25,7 @@ public class EvColocDialog extends JFrame {
     private JButton mbStart;
     private JButton mCancle;
     private JButton mClose;
+    private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
     private JComboBox mGreenChannel;
     private JComboBox mThersholdMethod;
@@ -170,6 +172,20 @@ public class EvColocDialog extends JFrame {
         mbStart.setText("Start");
         mMenu.add(mbStart);
 
+
+        mOpenResult = new JButton();
+        mOpenResult = new JButton(new ImageIcon(getClass().getResource("normal.png")));
+        mOpenResult.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                openResultsDialog();
+            }
+        });
+        mOpenResult.setText("Open result");
+        mOpenResult.setEnabled(false);
+        mMenu.add(mOpenResult);
+
+
         mCancle = new JButton();
         mCancle = new JButton(new ImageIcon(getClass().getResource("stop.png")));
         mCancle.addActionListener(new java.awt.event.ActionListener() {
@@ -215,7 +231,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 13;
         c.gridwidth = 3;
-        this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.1.0", SwingConstants.RIGHT), c);
+        this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.2.0", SwingConstants.RIGHT), c);
 
         // Pack it
         setBackground(Color.WHITE);
@@ -239,6 +255,7 @@ public class EvColocDialog extends JFrame {
     public void startAnalyse() {
         mbStart.setEnabled(false);
         mCancle.setEnabled(true);
+        mOpenResult.setEnabled(false);
         String error = "";
         AnalyseSettings sett = new AnalyseSettings();
         sett.mInputFolder = mInputFolder.getText();
@@ -288,7 +305,17 @@ public class EvColocDialog extends JFrame {
 
     public void finishedAnalyse() {
         mbStart.setEnabled(true);
+        mOpenResult.setEnabled(true);
         mCancle.setEnabled(false);
+    }
+
+    public void openResultsDialog() {
+        try {
+            Desktop.getDesktop().open(new File(mOutputFolder.getText()+ File.separator + "statistic_all_over_final.xlsx"));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public void OpenDirectoryChooser(JTextField textfieldInput, JTextField textfieldOutput) {
