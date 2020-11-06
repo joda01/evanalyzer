@@ -34,6 +34,7 @@ public class ImageProcessor extends Thread {
     boolean mStopping = false;
     ArrayList<File> mFoundFiles = new ArrayList<>();
     CalcColoc mAlgoCalcColoc;
+    CountEvs mAlgoCountEvs;
     AnalyseSettings mAnalyseSettings;
 
     
@@ -43,6 +44,8 @@ public class ImageProcessor extends Thread {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
         mAlgoCalcColoc = new CalcColoc(analyseSettings);
+        mAlgoCountEvs = new CountEvs(analyseSettings);
+
     }
 
     /**
@@ -77,7 +80,21 @@ public class ImageProcessor extends Thread {
         int value = 0;
         for (final File file : mFoundFiles) {
             value++;
-            mAlgoCalcColoc.analyseImage(file);
+            
+            IJ.run("Bio-Formats Importer", "open=[" + file.getAbsoluteFile().toString()
+            + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT series_1 c_begin_1=1 c_end_1=2 c_step_1=1");
+
+
+            String[] imageTitles = WindowManager.getImageTitles();
+            
+            if(imageTitles.length > 1){
+
+                mAlgoCalcColoc.analyseImage(file);
+
+            } else if(imageTitles.length > 0){
+                mAlgoCountEvs.analyseImage(file);
+            }
+
             closeAllWindow();
             WindowManager.closeAllWindows();
             mDialog.setProgressBarValue(value);

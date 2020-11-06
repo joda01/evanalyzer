@@ -47,32 +47,7 @@ abstract public class BasicAlgorithm {
     abstract public void analyseImage(File imageFile);
 
 
-    public void writeAllOverStatisticToFile() {
-        try {
-            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
-            String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
-
-            
-            for (Map.Entry<String, MeasurementStruct> entry : mMeanValues.entrySet()) {
-                MeasurementStruct struct = entry.getValue();
-                
-                struct.calcMean();
-                String mean = struct.toString();
-                mAlloverStatistics = mAlloverStatistics + mean + "\n";
-            }            
-            
-            
-            
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
-            writer.write(mAlloverStatistics);
-            writer.close();
-
-            convertCsvToXls = CsvToExcel.convertCsvToXls(outputfilenameXlsx, outputfilename);
-
-        } catch (IOException ex) {
-
-        }
-    }
+    abstract public void writeAllOverStatisticToFile();
 
 
     protected void EnhanceContrast(ImagePlus img) {

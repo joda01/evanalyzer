@@ -22,6 +22,8 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
+
+import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class CalcColoc extends BasicAlgorithm {
@@ -120,9 +122,6 @@ public class CalcColoc extends BasicAlgorithm {
      */
     @Override
     public void analyseImage(File imageFile) {
-        IJ.run("Bio-Formats Importer", "open=[" + imageFile.getAbsoluteFile().toString()
-                + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT series_1 c_begin_1=1 c_end_1=2 c_step_1=1");
-
         // Remove scale
 
         // List all images
@@ -342,6 +341,33 @@ public class CalcColoc extends BasicAlgorithm {
                 String retVal = filename + " ERROR\n";
                 mAlloverStatistics += retVal;
             }
+
+        } catch (IOException ex) {
+
+        }
+    }
+
+    public void writeAllOverStatisticToFile() {
+        try {
+            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
+            String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+
+            
+            for (Map.Entry<String, MeasurementStructColoc> entry : mMeanValues.entrySet()) {
+                MeasurementStruct struct = entry.getValue();
+                
+                struct.calcMean();
+                String mean = struct.toString();
+                mAlloverStatistics = mAlloverStatistics + mean + "\n";
+            }            
+            
+            
+            
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
+            writer.write(mAlloverStatistics);
+            writer.close();
+
+            String convertCsvToXls = CsvToExcel.convertCsvToXls(outputfilenameXlsx, outputfilename);
 
         } catch (IOException ex) {
 
