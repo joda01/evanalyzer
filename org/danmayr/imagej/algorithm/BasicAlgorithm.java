@@ -26,168 +26,28 @@ import java.awt.*;
 import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
-abstract public class BasicAlgorithm extends Thread {
-    // PlugIn mPlugin;
-    AnalyseSettings mAnalyseSettings;
-    EvColocDialog mDialog;
-    ArrayList<File> mFoundFiles = new ArrayList<>();
-    boolean mStopping = false;
-
-    protected class MeasurementStruct {
-        public MeasurementStruct(String dir){
-            mDirectory = dir;
-        }
-
-        public void add(
-            double numberOfTooSmallParticles,
-            double numberOfTooBigParticles,
-            double numberOfColocEvs,
-            double numberOfNotColocEvs,
-            double numberOfGfpOnly,
-            double numberOfCy3Only,
-            double numerOfFounfGfp,
-            double numberOfFoundCy3){
-
-            this.numberOfTooSmallParticles += numberOfTooSmallParticles;
-            this.numberOfTooBigParticles += numberOfTooBigParticles;
-            this.numberOfColocEvs += numberOfColocEvs;
-            this.numberOfNotColocEvs += numberOfNotColocEvs;
-            this.numberOfGfpOnly += numberOfGfpOnly;
-            this.numberOfCy3Only += numberOfCy3Only;
-            this.numerOfFounfGfp += numerOfFounfGfp;
-            this.numberOfFoundCy3 += numberOfFoundCy3;
-            mNumberOfValues++;
-        }
-
-
-        public void calcMean(){
-            if(mNumberOfValues != 0){
-                numberOfTooSmallParticles/=mNumberOfValues;
-                numberOfTooBigParticles/=mNumberOfValues;
-                numberOfColocEvs/=mNumberOfValues;
-                numberOfNotColocEvs/=mNumberOfValues;
-                numberOfGfpOnly/=mNumberOfValues;
-                numberOfCy3Only/=mNumberOfValues;
-                numerOfFounfGfp/=mNumberOfValues;
-                numberOfFoundCy3/=mNumberOfValues;
-                mNumberOfValues /=mNumberOfValues;
-                mNumberOfValues = 0;
-            }
-        }
-
-        public String mDirectory="";
-        public double numberOfTooSmallParticles= 0;
-        public double numberOfTooBigParticles= 0;
-        public double numberOfColocEvs= 0;
-        public double numberOfNotColocEvs= 0;
-        public double numberOfGfpOnly= 0;
-        public double numberOfCy3Only= 0;
-        public double numerOfFounfGfp= 0;
-        public double numberOfFoundCy3= 0;
-        public double mNumberOfValues = 0;
-
-        public String toString(){
-            //  mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
-            String retVal = "Mean" + ";" + mDirectory + ";" + Double.toString(numberOfTooSmallParticles) + ";"
-            + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
-            + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
-            + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
-            + Double.toString(numberOfFoundCy3);
-            return retVal;
-        }
+abstract public class BasicAlgorithm {
+    
+    protected interface MeasurementStruct{
+        public void calcMean();
+        public String toString();
     }
+    
+    AnalyseSettings mAnalyseSettings;
 
     // Temporary storag
     protected String mAlloverStatistics;
-    protected TreeMap<String, MeasurementStruct> mMeanValues = new TreeMap<String, MeasurementStruct>();
 	private String convertCsvToXls;
 
 
-    public BasicAlgorithm(EvColocDialog dialog, AnalyseSettings analyseSettings) {
+    public BasicAlgorithm(AnalyseSettings analyseSettings) {
         mAnalyseSettings = analyseSettings;
-        mDialog = dialog;
     }
 
-    abstract protected void analyseImage(File imageFile);
+    abstract public void analyseImage(File imageFile);
 
-    /**
-     * Start the analyse thread
-     */
-    public void run() {
 
-        // Prepare results folder
-        prepareOutputFolder();
-
-        mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
-        mFoundFiles.clear();
-        mDialog.setProgressBarMaxSize(mFoundFiles.size());
-        mDialog.setProgressBarValue(0);
-        mMeanValues.clear();
-
-        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
-        walkThroughFiles();
-        writeAllOverStatisticToFile();
-        mDialog.finishedAnalyse();
-    }
-
-    /**
-     * Cancle the process after the actual image has been finished
-     */
-    public void cancle() {
-        mStopping = true;
-    }
-
-    /**
-     * List all images in directory and subdirectory
-     * 
-     * @param files
-     */
-    private void findFiles(File[] files) {
-        for (File file : files) {
-            if (file.isDirectory()) {
-                findFiles(file.listFiles());
-            } else if (file.getName().endsWith(".vsi")) {
-                mFoundFiles.add(file);
-                mDialog.setProgressBarMaxSize(mFoundFiles.size());
-            }
-        }
-    }
-
-    /**
-     * Walk through all found files and analyse each image after the other
-     */
-    private void walkThroughFiles() {
-        int value = 0;
-        for (File file : mFoundFiles) {
-            value++;
-            analyseImage(file);
-            closeAllWindow();
-            WindowManager.closeAllWindows();
-            mDialog.setProgressBarValue(value);
-            if (true == mStopping) {
-                break;
-            }
-        }
-    }
-
-    private void prepareOutputFolder() {
-        File parentFile = new File(mAnalyseSettings.mOutputFolder);
-        if (parentFile != null && !parentFile.exists()) {
-            parentFile.mkdirs();
-        }
-        IJ.log(parentFile.getAbsolutePath());
-    }
-
-    private void closeAllWindow() {
-        ImagePlus img;
-        while (null != WindowManager.getCurrentImage()) {
-            img = WindowManager.getCurrentImage();
-            img.changes = false;
-            img.close();
-        }
-    }
-
-    private void writeAllOverStatisticToFile() {
+    public void writeAllOverStatisticToFile() {
         try {
             String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
             String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
@@ -212,5 +72,36 @@ abstract public class BasicAlgorithm extends Thread {
         } catch (IOException ex) {
 
         }
+    }
+
+
+    protected void EnhanceContrast(ImagePlus img) {
+        IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
+    }
+
+    protected void ApplyFilter(ImagePlus img) {
+        IJ.run(img, "Subtract Background...", "rolling=4 sliding");
+        IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+    }
+
+    protected void ApplyTherhold(ImagePlus imp) {
+        IJ.setAutoThreshold(imp, mAnalyseSettings.mThersholdMethod + " dark");
+        Prefs.blackBackground = true;
+        IJ.run(imp, "Convert to Mask", "");
+    }
+
+    protected void MergeChannels(ImagePlus red, ImagePlus green, File imageFile, RoiManager rm) {
+
+        IJ.run("Merge Channels...", "c1=[" + red.getTitle() + "] c2=[" + green.getTitle() + "] keep");
+        ImagePlus imp = WindowManager.getImage("RGB");
+        IJ.saveAs(imp, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged.jpg");
+
+        SaveImageWithOverlay(imp,imageFile,rm);
+    }
+
+    protected void SaveImageWithOverlay(ImagePlus image, File imageFile, RoiManager rm){
+        rm.runCommand(image, "Show All");
+        image = image.flatten();
+        IJ.saveAs(image, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_overlay.jpg");
     }
 }

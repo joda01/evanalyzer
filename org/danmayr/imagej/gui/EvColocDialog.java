@@ -2,8 +2,7 @@ package org.danmayr.imagej.gui;
 
 import javax.swing.*;
 
-import org.danmayr.imagej.algorithm.AnalyseSettings;
-import org.danmayr.imagej.algorithm.CalcColoc;
+import org.danmayr.imagej.algorithm.*;
 
 import java.awt.*;
 import java.io.File;
@@ -29,7 +28,7 @@ public class EvColocDialog extends JFrame {
     private JProgressBar mProgressbar = new JProgressBar();
     private JComboBox mGreenChannel;
     private JComboBox mThersholdMethod;
-    private CalcColoc mActAnalyzer = null;
+    private ImageProcessor mActAnalyzer = null;
     private JCheckBox mEnhanceContrastRed;
     private JCheckBox mEnhanceContrastGreen;
     private JPanel mMenu;
@@ -287,7 +286,7 @@ public class EvColocDialog extends JFrame {
         }
 
         if (error.length() <= 0) {
-            mActAnalyzer = new CalcColoc(this, sett);
+            mActAnalyzer = new ImageProcessor(this, sett);
             mActAnalyzer.start();
         } else {
             JOptionPane.showMessageDialog(new JFrame(), error, "Dialog", JOptionPane.WARNING_MESSAGE);

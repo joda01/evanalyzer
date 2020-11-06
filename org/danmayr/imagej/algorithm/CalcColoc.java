@@ -25,6 +25,71 @@ import java.awt.*;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class CalcColoc extends BasicAlgorithm {
+    protected class MeasurementStructColoc implements MeasurementStruct  {
+        public MeasurementStructColoc(String dir){
+            mDirectory = dir;
+        }
+
+        public void add(
+            double numberOfTooSmallParticles,
+            double numberOfTooBigParticles,
+            double numberOfColocEvs,
+            double numberOfNotColocEvs,
+            double numberOfGfpOnly,
+            double numberOfCy3Only,
+            double numerOfFounfGfp,
+            double numberOfFoundCy3){
+
+            this.numberOfTooSmallParticles += numberOfTooSmallParticles;
+            this.numberOfTooBigParticles += numberOfTooBigParticles;
+            this.numberOfColocEvs += numberOfColocEvs;
+            this.numberOfNotColocEvs += numberOfNotColocEvs;
+            this.numberOfGfpOnly += numberOfGfpOnly;
+            this.numberOfCy3Only += numberOfCy3Only;
+            this.numerOfFounfGfp += numerOfFounfGfp;
+            this.numberOfFoundCy3 += numberOfFoundCy3;
+            mNumberOfValues++;
+        }
+
+
+        public void calcMean(){
+            if(mNumberOfValues != 0){
+                numberOfTooSmallParticles/=mNumberOfValues;
+                numberOfTooBigParticles/=mNumberOfValues;
+                numberOfColocEvs/=mNumberOfValues;
+                numberOfNotColocEvs/=mNumberOfValues;
+                numberOfGfpOnly/=mNumberOfValues;
+                numberOfCy3Only/=mNumberOfValues;
+                numerOfFounfGfp/=mNumberOfValues;
+                numberOfFoundCy3/=mNumberOfValues;
+                mNumberOfValues /=mNumberOfValues;
+                mNumberOfValues = 0;
+            }
+        }
+
+        public String mDirectory="";
+        public double numberOfTooSmallParticles= 0;
+        public double numberOfTooBigParticles= 0;
+        public double numberOfColocEvs= 0;
+        public double numberOfNotColocEvs= 0;
+        public double numberOfGfpOnly= 0;
+        public double numberOfCy3Only= 0;
+        public double numerOfFounfGfp= 0;
+        public double numberOfFoundCy3= 0;
+        public double mNumberOfValues = 0;
+
+        public String toString(){
+            //  mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
+            String retVal = "Mean" + ";" + mDirectory + ";" + Double.toString(numberOfTooSmallParticles) + ";"
+            + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
+            + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
+            + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
+            + Double.toString(numberOfFoundCy3);
+            return retVal;
+        }
+    }
+
+
 
     // Constants for result index
     static int RESULT_FILE_IDX_AREA_SIZE = 1;
@@ -33,14 +98,19 @@ public class CalcColoc extends BasicAlgorithm {
     // Constants for calcuation
     static int MAX_THERSHOLD = 255;
 
+    protected TreeMap<String, MeasurementStructColoc> mMeanValues = new TreeMap<String, MeasurementStructColoc>();
+
+
     /**
      * Creates a new analysing thread
      * 
      * @param dialog
      * @param analyseSettings
      */
-    public CalcColoc(EvColocDialog dialog, AnalyseSettings analyseSettings) {
-        super(dialog, analyseSettings);
+    public CalcColoc(AnalyseSettings analyseSettings) {
+        super(analyseSettings);
+        mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
+
     }
 
     /**
@@ -49,7 +119,7 @@ public class CalcColoc extends BasicAlgorithm {
      * @param imageFile
      */
     @Override
-    protected void analyseImage(File imageFile) {
+    public void analyseImage(File imageFile) {
         IJ.run("Bio-Formats Importer", "open=[" + imageFile.getAbsoluteFile().toString()
                 + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT series_1 c_begin_1=1 c_end_1=2 c_step_1=1");
 
@@ -84,6 +154,7 @@ public class CalcColoc extends BasicAlgorithm {
                 }
                 ApplyFilter(redChannel);
                 ApplyTherhold(redChannel);
+                IJ.run(redChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
             }
 
             // Process green channel
@@ -93,36 +164,42 @@ public class CalcColoc extends BasicAlgorithm {
                 }
                 ApplyFilter(greenChannel);
                 ApplyTherhold(greenChannel);
+                IJ.run(greenChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
             }
 
-            IJ.run(greenChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
-            IJ.run(redChannel, "Set Scale...", "distance=0 known=0 unit=pixel global");
-
-            // Calculate the sum of both images
-            ImageCalculator ic = new ImageCalculator();
             RoiManager rm = new RoiManager();
-            ImagePlus sumImage = ic.run("Max create", greenChannel, redChannel);
-            IJ.run(sumImage, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
-            // Analyze particles
-            IJ.run(sumImage, "Analyze Particles...", "clear add");
+            if(null != redChannel && null != greenChannel){
+                // Calculate the sum of both images
+                ImageCalculator ic = new ImageCalculator();
+                ImagePlus sumImage = ic.run("Max create", greenChannel, redChannel);
+                IJ.run(sumImage, "Set Scale...", "distance=0 known=0 unit=pixel global");
+                // Merge red and green channels
+                MergeChannels(redChannel, greenChannel, imageFile, rm);
+                // Analyze particles
+                IJ.run(sumImage, "Analyze Particles...", "clear add");
+            }
 
-            // Measure particles
-            IJ.run("Clear Results", "");
-            rm.runCommand(redChannel, "Measure");
-            String fileNameResultRedChannel = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()
-                    + "_cye.csv";
-            IJ.saveAs("Results", fileNameResultRedChannel);
+            String fileNameResultRedChannel = "";
+            if (null != redChannel){
+                // Measure particles
+                IJ.run("Clear Results", "");
+                rm.runCommand(redChannel, "Measure");
+                fileNameResultRedChannel = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()
+                        + "_cye.csv";
+                IJ.saveAs("Results", fileNameResultRedChannel);
+            }
 
-            IJ.run("Clear Results", "");
-            rm.runCommand(greenChannel, "Measure");
-            String fileNameGreenChannel = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()
-                    + "_gfp.csv";
-            IJ.saveAs("Results", fileNameGreenChannel);
+            String fileNameGreenChannel="";
+            if (null != greenChannel){
+                IJ.run("Clear Results", "");
+                rm.runCommand(greenChannel, "Measure");
+                fileNameGreenChannel = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()
+                        + "_gfp.csv";
+                IJ.saveAs("Results", fileNameGreenChannel);
+            }
 
-            // Merge red and green channels
-            MergeChannels(redChannel, greenChannel, imageFile, rm);
-
+            
             calculateColoc(imageFile.getName(), imageFile.getParent(), new File(fileNameResultRedChannel),
                     new File(fileNameGreenChannel));
 
@@ -131,31 +208,6 @@ public class CalcColoc extends BasicAlgorithm {
         }
     }
 
-    private void EnhanceContrast(ImagePlus img) {
-        IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
-    }
-
-    private void ApplyFilter(ImagePlus img) {
-        IJ.run(img, "Subtract Background...", "rolling=4 sliding");
-        IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
-    }
-
-    private void ApplyTherhold(ImagePlus imp) {
-        IJ.setAutoThreshold(imp, mAnalyseSettings.mThersholdMethod + " dark");
-        Prefs.blackBackground = true;
-        IJ.run(imp, "Convert to Mask", "");
-    }
-
-    private void MergeChannels(ImagePlus red, ImagePlus green, File imageFile, RoiManager rm) {
-
-        IJ.run("Merge Channels...", "c1=[" + red.getTitle() + "] c2=[" + green.getTitle() + "] keep");
-        ImagePlus imp = WindowManager.getImage("RGB");
-        IJ.saveAs(imp, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged.jpg");
-        rm.runCommand(imp, "Show All");
-        imp = imp.flatten();
-        IJ.saveAs(imp, "Jpeg",
-                mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged_overlay.jpg");
-    }
 
     /**
      * Calculats the colocalization of the given image
@@ -277,9 +329,9 @@ public class CalcColoc extends BasicAlgorithm {
                         + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
                         + Double.toString(numberOfFoundCy3) + "\n";
 
-                MeasurementStruct struct = mMeanValues.get(directory);
+                MeasurementStructColoc struct = (MeasurementStructColoc)mMeanValues.get(directory);
                 if (null == struct) {
-                    struct = new MeasurementStruct(directory);
+                    struct = new MeasurementStructColoc(directory);
                     mMeanValues.put(directory, struct);
                 }
                 struct.add(numberOfTooSmallParticles, numberOfTooBigParticles, numberOfColocEvs, numberOfNotColocEvs,
