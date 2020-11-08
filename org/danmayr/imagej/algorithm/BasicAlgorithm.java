@@ -47,7 +47,7 @@ abstract public class BasicAlgorithm {
     abstract public void analyseImage(File imageFile);
 
 
-    abstract public void writeAllOverStatisticToFile();
+    abstract public String writeAllOverStatisticToFile(String filename);
 
 
     protected void EnhanceContrast(ImagePlus img) {
@@ -69,12 +69,13 @@ abstract public class BasicAlgorithm {
 
         IJ.run("Merge Channels...", "c1=[" + red.getTitle() + "] c2=[" + green.getTitle() + "] keep");
         ImagePlus imp = WindowManager.getImage("RGB");
-        IJ.saveAs(imp, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged.jpg");
 
         SaveImageWithOverlay(imp,imageFile,rm);
     }
 
     protected void SaveImageWithOverlay(ImagePlus image, File imageFile, RoiManager rm){
+        IJ.saveAs(image, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged.jpg");
+        
         rm.runCommand(image, "Show All");
         image = image.flatten();
         IJ.saveAs(image, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_overlay.jpg");

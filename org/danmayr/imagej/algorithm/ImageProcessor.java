@@ -27,18 +27,14 @@ import org.danmayr.imagej.algorithm.CalcColoc;
 import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
-
 public class ImageProcessor extends Thread {
-    
+
     EvColocDialog mDialog;
     boolean mStopping = false;
     ArrayList<File> mFoundFiles = new ArrayList<>();
     CalcColoc mAlgoCalcColoc;
     CountEvs mAlgoCountEvs;
     AnalyseSettings mAnalyseSettings;
-
-    
-
 
     public ImageProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
@@ -62,7 +58,18 @@ public class ImageProcessor extends Thread {
 
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
         walkThroughFiles();
-        mAlgoCalcColoc.writeAllOverStatisticToFile();
+
+        String outColoc = mAlgoCalcColoc.writeAllOverStatisticToFile("coloc");
+        String outCount = mAlgoCountEvs.writeAllOverStatisticToFile("count");
+
+        String inputFiles[] = {outColoc,outCount};
+
+        String xlsxResult = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+
+
+        String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, inputFiles);
+
+
         mDialog.finishedAnalyse();
     }
 
@@ -80,18 +87,18 @@ public class ImageProcessor extends Thread {
         int value = 0;
         for (final File file : mFoundFiles) {
             value++;
-            
-            IJ.run("Bio-Formats Importer", "open=[" + file.getAbsoluteFile().toString()
-            + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT series_1 c_begin_1=1 c_end_1=2 c_step_1=1");
 
+            IJ.run("Bio-Formats Importer", "open=[" + file.getAbsoluteFile().toString()
+                    + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
+                    + mAnalyseSettings.mSelectedSeries + " c_begin_1=1 c_end_1=2 c_step_1=1");
 
             String[] imageTitles = WindowManager.getImageTitles();
-            
-            if(imageTitles.length > 1){
+
+            if (imageTitles.length > 1) {
 
                 mAlgoCalcColoc.analyseImage(file);
 
-            } else if(imageTitles.length > 0){
+            } else if (imageTitles.length > 0) {
                 mAlgoCountEvs.analyseImage(file);
             }
 
@@ -136,6 +143,5 @@ public class ImageProcessor extends Thread {
             img.close();
         }
     }
-
 
 }

@@ -9,5 +9,6 @@ public class AnalyseSettings {
     public boolean mEnhanceContrastForRed;
     public int mMinParticleSize;
     public int mMaxParticleSize;
+    public String mSelectedSeries;      // series_1
 
 }

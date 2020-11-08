@@ -20,6 +20,7 @@ import javax.swing.JWindow;
 
 import ij.plugin.*;
 import ij.plugin.frame.*;
+import ij.plugin.ImageInfo;
 
 import java.awt.*;
 
@@ -27,20 +28,14 @@ import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class CalcColoc extends BasicAlgorithm {
-    protected class MeasurementStructColoc implements MeasurementStruct  {
-        public MeasurementStructColoc(String dir){
+    protected class MeasurementStructColoc implements MeasurementStruct {
+        public MeasurementStructColoc(String dir) {
             mDirectory = dir;
         }
 
-        public void add(
-            double numberOfTooSmallParticles,
-            double numberOfTooBigParticles,
-            double numberOfColocEvs,
-            double numberOfNotColocEvs,
-            double numberOfGfpOnly,
-            double numberOfCy3Only,
-            double numerOfFounfGfp,
-            double numberOfFoundCy3){
+        public void add(double numberOfTooSmallParticles, double numberOfTooBigParticles, double numberOfColocEvs,
+                double numberOfNotColocEvs, double numberOfGfpOnly, double numberOfCy3Only, double numerOfFounfGfp,
+                double numberOfFoundCy3) {
 
             this.numberOfTooSmallParticles += numberOfTooSmallParticles;
             this.numberOfTooBigParticles += numberOfTooBigParticles;
@@ -53,45 +48,43 @@ public class CalcColoc extends BasicAlgorithm {
             mNumberOfValues++;
         }
 
-
-        public void calcMean(){
-            if(mNumberOfValues != 0){
-                numberOfTooSmallParticles/=mNumberOfValues;
-                numberOfTooBigParticles/=mNumberOfValues;
-                numberOfColocEvs/=mNumberOfValues;
-                numberOfNotColocEvs/=mNumberOfValues;
-                numberOfGfpOnly/=mNumberOfValues;
-                numberOfCy3Only/=mNumberOfValues;
-                numerOfFounfGfp/=mNumberOfValues;
-                numberOfFoundCy3/=mNumberOfValues;
-                mNumberOfValues /=mNumberOfValues;
+        public void calcMean() {
+            if (mNumberOfValues != 0) {
+                numberOfTooSmallParticles /= mNumberOfValues;
+                numberOfTooBigParticles /= mNumberOfValues;
+                numberOfColocEvs /= mNumberOfValues;
+                numberOfNotColocEvs /= mNumberOfValues;
+                numberOfGfpOnly /= mNumberOfValues;
+                numberOfCy3Only /= mNumberOfValues;
+                numerOfFounfGfp /= mNumberOfValues;
+                numberOfFoundCy3 /= mNumberOfValues;
+                mNumberOfValues /= mNumberOfValues;
                 mNumberOfValues = 0;
             }
         }
 
-        public String mDirectory="";
-        public double numberOfTooSmallParticles= 0;
-        public double numberOfTooBigParticles= 0;
-        public double numberOfColocEvs= 0;
-        public double numberOfNotColocEvs= 0;
-        public double numberOfGfpOnly= 0;
-        public double numberOfCy3Only= 0;
-        public double numerOfFounfGfp= 0;
-        public double numberOfFoundCy3= 0;
+        public String mDirectory = "";
+        public double numberOfTooSmallParticles = 0;
+        public double numberOfTooBigParticles = 0;
+        public double numberOfColocEvs = 0;
+        public double numberOfNotColocEvs = 0;
+        public double numberOfGfpOnly = 0;
+        public double numberOfCy3Only = 0;
+        public double numerOfFounfGfp = 0;
+        public double numberOfFoundCy3 = 0;
         public double mNumberOfValues = 0;
 
-        public String toString(){
-            //  mAlloverStatistics = "file;directory;small;big;coloc;no coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
+        public String toString() {
+            // mAlloverStatistics = "file;directory;small;big;coloc;no
+            // coloc;GfpOnly;Cy3Only;GfpEvs;Cy3Evs\n";
             String retVal = "Mean" + ";" + mDirectory + ";" + Double.toString(numberOfTooSmallParticles) + ";"
-            + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
-            + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
-            + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
-            + Double.toString(numberOfFoundCy3);
+                    + Double.toString(numberOfTooBigParticles) + ";" + Double.toString(numberOfColocEvs) + ";"
+                    + Double.toString(numberOfNotColocEvs) + ";" + Double.toString(numberOfGfpOnly) + ";"
+                    + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
+                    + Double.toString(numberOfFoundCy3);
             return retVal;
         }
     }
-
-
 
     // Constants for result index
     static int RESULT_FILE_IDX_AREA_SIZE = 1;
@@ -101,7 +94,6 @@ public class CalcColoc extends BasicAlgorithm {
     static int MAX_THERSHOLD = 255;
 
     protected TreeMap<String, MeasurementStructColoc> mMeanValues = new TreeMap<String, MeasurementStructColoc>();
-
 
     /**
      * Creates a new analysing thread
@@ -138,6 +130,9 @@ public class CalcColoc extends BasicAlgorithm {
                 String actTitle = imageTitles[i];
                 ImagePlus img = WindowManager.getImage(actTitle);
 
+                ImageInfo info = new ImageInfo();
+                String imgInfo = info.getImageInfo(img);
+                IJ.log(imgInfo);
                 // Red Channel selection
                 if (true == actTitle.endsWith("C=" + Integer.toString(mAnalyseSettings.mGreenChannel))) {
                     greenChannel = img;
@@ -168,7 +163,7 @@ public class CalcColoc extends BasicAlgorithm {
 
             RoiManager rm = new RoiManager();
 
-            if(null != redChannel && null != greenChannel){
+            if (null != redChannel && null != greenChannel) {
                 // Calculate the sum of both images
                 ImageCalculator ic = new ImageCalculator();
                 ImagePlus sumImage = ic.run("Max create", greenChannel, redChannel);
@@ -180,7 +175,7 @@ public class CalcColoc extends BasicAlgorithm {
             }
 
             String fileNameResultRedChannel = "";
-            if (null != redChannel){
+            if (null != redChannel) {
                 // Measure particles
                 IJ.run("Clear Results", "");
                 rm.runCommand(redChannel, "Measure");
@@ -189,8 +184,8 @@ public class CalcColoc extends BasicAlgorithm {
                 IJ.saveAs("Results", fileNameResultRedChannel);
             }
 
-            String fileNameGreenChannel="";
-            if (null != greenChannel){
+            String fileNameGreenChannel = "";
+            if (null != greenChannel) {
                 IJ.run("Clear Results", "");
                 rm.runCommand(greenChannel, "Measure");
                 fileNameGreenChannel = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()
@@ -198,7 +193,6 @@ public class CalcColoc extends BasicAlgorithm {
                 IJ.saveAs("Results", fileNameGreenChannel);
             }
 
-            
             calculateColoc(imageFile.getName(), imageFile.getParent(), new File(fileNameResultRedChannel),
                     new File(fileNameGreenChannel));
 
@@ -206,7 +200,6 @@ public class CalcColoc extends BasicAlgorithm {
             IJ.log("No image loaded");
         }
     }
-
 
     /**
      * Calculats the colocalization of the given image
@@ -328,7 +321,7 @@ public class CalcColoc extends BasicAlgorithm {
                         + Double.toString(numberOfCy3Only) + ";" + Double.toString(numerOfFounfGfp) + ";"
                         + Double.toString(numberOfFoundCy3) + "\n";
 
-                MeasurementStructColoc struct = (MeasurementStructColoc)mMeanValues.get(directory);
+                MeasurementStructColoc struct = (MeasurementStructColoc) mMeanValues.get(directory);
                 if (null == struct) {
                     struct = new MeasurementStructColoc(directory);
                     mMeanValues.put(directory, struct);
@@ -347,31 +340,29 @@ public class CalcColoc extends BasicAlgorithm {
         }
     }
 
-    public void writeAllOverStatisticToFile() {
+    public String writeAllOverStatisticToFile(String filename) {
+        String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final_"
+        + filename + ".txt";
         try {
-            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
-            String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
-
-            
+           
             for (Map.Entry<String, MeasurementStructColoc> entry : mMeanValues.entrySet()) {
                 MeasurementStruct struct = entry.getValue();
-                
+
                 struct.calcMean();
                 String mean = struct.toString();
                 mAlloverStatistics = mAlloverStatistics + mean + "\n";
-            }            
-            
-            
-            
+            }
+
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputfilename));
             writer.write(mAlloverStatistics);
             writer.close();
 
-            String convertCsvToXls = CsvToExcel.convertCsvToXls(outputfilenameXlsx, outputfilename);
 
         } catch (IOException ex) {
 
         }
+
+        return outputfilename;
     }
 
 }

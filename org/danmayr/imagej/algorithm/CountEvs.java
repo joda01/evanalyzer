@@ -87,6 +87,7 @@ public class CountEvs extends BasicAlgorithm {
      */
     public CountEvs(AnalyseSettings analyseSettings) {
         super(analyseSettings);
+        mAlloverStatistics = "file;directory;small;big;count\n";
     }
 
     /**
@@ -235,11 +236,10 @@ public class CountEvs extends BasicAlgorithm {
         }
     }
 
-    public void writeAllOverStatisticToFile() {
-        try {
-            String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final.txt";
-            String outputfilenameXlsx = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+    public String writeAllOverStatisticToFile(String filename) {
+        String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final_"+filename+".txt";
 
+        try {
             
             for (Map.Entry<String, MeasurementStructCount> entry : mMeanValues.entrySet()) {
                 MeasurementStruct struct = entry.getValue();
@@ -255,11 +255,11 @@ public class CountEvs extends BasicAlgorithm {
             writer.write(mAlloverStatistics);
             writer.close();
 
-            String convertCsvToXls = CsvToExcel.convertCsvToXls(outputfilenameXlsx, outputfilename);
-
         } catch (IOException ex) {
 
         }
+
+        return outputfilename;
     }
 
 }

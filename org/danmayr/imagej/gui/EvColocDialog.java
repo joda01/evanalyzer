@@ -28,6 +28,7 @@ public class EvColocDialog extends JFrame {
     private JProgressBar mProgressbar = new JProgressBar();
     private JComboBox mGreenChannel;
     private JComboBox mThersholdMethod;
+    private JComboBox mSeries;
     private ImageProcessor mActAnalyzer = null;
     private JCheckBox mEnhanceContrastRed;
     private JCheckBox mEnhanceContrastGreen;
@@ -94,32 +95,45 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 4;
+        this.add(new JLabel("Series to import:"), c);
+
+        String[] series = { "series_1", "series_2" };
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        c.gridy = 4;
+        mSeries = new JComboBox<String>(series);
+        this.add(mSeries, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 5;
         this.add(new JLabel("Green channel:"), c);
 
         String[] channels = { "0", "1" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 4;
+        c.gridy = 5;
         mGreenChannel = new JComboBox<String>(channels);
         this.add(mGreenChannel, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 5;
+        c.gridy = 6;
         this.add(new JLabel("Thersholding:"), c);
 
         String[] thersholdAlgo = { "Li", "MaxEntropy" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 5;
+        c.gridy = 6;
         mThersholdMethod = new JComboBox<String>(thersholdAlgo);
         this.add(mThersholdMethod, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 6;
+        c.gridy = 7;
         c.gridwidth = 2;
         mEnhanceContrastGreen = new JCheckBox("Enhance contrast for green channel");
         mEnhanceContrastGreen.setContentAreaFilled(false);
@@ -127,7 +141,7 @@ public class EvColocDialog extends JFrame {
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 7;
+        c.gridy = 8;
         c.gridwidth = 2;
         mEnhanceContrastRed = new JCheckBox("Enhance contrast for red channel");
         mEnhanceContrastRed.setContentAreaFilled(false);
@@ -136,24 +150,24 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 8;
+        c.gridy = 9;
         c.gridwidth = 1;
         this.add(new JLabel("Min particle size (Square Pixel):"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 8;
+        c.gridy = 9;
         this.add(mMinParticleSize, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 9;
+        c.gridy = 10;
         this.add(new JLabel("Max particle size (Square Pixel):"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 9;
+        c.gridy = 10;
         this.add(mMaxParticleSize, c);
 
         ////////////////////////////////////////////////////
@@ -171,7 +185,6 @@ public class EvColocDialog extends JFrame {
         mbStart.setText("Start");
         mMenu.add(mbStart);
 
-
         mOpenResult = new JButton();
         mOpenResult = new JButton(new ImageIcon(getClass().getResource("normal.png")));
         mOpenResult.addActionListener(new java.awt.event.ActionListener() {
@@ -183,7 +196,6 @@ public class EvColocDialog extends JFrame {
         mOpenResult.setText("Open result");
         mOpenResult.setEnabled(false);
         mMenu.add(mOpenResult);
-
 
         mCancle = new JButton();
         mCancle = new JButton(new ImageIcon(getClass().getResource("stop.png")));
@@ -209,13 +221,13 @@ public class EvColocDialog extends JFrame {
         mMenu.add(mClose);
 
         c.gridx = 0;
-        c.gridy = 10;
+        c.gridy = 11;
         c.gridwidth = 3;
         this.add(mMenu, c);
 
         ////////////////////////////////////////////////////
         c.gridx = 0;
-        c.gridy = 11;
+        c.gridy = 12;
         c.gridwidth = 3;
         mProgressbar.setStringPainted(true);
         mProgressbar.setString("0");
@@ -223,12 +235,12 @@ public class EvColocDialog extends JFrame {
 
         // Logo
         c.gridx = 0;
-        c.gridy = 12;
+        c.gridy = 13;
         c.gridwidth = 2;
         this.add(new JLabel(new ImageIcon(getClass().getResource("logo.jpg"))), c);
 
         c.gridx = 0;
-        c.gridy = 13;
+        c.gridy = 14;
         c.gridwidth = 3;
         this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.2.0", SwingConstants.RIGHT), c);
 
@@ -271,6 +283,8 @@ public class EvColocDialog extends JFrame {
         } catch (NumberFormatException ex) {
             error = "Wrong selected channel!\n";
         }
+
+        sett.mSelectedSeries = mSeries.getSelectedItem().toString();
         sett.mThersholdMethod = mThersholdMethod.getSelectedItem().toString();
         sett.mEnhanceContrastForGreen = mEnhanceContrastGreen.isSelected();
         sett.mEnhanceContrastForRed = mEnhanceContrastRed.isSelected();
@@ -310,7 +324,8 @@ public class EvColocDialog extends JFrame {
 
     public void openResultsDialog() {
         try {
-            Desktop.getDesktop().open(new File(mOutputFolder.getText()+ File.separator + "statistic_all_over_final.xlsx"));
+            Desktop.getDesktop()
+                    .open(new File(mOutputFolder.getText() + File.separator + "statistic_all_over_final.xlsx"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
