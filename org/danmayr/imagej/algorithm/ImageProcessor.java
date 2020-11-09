@@ -31,7 +31,8 @@ public class ImageProcessor extends Thread {
 
     EvColocDialog mDialog;
     boolean mStopping = false;
-    ArrayList<File> mFoundFiles = new ArrayList<>();
+    ArrayList<File> mFoundFiles;
+    ArrayList<File> mFoundNegativeControlFiles;
     CalcColoc mAlgoCalcColoc;
     CountEvs mAlgoCountEvs;
     AnalyseSettings mAnalyseSettings;
@@ -52,11 +53,18 @@ public class ImageProcessor extends Thread {
         // Prepare results folder
         prepareOutputFolder();
 
-        mFoundFiles.clear();
-        mDialog.setProgressBarMaxSize(mFoundFiles.size());
+        mDialog.setProgressBarMaxSize(0);
         mDialog.setProgressBarValue(0);
 
-        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
+        //
+        // List all files in directory and subfolder
+        //
+        mFoundFiles = findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
+        mFoundNegativeControlFiles = findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles());
+        mDialog.setProgressBarMaxSize(mFoundFiles.size()+mFoundNegativeControlFiles.size());
+        
+        
+        
         walkThroughFiles();
 
         String outColoc = mAlgoCalcColoc.writeAllOverStatisticToFile("coloc");
@@ -116,15 +124,16 @@ public class ImageProcessor extends Thread {
      * 
      * @param files
      */
-    private void findFiles(final File[] files) {
+    private ArrayList<File> findFiles(final File[] files) {
+        ArrayList<File> foundFiles = new ArrayList<>();
         for (final File file : files) {
             if (file.isDirectory()) {
                 findFiles(file.listFiles());
             } else if (file.getName().endsWith(".vsi")) {
-                mFoundFiles.add(file);
-                mDialog.setProgressBarMaxSize(mFoundFiles.size());
+                foundFiles.add(file);
             }
         }
+        return foundFiles;
     }
 
     private void prepareOutputFolder() {

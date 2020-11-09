@@ -2,6 +2,7 @@ package org.danmayr.imagej.algorithm;
 
 public class AnalyseSettings {
     public String mInputFolder;
+    public String mNegativeControl;
     public String mOutputFolder;
     public int mGreenChannel;
     public String mThersholdMethod;
@@ -10,5 +11,4 @@ public class AnalyseSettings {
     public int mMinParticleSize;
     public int mMaxParticleSize;
     public String mSelectedSeries;      // series_1
-
 }

@@ -16,10 +16,12 @@ public class EvColocDialog extends JFrame {
     private static final long serialVersionUID = 1L;
 
     private JTextField mInputFolder = new JTextField(30);
+    private JTextField mNegativeControls = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
     private JTextField mMinParticleSize = new JTextField("5");
     private JTextField mMaxParticleSize = new JTextField("999999999");
     private JButton mbInputFolder;
+    private JButton mbNegativeControls;
     private JButton mbOutputFolder;
     private JButton mbStart;
     private JButton mCancle;
@@ -67,6 +69,31 @@ public class EvColocDialog extends JFrame {
             }
         });
         this.add(mbInputFolder, c);
+
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        this.add(new JLabel("Negative controls:"), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        c.gridy = 0;
+        this.add(mNegativeControls, c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 2;
+        c.gridy = 0;
+        mbNegativeControls = new JButton(new ImageIcon(getClass().getResource("open.png")));
+        mbNegativeControls.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                OpenDirectoryChooser(mNegativeControls, null);
+            }
+        });
+        this.add(mbInputFolder, c);
+
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -284,6 +311,8 @@ public class EvColocDialog extends JFrame {
             error = "Wrong selected channel!\n";
         }
 
+        sett.mNegativeControl = mNegativeControls.getText();
+    
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
         sett.mThersholdMethod = mThersholdMethod.getSelectedItem().toString();
         sett.mEnhanceContrastForGreen = mEnhanceContrastGreen.isSelected();
