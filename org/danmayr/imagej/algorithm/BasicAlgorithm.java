@@ -59,10 +59,12 @@ abstract public class BasicAlgorithm {
         IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
     }
 
-    protected void ApplyTherhold(ImagePlus imp) {
-        IJ.setAutoThreshold(imp, mAnalyseSettings.mThersholdMethod + " dark");
+    protected ImagePlus ApplyTherhold(ImagePlus imp) {
+        ImagePlus cpy = imp.duplicate();
+        IJ.setAutoThreshold(cpy, mAnalyseSettings.mThersholdMethod + " dark");
         Prefs.blackBackground = true;
-        IJ.run(imp, "Convert to Mask", "");
+        IJ.run(cpy, "Convert to Mask", "");
+        return cpy;
     }
 
     protected void MergeChannels(ImagePlus red, ImagePlus green, File imageFile, RoiManager rm) {
@@ -79,5 +81,19 @@ abstract public class BasicAlgorithm {
         rm.runCommand(image, "Show All");
         image = image.flatten();
         IJ.saveAs(image, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_overlay.jpg");
+    }
+
+    protected String MeasureAndSaveResult(ImagePlus image,File imageFile,RoiManager rm, String fileNamePraefix){
+        IJ.run("Clear Results", "");
+        rm.runCommand(image, "Measure");
+        String fileNameResult = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()+fileNamePraefix +".csv";
+        IJ.saveAs("Results", fileNameResult);
+        IJ.run("Clear Results", "");
+        return fileNameResult;
+    }
+
+    protected void AnalyzeParticles(ImagePlus image){
+        IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
+        IJ.run(image, "Analyze Particles...", "clear add");
     }
 }
