@@ -1,6 +1,10 @@
 package org.danmayr.imagej.algorithm;
+import algorithm.Function;
+
 
 public class AnalyseSettings {
+
+    public Function mSelectedFunction;
     public String mInputFolder;
     public String mNegativeControl;
     public String mOutputFolder;

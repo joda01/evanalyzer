@@ -4,6 +4,8 @@ import javax.swing.*;
 
 import org.danmayr.imagej.algorithm.*;
 
+import algorithm.Function;
+
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +30,7 @@ public class EvColocDialog extends JFrame {
     private JButton mClose;
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
+    private JComboBox mFunctionSelection;
     private JComboBox mGreenChannel;
     private JComboBox mThersholdMethod;
     private JComboBox mSeries;
@@ -51,16 +54,29 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 0;
+        this.add(new JLabel("Function:"), c);
+
+        Function[] functions = { Function.noSelection, Function.calcColoc, Function.countExosomes };
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        c.gridy = 0;
+        mFunctionSelection = new JComboBox<Function>(functions);
+        this.add(mFunctionSelection, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
         this.add(new JLabel("Input folder:"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 0;
+        //c.gridy = 0;
         this.add(mInputFolder, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
-        c.gridy = 0;
+        //c.gridy = 0;
         mbInputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
         mbInputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -74,17 +90,17 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 0;
+        c.gridy++;
         this.add(new JLabel("Negative controls:"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 0;
+        //c.gridy = 0;
         this.add(mNegativeControls, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
-        c.gridy = 0;
+        //c.gridy = 0;
         mbNegativeControls = new JButton(new ImageIcon(getClass().getResource("open.png")));
         mbNegativeControls.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -98,17 +114,17 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 1;
+        c.gridy++;
         this.add(new JLabel("Output folder:"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 1;
+        //c.gridy++;
         this.add(mOutputFolder, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
-        c.gridy = 1;
+        //c.gridy = 1;
         mbOutputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
         mbOutputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -121,13 +137,13 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 4;
+        c.gridy++;
         this.add(new JLabel("Series to import:"), c);
 
         String[] series = { "series_1", "series_2" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 4;
+        //c.gridy = 4;
         mSeries = new JComboBox<String>(series);
         this.add(mSeries, c);
 
@@ -140,27 +156,27 @@ public class EvColocDialog extends JFrame {
         String[] channels = { "0", "1" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 5;
+        //c.gridy = 4;
         mGreenChannel = new JComboBox<String>(channels);
         this.add(mGreenChannel, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 6;
+        c.gridy++;
         this.add(new JLabel("Thersholding:"), c);
 
         String[] thersholdAlgo = { "Li", "MaxEntropy" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 6;
+        //c.gridy = 5;
         mThersholdMethod = new JComboBox<String>(thersholdAlgo);
         this.add(mThersholdMethod, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 7;
+        c.gridy++;
         c.gridwidth = 2;
         mEnhanceContrastGreen = new JCheckBox("Enhance contrast for green channel");
         mEnhanceContrastGreen.setContentAreaFilled(false);
@@ -168,7 +184,7 @@ public class EvColocDialog extends JFrame {
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 8;
+        c.gridy++;
         c.gridwidth = 2;
         mEnhanceContrastRed = new JCheckBox("Enhance contrast for red channel");
         mEnhanceContrastRed.setContentAreaFilled(false);
@@ -177,24 +193,24 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 9;
+        c.gridy++;
         c.gridwidth = 1;
         this.add(new JLabel("Min particle size (Square Pixel):"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 9;
+        //.gridy = 8;
         this.add(mMinParticleSize, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 10;
+        c.gridy++;
         this.add(new JLabel("Max particle size (Square Pixel):"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        c.gridy = 10;
+        //c.gridy = 9;
         this.add(mMaxParticleSize, c);
 
         ////////////////////////////////////////////////////
@@ -301,6 +317,11 @@ public class EvColocDialog extends JFrame {
         if (false == parentFile.exists()) {
             error = "Please select an existing input folder!\n";
         }
+        
+        
+        sett.mSelectedFunction = (Function)mFunctionSelection.getSelectedItem();
+
+        
         sett.mOutputFolder = mOutputFolder.getText();
         if (sett.mOutputFolder.length() <= 0) {
             error = "Please select an output folder!\n";
@@ -327,6 +348,7 @@ public class EvColocDialog extends JFrame {
         } catch (NumberFormatException ex) {
             error += "Max particle size wrong!\n";
         }
+
 
         if (error.length() <= 0) {
             mActAnalyzer = new ImageProcessor(this, sett);
