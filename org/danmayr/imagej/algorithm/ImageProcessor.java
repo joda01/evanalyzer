@@ -23,26 +23,22 @@ import ij.plugin.frame.*;
 
 import java.awt.*;
 
+import org.danmayr.imagej.algorithm.BasicAlgorithm;
 import org.danmayr.imagej.algorithm.CalcColoc;
+import org.danmayr.imagej.algorithm.Function;
 import org.danmayr.imagej.excel.CsvToExcel;
+import org.danmayr.imagej.excel.InputFiles;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class ImageProcessor extends Thread {
 
     EvColocDialog mDialog;
     boolean mStopping = false;
-    ArrayList<File> mFoundFiles;
-    ArrayList<File> mFoundNegativeControlFiles;
-    CalcColoc mAlgoCalcColoc;
-    CountEvs mAlgoCountEvs;
     AnalyseSettings mAnalyseSettings;
 
     public ImageProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
-        mAlgoCalcColoc = new CalcColoc(analyseSettings);
-        mAlgoCountEvs = new CountEvs(analyseSettings);
-
     }
 
     /**
@@ -57,26 +53,41 @@ public class ImageProcessor extends Thread {
         mDialog.setProgressBarValue(0);
 
         //
-        // List all files in directory and subfolder
+        // List all files in folders and subfolders
         //
-        mFoundFiles = findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
-        mFoundNegativeControlFiles = findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles());
+        ArrayList<File> mFoundFiles = findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
+        ArrayList<File> mFoundNegativeControlFiles = findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles());
         mDialog.setProgressBarMaxSize(mFoundFiles.size()+mFoundNegativeControlFiles.size());
         
         
-        
-        walkThroughFiles();
+        // Analyse images
+        BasicAlgorithm mAnalysisAlgorithm = null;
 
-        String outColoc = mAlgoCalcColoc.writeAllOverStatisticToFile("coloc");
-        String outCount = mAlgoCountEvs.writeAllOverStatisticToFile("count");
+        if(mAnalyseSettings.mSelectedFunction.equals(Function.countExosomes)){
+            mAnalysisAlgorithm = new CountEvs(mAnalyseSettings);
+        }if(mAnalyseSettings.mSelectedFunction.equals(Function.calcColoc)){
+            mAnalysisAlgorithm = new CalcColoc(mAnalyseSettings);
+        }
+        if(null ==mAnalysisAlgorithm){
+            mDialog.finishedAnalyse();
+            return;
+        }
+        walkThroughFiles(mAnalysisAlgorithm,mFoundFiles);
+        String analysisOutput = mAnalysisAlgorithm.writeAllOverStatisticToFile("analysis");
 
-        String inputFiles[] = {outColoc,outCount};
 
+        // Analyse negative control
+        CountEvs mNegativeControlAlgorithm = new CountEvs(mAnalyseSettings);
+        walkThroughFiles(mNegativeControlAlgorithm,mFoundNegativeControlFiles);
+        String negativeControl = mNegativeControlAlgorithm.writeAllOverStatisticToFile("negativeControl");
+
+
+        // Write statistics to file
+        InputFiles input = new InputFiles();
+        input.add(analysisOutput,"Results");
+        input.add(negativeControl,"NegativeControls");
         String xlsxResult = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
-
-
-        String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, inputFiles);
-
+        String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
 
         mDialog.finishedAnalyse();
     }
@@ -91,28 +102,24 @@ public class ImageProcessor extends Thread {
     /**
      * Walk through all found files and analyse each image after the other
      */
-    private void walkThroughFiles() {
+    private void walkThroughFiles(BasicAlgorithm algorithm, ArrayList<File> fileList) {
         int value = 0;
-        for (final File file : mFoundFiles) {
+        for (final File file : fileList) {
             value++;
 
             IJ.run("Bio-Formats Importer", "open=[" + file.getAbsoluteFile().toString()
                     + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
                     + mAnalyseSettings.mSelectedSeries + " c_begin_1=1 c_end_1=2 c_step_1=1");
 
-            String[] imageTitles = WindowManager.getImageTitles();
+            //String[] imageTitles = WindowManager.getImageTitles();
+            //if (imageTitles.length > 1) {
 
-            if (imageTitles.length > 1) {
-
-                mAlgoCalcColoc.analyseImage(file);
-
-            } else if (imageTitles.length > 0) {
-                mAlgoCountEvs.analyseImage(file);
-            }
-
+    
+            algorithm.analyseImage(file);
+           
             closeAllWindow();
             WindowManager.closeAllWindows();
-            mDialog.setProgressBarValue(value);
+            mDialog.incrementProgressBarValue();
             if (true == mStopping) {
                 break;
             }

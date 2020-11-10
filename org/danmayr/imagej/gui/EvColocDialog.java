@@ -3,8 +3,8 @@ package org.danmayr.imagej.gui;
 import javax.swing.*;
 
 import org.danmayr.imagej.algorithm.*;
+import org.danmayr.imagej.algorithm.Function;
 
-import algorithm.Function;
 
 import java.awt.*;
 import java.io.File;
@@ -14,6 +14,8 @@ import java.io.IOException;
 ///
 ///
 public class EvColocDialog extends JFrame {
+
+    private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
 
     private static final long serialVersionUID = 1L;
 
@@ -108,7 +110,7 @@ public class EvColocDialog extends JFrame {
                 OpenDirectoryChooser(mNegativeControls, null);
             }
         });
-        this.add(mbInputFolder, c);
+        this.add(mbNegativeControls, c);
 
 
         ////////////////////////////////////////////////////
@@ -306,6 +308,12 @@ public class EvColocDialog extends JFrame {
         mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()));
     }
 
+    public void incrementProgressBarValue() {
+        int value = mProgressbar.getValue()+1;
+        mProgressbar.setValue(value);
+        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()));
+    }
+
     public void startAnalyse() {
         mbStart.setEnabled(false);
         mCancle.setEnabled(true);
@@ -333,6 +341,9 @@ public class EvColocDialog extends JFrame {
         }
 
         sett.mNegativeControl = mNegativeControls.getText();
+        if (sett.mNegativeControl.equals(Function.noSelection)){
+            error += PLEASE_SELECT_A_FUNCTION;
+        }
     
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
         sett.mThersholdMethod = mThersholdMethod.getSelectedItem().toString();

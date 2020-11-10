@@ -11,13 +11,17 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import com.opencsv.CSVReader;
+import java.util.*; 
+
+
 
 public class CsvToExcel {
+
 
     public static final char FILE_DELIMITER = ';';
     public static final String FILE_EXTN = ".xlsx";
 
-    public static String convertCsvToXls(String xlsFileLocation, String[] csvFilePath) {
+    public static String convertCsvToXls(String xlsFileLocation, InputFiles input) {
         String generatedXlsFilePath = "";
         FileOutputStream fileOutputStream = null;
         Workbook workBook = null;
@@ -26,10 +30,10 @@ public class CsvToExcel {
 
             workBook = new SXSSFWorkbook();
             /**** Get the CSVReader Instance & Specify The Delimiter To Be Used ****/
-            for (int n = 0; n < csvFilePath.length; n++) {
+            for (int n = 0; n < input.mCsvFileNames.length; n++) {
                 String[] nextLine;
-                reader = new CSVReader(new FileReader(csvFilePath[n]), FILE_DELIMITER);
-                SXSSFSheet sheet = (SXSSFSheet) workBook.createSheet("Sheet " + Integer.toString(n));
+                reader = new CSVReader(new FileReader(input.mCsvFileNames[n]), FILE_DELIMITER);
+                SXSSFSheet sheet = (SXSSFSheet) workBook.createSheet(input.mSheetNames[n]);
 
                 int rowNum = 0;
                 // logger.info("Creating New .Xls File From The Already Generated .Csv File");

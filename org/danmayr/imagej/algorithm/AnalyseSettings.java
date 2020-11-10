@@ -1,6 +1,6 @@
 package org.danmayr.imagej.algorithm;
-import algorithm.Function;
 
+import org.danmayr.imagej.algorithm.Function;
 
 public class AnalyseSettings {
 

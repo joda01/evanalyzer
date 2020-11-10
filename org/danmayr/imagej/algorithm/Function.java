@@ -1,4 +1,4 @@
-package algorithm;
+package org.danmayr.imagej.algorithm;
 
 public enum Function {
     noSelection ("--No selection--"),
