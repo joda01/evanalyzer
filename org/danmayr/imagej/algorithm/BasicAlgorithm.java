@@ -83,13 +83,13 @@ abstract public class BasicAlgorithm {
         IJ.saveAs(image, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_overlay.jpg");
     }
 
-    protected String MeasureAndSaveResult(ImagePlus image,File imageFile,RoiManager rm, String fileNamePraefix){
+    protected File MeasureAndSaveResult(ImagePlus image,File imageFile,RoiManager rm, String fileNamePraefix){
         IJ.run("Clear Results", "");
         rm.runCommand(image, "Measure");
         String fileNameResult = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()+fileNamePraefix +".csv";
         IJ.saveAs("Results", fileNameResult);
         IJ.run("Clear Results", "");
-        return fileNameResult;
+        return new File(fileNameResult);
     }
 
     protected void AnalyzeParticles(ImagePlus image){

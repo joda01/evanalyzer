@@ -114,6 +114,13 @@ public class ImageProcessor extends Thread {
             //String[] imageTitles = WindowManager.getImageTitles();
             //if (imageTitles.length > 1) {
 
+            // File has:
+            // * red channel and green channel
+            // * red channel 
+            // * green channel
+            // * red channel | negative control
+            // * green channel negative control
+
     
             algorithm.analyseImage(file);
            
@@ -133,11 +140,13 @@ public class ImageProcessor extends Thread {
      */
     private ArrayList<File> findFiles(final File[] files) {
         ArrayList<File> foundFiles = new ArrayList<>();
-        for (final File file : files) {
-            if (file.isDirectory()) {
-                findFiles(file.listFiles());
-            } else if (file.getName().endsWith(".vsi")) {
-                foundFiles.add(file);
+        if(null != files){
+            for (final File file : files) {
+                if (file.isDirectory()) {
+                    findFiles(file.listFiles());
+                } else if (file.getName().endsWith(".vsi")) {
+                    foundFiles.add(file);
+                }
             }
         }
         return foundFiles;
