@@ -81,7 +81,7 @@ public class CountEvs extends BasicAlgorithm {
         ///
         /// Calculate statistics for this channel
         ///
-        public void calcStatistics(){
+        public void calcStatistics() {
             double avgGraySkale = 0;
             double avgAreaSize = 0;
             int exosomCount = 0;
@@ -89,17 +89,17 @@ public class CountEvs extends BasicAlgorithm {
             int numberOfTooSmallParticles = 0;
 
             for (ImageMeasurement entry : mMeasurements) {
-                if(entry.areaBinGrayScale > minSize){
-                    if(entry.areaBinGrayScale < maxSize){
-                        if(entry.areaBinGrayScale > 0){
-                            avgGraySkale+=entry.areaGrayScale;
-                            avgAreaSize+=entry.areaSize;
+                if (entry.areaBinGrayScale > mAnalyseSettings.mMinParticleSize) {
+                    if (entry.areaBinGrayScale < mAnalyseSettings.mMaxParticleSize) {
+                        if (entry.areaBinGrayScale > 0) {
+                            avgGraySkale += entry.areaGrayScale;
+                            avgAreaSize += entry.areaSize;
                             exosomCount++;
                         }
-                    }else{
+                    } else {
                         numberOfTooBigParticles++;
                     }
-                }else{
+                } else {
                     numberOfTooSmallParticles++;
                 }
             }
@@ -108,14 +108,36 @@ public class CountEvs extends BasicAlgorithm {
             mStatistics.numberOfTooSmallParticles = numberOfTooSmallParticles;
             mStatistics.numberOfTooBigParticles = numberOfTooBigParticles;
             mStatistics.numberOfParticlesInRange = exosomCount;
-            mStatistics.avgGrayScale = avgGraySkale/exosomCount;
-            mStatistics.avgAreaSize = avgAreaSize/exosomCount;
+            mStatistics.avgGrayScale = avgGraySkale / exosomCount;
+            mStatistics.avgAreaSize = avgAreaSize / exosomCount;
 
+        }
+
+        public String channelName(){
+            return mChannelName;
+        }
+
+        public String header(){
+            String ret = "NrOfParticles;NrOfSmall;NrOfBig;NrOfExosomes;AvgGrayscale;AvgAreaSize";
+            return ret;
+        }
+
+        public String toString() {
+            calcStatistics();
+            String ret = Double.toString(mStatistics.numberOfParticles) + ";"
+                    + Double.toString(mStatistics.numberOfTooSmallParticles) + ";"
+                    + Double.toString(mStatistics.numberOfTooBigParticles)+";"
+                    + Double.toString(mStatistics.numberOfParticlesInRange)+";"
+                    + Double.toString(mStatistics.avgGrayScale)+";"
+                    + Double.toString(mStatistics.avgAreaSize);
+
+            return ret;
         }
 
         String mChannelName = "";
         ChannelStatistic mStatistics;
         Vector<ImageMeasurement> mMeasurements = new Vector<>();
+
     }
 
     ///
@@ -132,6 +154,25 @@ public class CountEvs extends BasicAlgorithm {
                 mChannels.put(channelName, actChannel);
             }
             actChannel.addMeasurement(imageMeasurement);
+        }
+
+        public String header(){
+            String headerTop="";
+            String headerButtom="";
+            for (Map.Entry<String, Channel> entry : mChannels.entrySet()) {
+                headerTop = headerTop + "|" + entry.getValue().channelName();
+                headerButtom = headerButtom + "|" + entry.getValue().header();
+            }
+            String header = headerTop + "\n" + headerButtom + "\n";
+            return header;
+        }
+
+        public String toString() {
+            String entry="";
+            for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
+                entry = entry + "|" + img.getValue().toString();
+            }
+            return entry;
         }
     }
 
@@ -280,9 +321,7 @@ public class CountEvs extends BasicAlgorithm {
         mAlloverStatistics += "\n";
         try {
 
-            
-
-            for (Map.Entry<String, Image> entry : mResults.entrySet()) {
+            for (Map.Entry<String, Folder> entry : mResults.entrySet()) {
                 Image struct = entry.getValue();
 
                 struct.calcMean();
