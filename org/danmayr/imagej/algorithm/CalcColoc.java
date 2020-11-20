@@ -28,6 +28,9 @@ import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class CalcColoc extends BasicAlgorithm {
+
+    String mAlloverStatistics = "";
+
     protected class MeasurementStructColoc implements MeasurementStruct {
         public MeasurementStructColoc(String dir) {
             mDirectory = dir;
@@ -169,7 +172,7 @@ public class CalcColoc extends BasicAlgorithm {
                 ImagePlus sumImage = ic.run("Max create", greenChannel, redChannel);
                 IJ.run(sumImage, "Set Scale...", "distance=0 known=0 unit=pixel global");
                 // Merge red and green channels
-                MergeChannels(redChannel, greenChannel, imageFile, rm);
+                MergeChannels(redChannel, greenChannel, imageFile.getName(), rm);
                 // Analyze particles
                 IJ.run(sumImage, "Analyze Particles...", "clear add");
             }

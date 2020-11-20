@@ -55,8 +55,10 @@ public class ImageProcessor extends Thread {
         //
         // List all files in folders and subfolders
         //
-        ArrayList<File> mFoundFiles = findFiles(new File(mAnalyseSettings.mInputFolder).listFiles());
-        ArrayList<File> mFoundNegativeControlFiles = findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles());
+        ArrayList<File>  mFoundFiles = new ArrayList<>();
+        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(),mFoundFiles);
+        ArrayList<File> mFoundNegativeControlFiles = new ArrayList<>();
+        findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles(),mFoundNegativeControlFiles);
         mDialog.setProgressBarMaxSize(mFoundFiles.size()+mFoundNegativeControlFiles.size());
         
         
@@ -65,6 +67,8 @@ public class ImageProcessor extends Thread {
 
         if(mAnalyseSettings.mSelectedFunction.equals(Function.countExosomes)){
             mAnalysisAlgorithm = new CountEvs(mAnalyseSettings);
+            IJ.log("Count Exosomes");
+
         }if(mAnalyseSettings.mSelectedFunction.equals(Function.calcColoc)){
             mAnalysisAlgorithm = new CalcColoc(mAnalyseSettings);
         }
@@ -138,18 +142,16 @@ public class ImageProcessor extends Thread {
      * 
      * @param files
      */
-    private ArrayList<File> findFiles(final File[] files) {
-        ArrayList<File> foundFiles = new ArrayList<>();
+    private void findFiles(final File[] files,ArrayList<File> foundFiles) {
         if(null != files){
             for (final File file : files) {
                 if (file.isDirectory()) {
-                    findFiles(file.listFiles());
+                    findFiles(file.listFiles(),foundFiles);
                 } else if (file.getName().endsWith(".vsi")) {
                     foundFiles.add(file);
                 }
             }
         }
-        return foundFiles;
     }
 
     private void prepareOutputFolder() {

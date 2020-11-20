@@ -36,7 +36,6 @@ abstract public class BasicAlgorithm {
     AnalyseSettings mAnalyseSettings;
 
     // Temporary storag
-    protected String mAlloverStatistics;
 	private String convertCsvToXls;
 
 
@@ -67,7 +66,7 @@ abstract public class BasicAlgorithm {
         return cpy;
     }
 
-    protected void MergeChannels(ImagePlus red, ImagePlus green, File imageFile, RoiManager rm) {
+    protected void MergeChannels(ImagePlus red, ImagePlus green, String imageFile, RoiManager rm) {
 
         IJ.run("Merge Channels...", "c1=[" + red.getTitle() + "] c2=[" + green.getTitle() + "] keep");
         ImagePlus imp = WindowManager.getImage("RGB");
@@ -75,18 +74,18 @@ abstract public class BasicAlgorithm {
         SaveImageWithOverlay(imp,imageFile,rm);
     }
 
-    protected void SaveImageWithOverlay(ImagePlus image, File imageFile, RoiManager rm){
-        IJ.saveAs(image, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_merged.jpg");
-        
+    protected void SaveImageWithOverlay(ImagePlus image, String imageName, RoiManager rm){
+        rm.runCommand(image,"Show None");
+        IJ.saveAs(image, "Jpeg", mAnalyseSettings.mOutputFolder + File.separator + imageName + "_merged.jpg");
         rm.runCommand(image, "Show All");
-        image = image.flatten();
-        IJ.saveAs(image, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName() + "_overlay.jpg");
+        ImagePlus overlayimage = image.flatten();
+        IJ.saveAs(overlayimage, "Jpeg",mAnalyseSettings.mOutputFolder + File.separator + imageName + "_overlay.jpg");
     }
 
-    protected File MeasureAndSaveResult(ImagePlus image,File imageFile,RoiManager rm, String fileNamePraefix){
+    protected File MeasureAndSaveResult(ImagePlus image,String imageName,RoiManager rm, String fileNamePraefix){
         IJ.run("Clear Results", "");
         rm.runCommand(image, "Measure");
-        String fileNameResult = mAnalyseSettings.mOutputFolder + File.separator + imageFile.getName()+fileNamePraefix +".csv";
+        String fileNameResult = mAnalyseSettings.mOutputFolder + File.separator + imageName+fileNamePraefix +".csv";
         IJ.saveAs("Results", fileNameResult);
         IJ.run("Clear Results", "");
         return new File(fileNameResult);

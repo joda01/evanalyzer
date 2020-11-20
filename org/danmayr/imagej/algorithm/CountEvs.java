@@ -135,7 +135,7 @@ public class CountEvs extends BasicAlgorithm {
         }
 
         String mChannelName = "";
-        ChannelStatistic mStatistics;
+        ChannelStatistic mStatistics = new ChannelStatistic();
         Vector<ImageMeasurement> mMeasurements = new Vector<>();
 
     }
@@ -147,6 +147,11 @@ public class CountEvs extends BasicAlgorithm {
         String mImageName;
         TreeMap<String, Channel> mChannels = new TreeMap<>(); // Channelname | Channel
 
+        public Image(String name)
+        {
+            mImageName = name;
+        }
+
         public void addChannel(String channelName, ImageMeasurement imageMeasurement) {
             Channel actChannel = mChannels.get(channelName);
             if (null == actChannel) {
@@ -156,21 +161,18 @@ public class CountEvs extends BasicAlgorithm {
             actChannel.addMeasurement(imageMeasurement);
         }
 
-        public String header(){
-            String headerTop="";
-            String headerButtom="";
-            for (Map.Entry<String, Channel> entry : mChannels.entrySet()) {
-                headerTop = headerTop + "|" + entry.getValue().channelName();
-                headerButtom = headerButtom + "|" + entry.getValue().header();
+        public String header(){    
+            String entry="Name;";
+            for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
+                entry = entry + img.getValue().header() + "|";
             }
-            String header = headerTop + "\n" + headerButtom + "\n";
-            return header;
+            return entry;
         }
 
         public String toString() {
-            String entry="";
+            String entry= mImageName+";";
             for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
-                entry = entry + "|" + img.getValue().toString();
+                entry = entry + img.getValue().toString() + "|";
             }
             return entry;
         }
@@ -180,13 +182,33 @@ public class CountEvs extends BasicAlgorithm {
         String mFolderName;
         TreeMap<String, Image> mImages = new TreeMap<>(); // ImageName | Image
 
+        public Folder(String name){
+            mFolderName = name;
+        }
+
         public void addImage(String imageName, String channelName, ImageMeasurement imageMeasurement) {
             Image actImage = mImages.get(imageName);
             if (null == actImage) {
-                actImage = new Image();
+                actImage = new Image(imageName);
                 mImages.put(imageName, actImage);
             }
             actImage.addChannel(channelName, imageMeasurement);
+        }
+
+        public String header(){
+            return mFolderName;
+        }
+
+        public String toString(){
+            String retal = "";
+            //retal += entry.getValue().header();
+            for (Map.Entry<String, Image> entry : mImages.entrySet()) {
+                if(retal.length()<=0){
+                    retal = entry.getValue().header()+"\n";
+                }
+                retal = retal + entry.getValue().toString()+"\n";
+            }
+            return retal;
         }
     }
 
@@ -198,7 +220,7 @@ public class CountEvs extends BasicAlgorithm {
     void addMeasurement(String foldername, String imageName, String channelName, ImageMeasurement imageMeasurement) {
         Folder actFolder = mResults.get(foldername);
         if (null == actFolder) {
-            actFolder = new Folder();
+            actFolder = new Folder(foldername);
             mResults.put(foldername, actFolder);
         }
         actFolder.addImage(imageName, channelName, imageMeasurement);
@@ -224,18 +246,18 @@ public class CountEvs extends BasicAlgorithm {
     public void analyseImage(File imageFile) {
 
         String folderName = imageFile.getParent();
-        String imageName = imageFile.getName();
 
         String[] imageTitles = WindowManager.getImageTitles();
+        RoiManager rm = new RoiManager();
 
         for (int n = 0; n < imageTitles.length; n++) {
             ImagePlus image = WindowManager.getImage(imageTitles[n]);
 
             if (null != image) {
-                RoiManager rm = new RoiManager();
+                
                 String channelName = imageTitles[n];
 
-                mResults.get(folderName).mImages.get(imageName).mChannels.get(channelName);
+                //mResults.get(folderName).mImages.get(imageName).mChannels.get(channelName);
 
                 if (true == mAnalyseSettings.mEnhanceContrastForRed) {
                     EnhanceContrast(image);
@@ -244,13 +266,13 @@ public class CountEvs extends BasicAlgorithm {
                 ImagePlus thersholdImage = ApplyTherhold(image);
 
                 AnalyzeParticles(thersholdImage);
-                SaveImageWithOverlay(thersholdImage, imageFile, rm);
+                SaveImageWithOverlay(thersholdImage, channelName, rm);
 
-                File resultThersholded = MeasureAndSaveResult(thersholdImage, imageFile, rm, "th");
-                File resultOriginal = MeasureAndSaveResult(image, imageFile, rm, "or");
+                IJ.log("Save result " + image.toString());
+                File resultThersholded = MeasureAndSaveResult(thersholdImage, channelName, rm, "th");
+                File resultOriginal = MeasureAndSaveResult(image, channelName, rm, "or");
 
-                analyseChannel(folderName, imageName, channelName, resultThersholded, resultOriginal);
-
+                analyseChannel(folderName, imageFile.getName(), channelName, resultThersholded, resultOriginal);
                 // Delete temporary files
                 resultOriginal.delete();
                 resultThersholded.delete();
@@ -268,6 +290,7 @@ public class CountEvs extends BasicAlgorithm {
      */
     private void analyseChannel(String folderName, String imageName, String channelName, File thersholdResult,
             File originalPictureResult) {
+        IJ.log("Analyse: " + imageName + " " + channelName);
 
         try {
             String[] thersholdRead = new String(
@@ -306,10 +329,10 @@ public class CountEvs extends BasicAlgorithm {
                 ImageMeasurement exosom = new ImageMeasurement(line[RESULT_FILE_ROI_IDX], areaSize, binScale,
                         grayScale);
                 addMeasurement(folderName, imageName, channelName, exosom);
-
             }
 
         } catch (IOException ex) {
+            IJ.log("Catch: " + ex.getMessage());
 
         }
     }
@@ -318,14 +341,14 @@ public class CountEvs extends BasicAlgorithm {
         String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final_" + filename
                 + ".txt";
 
-        mAlloverStatistics += "\n";
+        String mAlloverStatistics ="";
         try {
 
             for (Map.Entry<String, Folder> entry : mResults.entrySet()) {
-                Image struct = entry.getValue();
+                Folder struct = entry.getValue();
 
-                struct.calcMean();
                 String mean = struct.toString();
+                mAlloverStatistics += struct.header()+"\n";
                 mAlloverStatistics = mAlloverStatistics + mean + "\n";
             }
 
