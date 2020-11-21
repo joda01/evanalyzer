@@ -65,6 +65,50 @@ public class CountEvs extends BasicAlgorithm {
         public double avgAreaSize = 0;
     }
 
+    protected class FolderStatistic {
+        public void add(double avgParticles, double avgTooSmallParticles, double avgTooBigParticles,
+                double avgParticlesInRange, double avgGrayScale, double avgAreaSize) {
+            mSum.avgParticles += avgParticles;
+            mSum.avgTooSmallParticles += avgTooSmallParticles;
+            mSum.avgTooBigParticles += avgTooBigParticles;
+            mSum.avgParticlesInRange += avgParticlesInRange;
+            mSum.avgGrayScale += avgGrayScale;
+            mSum.avgAreaSize += avgAreaSize;
+            mSum.couter++;
+        }
+
+        public void calc() {
+            mAvg.avgParticles = mSum.avgParticles / mSum.couter;
+            mAvg.avgTooSmallParticles = mSum.avgTooSmallParticles / mSum.couter;
+            mAvg.avgTooBigParticles = mSum.avgTooBigParticles / mSum.couter;
+            mAvg.avgParticlesInRange = mSum.avgParticlesInRange / mSum.couter;
+            mAvg.avgGrayScale = mSum.avgGrayScale / mSum.couter;
+            mAvg.avgAreaSize = mSum.avgAreaSize / mSum.couter;
+
+            mSum.avgParticles = 0;
+            mSum.avgTooBigParticles = 0;
+            mSum.avgParticlesInRange = 0;
+            mSum.avgGrayScale = 0;
+            mSum.avgAreaSize = 0;
+            mSum.avgTooSmallParticles = 0;
+            mSum.couter = 0;
+        }
+
+        class Values {
+            public double avgParticles = 0;
+            public double avgTooSmallParticles = 0;
+            public double avgTooBigParticles = 0;
+            public double avgParticlesInRange = 0;
+            public double avgGrayScale = 0;
+            public double avgAreaSize = 0;
+            public double couter = 0;
+        };
+
+        Values mSum = new Values();
+        Values mAvg = new Values();
+
+    }
+
     ///
     /// Informarion for one channel
     ///
@@ -113,11 +157,11 @@ public class CountEvs extends BasicAlgorithm {
 
         }
 
-        public String channelName(){
+        public String channelName() {
             return mChannelName;
         }
 
-        public String header(){
+        public String header() {
             String ret = "NrOfParticles;NrOfSmall;NrOfBig;NrOfExosomes;AvgGrayscale;AvgAreaSize";
             return ret;
         }
@@ -126,12 +170,15 @@ public class CountEvs extends BasicAlgorithm {
             calcStatistics();
             String ret = Double.toString(mStatistics.numberOfParticles) + ";"
                     + Double.toString(mStatistics.numberOfTooSmallParticles) + ";"
-                    + Double.toString(mStatistics.numberOfTooBigParticles)+";"
-                    + Double.toString(mStatistics.numberOfParticlesInRange)+";"
-                    + Double.toString(mStatistics.avgGrayScale)+";"
-                    + Double.toString(mStatistics.avgAreaSize);
+                    + Double.toString(mStatistics.numberOfTooBigParticles) + ";"
+                    + Double.toString(mStatistics.numberOfParticlesInRange) + ";"
+                    + Double.toString(mStatistics.avgGrayScale) + ";" + Double.toString(mStatistics.avgAreaSize);
 
             return ret;
+        }
+
+        public ChannelStatistic getStatistics() {
+            return mStatistics;
         }
 
         String mChannelName = "";
@@ -145,10 +192,9 @@ public class CountEvs extends BasicAlgorithm {
     ///
     protected class Image {
         String mImageName;
-        TreeMap<String, Channel> mChannels = new TreeMap<>(); // Channelname | Channel
+        TreeMap<String, Channel> mChannels = new TreeMap<>(); // Channelname, Channel
 
-        public Image(String name)
-        {
+        public Image(String name) {
             mImageName = name;
         }
 
@@ -161,28 +207,40 @@ public class CountEvs extends BasicAlgorithm {
             actChannel.addMeasurement(imageMeasurement);
         }
 
-        public String header(){    
-            String entry="Name;";
+        public String header() {
+            String channelNames = ".;";
+            String entry = "Name;";
             for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
-                entry = entry + img.getValue().header() + "|";
+                channelNames += img.getValue().mChannelName+";;;;;"+";;";
+                entry = entry + img.getValue().header() + ";;";
+            }
+            channelNames = channelNames +"\n"+entry;
+            return channelNames;
+        }
+
+        public String toString() {
+            String entry = mImageName + ";";
+            for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
+                entry = entry + img.getValue().toString() + ";;";
             }
             return entry;
         }
 
-        public String toString() {
-            String entry= mImageName+";";
+        public Vector<ChannelStatistic> getStatistics() {
+            Vector<ChannelStatistic> statistic = new Vector<>();
             for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
-                entry = entry + img.getValue().toString() + "|";
+                statistic.add(img.getValue().getStatistics());
             }
-            return entry;
+            return statistic;
         }
     }
 
     protected class Folder {
         String mFolderName;
-        TreeMap<String, Image> mImages = new TreeMap<>(); // ImageName | Image
+        TreeMap<String, Image> mImages = new TreeMap<>(); // ImageName, Image
+        Vector<FolderStatistic> mStatistics = new Vector<>();
 
-        public Folder(String name){
+        public Folder(String name) {
             mFolderName = name;
         }
 
@@ -195,19 +253,55 @@ public class CountEvs extends BasicAlgorithm {
             actImage.addChannel(channelName, imageMeasurement);
         }
 
-        public String header(){
+        ///
+        /// Calculate statistics for this channel
+        ///
+        public void calcStatistics() {
+            mStatistics.clear();
+            for (Map.Entry<String, Image> entry : mImages.entrySet()) {
+                Vector<ChannelStatistic> imgStatisitcs = entry.getValue().getStatistics();
+                while(mStatistics.size() < imgStatisitcs.size()){
+                    mStatistics.add(new FolderStatistic());
+                }
+                for (int n = 0; n < imgStatisitcs.size(); n++) {
+                    ChannelStatistic ch = imgStatisitcs.get(n);
+
+                    mStatistics.get(n).add(ch.numberOfParticles, ch.numberOfTooSmallParticles,
+                            ch.numberOfTooBigParticles, ch.numberOfParticlesInRange, ch.avgGrayScale, ch.avgAreaSize);
+                }
+            }
+
+            for (int n = 0; n < mStatistics.size(); n++) {
+                mStatistics.get(n).calc();
+            }
+
+        }
+
+        public String header() {
             return mFolderName;
         }
 
-        public String toString(){
+        public String toString() {
             String retal = "";
-            //retal += entry.getValue().header();
+            // retal += entry.getValue().header();
             for (Map.Entry<String, Image> entry : mImages.entrySet()) {
-                if(retal.length()<=0){
-                    retal = entry.getValue().header()+"\n";
+                if (retal.length() <= 0) {
+                    retal = entry.getValue().header() + "\n";
                 }
-                retal = retal + entry.getValue().toString()+"\n";
+                retal = retal + entry.getValue().toString() + "\n";
             }
+            calcStatistics();
+
+            String statistics = "Avg;";
+            for (int n = 0; n < mStatistics.size(); n++) {
+                FolderStatistic st = mStatistics.get(n);
+                statistics += Double.toString(st.mAvg.avgParticles) + ";" + Double.toString(st.mAvg.avgTooSmallParticles)
+                        + ";" + Double.toString(st.mAvg.avgTooBigParticles) + ";"
+                        + Double.toString(st.mAvg.avgParticlesInRange) + ";" + Double.toString(st.mAvg.avgGrayScale)
+                        + ";" + Double.toString(st.mAvg.avgAreaSize)+";;";
+            }
+            retal +=statistics+"\n";
+
             return retal;
         }
     }
@@ -215,7 +309,7 @@ public class CountEvs extends BasicAlgorithm {
     ///
     /// A folder consits of a number of Folders with images
     ///
-    protected TreeMap<String, Folder> mResults = new TreeMap<>(); // Foldername | Folder
+    protected TreeMap<String, Folder> mResults = new TreeMap<>(); // Foldername, Folder
 
     void addMeasurement(String foldername, String imageName, String channelName, ImageMeasurement imageMeasurement) {
         Folder actFolder = mResults.get(foldername);
@@ -254,10 +348,10 @@ public class CountEvs extends BasicAlgorithm {
             ImagePlus image = WindowManager.getImage(imageTitles[n]);
 
             if (null != image) {
-                
+
                 String channelName = imageTitles[n];
 
-                //mResults.get(folderName).mImages.get(imageName).mChannels.get(channelName);
+                // mResults.get(folderName).mImages.get(imageName).mChannels.get(channelName);
 
                 if (true == mAnalyseSettings.mEnhanceContrastForRed) {
                     EnhanceContrast(image);
@@ -341,14 +435,14 @@ public class CountEvs extends BasicAlgorithm {
         String outputfilename = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final_" + filename
                 + ".txt";
 
-        String mAlloverStatistics ="";
+        String mAlloverStatistics = "";
         try {
 
             for (Map.Entry<String, Folder> entry : mResults.entrySet()) {
                 Folder struct = entry.getValue();
 
                 String mean = struct.toString();
-                mAlloverStatistics += struct.header()+"\n";
+                mAlloverStatistics += struct.header() + "\n";
                 mAlloverStatistics = mAlloverStatistics + mean + "\n";
             }
 
