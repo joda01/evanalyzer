@@ -38,154 +38,38 @@ public class CountEvs extends BasicAlgorithm {
 
     protected RoiManager rm = new RoiManager();
 
-    protected class ImageMeasurement {
-        public ImageMeasurement(String roi, double areaSize, double areaBinGrayScale, double areaGrayScale) {
-            this.roi = roi;
-            this.areaSize = areaSize;
-            this.areaBinGrayScale = areaBinGrayScale;
-            this.areaGrayScale = areaGrayScale;
-        }
-
-        public String roi;
-        public double areaSize;
-        public double areaBinGrayScale;
-        public double areaGrayScale;
-
-        // String mResultHeader = "file;directory;small;big;count;grayscale;areasize\n";
-
-    }
-
-    ///
-    /// Struct for statistic measurment
-    ///
-    protected class ChannelStatistic {
-        public double numberOfParticles = 0;
-        public double numberOfTooSmallParticles = 0;
-        public double numberOfTooBigParticles = 0;
-        public double numberOfParticlesInRange = 0;
-        public double avgGrayScale = 0;
-        public double avgAreaSize = 0;
-    }
-
     protected class FolderStatistic {
         public void add(double avgParticles, double avgTooSmallParticles, double avgTooBigParticles,
                 double avgParticlesInRange, double avgGrayScale, double avgAreaSize) {
-            mSum.avgParticles += avgParticles;
-            mSum.avgTooSmallParticles += avgTooSmallParticles;
-            mSum.avgTooBigParticles += avgTooBigParticles;
-            mSum.avgParticlesInRange += avgParticlesInRange;
+            mSum.numberOfParticles += avgParticles;
+            mSum.numberOfTooSmallParticles += avgTooSmallParticles;
+            mSum.numberOfTooBigParticles += avgTooBigParticles;
+            mSum.numberOfParticlesInRange += avgParticlesInRange;
             mSum.avgGrayScale += avgGrayScale;
             mSum.avgAreaSize += avgAreaSize;
-            mSum.couter++;
+            mSum.counter++;
         }
 
         public void calc() {
-            mAvg.avgParticles = mSum.avgParticles / mSum.couter;
-            mAvg.avgTooSmallParticles = mSum.avgTooSmallParticles / mSum.couter;
-            mAvg.avgTooBigParticles = mSum.avgTooBigParticles / mSum.couter;
-            mAvg.avgParticlesInRange = mSum.avgParticlesInRange / mSum.couter;
-            mAvg.avgGrayScale = mSum.avgGrayScale / mSum.couter;
-            mAvg.avgAreaSize = mSum.avgAreaSize / mSum.couter;
+            mAvg.numberOfParticles = mSum.numberOfParticles / mSum.counter;
+            mAvg.numberOfTooSmallParticles = mSum.numberOfTooSmallParticles / mSum.counter;
+            mAvg.numberOfTooBigParticles = mSum.numberOfTooBigParticles / mSum.counter;
+            mAvg.numberOfParticlesInRange = mSum.numberOfParticlesInRange / mSum.counter;
+            mAvg.avgGrayScale = mSum.avgGrayScale / mSum.counter;
+            mAvg.avgAreaSize = mSum.avgAreaSize / mSum.counter;
 
-            mSum.avgParticles = 0;
-            mSum.avgTooBigParticles = 0;
-            mSum.avgParticlesInRange = 0;
+            mSum.numberOfParticles = 0;
+            mSum.numberOfTooBigParticles = 0;
+            mSum.numberOfParticlesInRange = 0;
             mSum.avgGrayScale = 0;
             mSum.avgAreaSize = 0;
-            mSum.avgTooSmallParticles = 0;
-            mSum.couter = 0;
+            mSum.numberOfTooSmallParticles = 0;
+            mSum.counter = 0;
         }
 
-        class Values {
-            public double avgParticles = 0;
-            public double avgTooSmallParticles = 0;
-            public double avgTooBigParticles = 0;
-            public double avgParticlesInRange = 0;
-            public double avgGrayScale = 0;
-            public double avgAreaSize = 0;
-            public double couter = 0;
-        };
 
-        Values mSum = new Values();
-        Values mAvg = new Values();
-
-    }
-
-    ///
-    /// Informarion for one channel
-    ///
-    protected class Channel {
-
-        public Channel(String channelName) {
-            mChannelName = channelName;
-        }
-
-        public void addMeasurement(ImageMeasurement imageMeasurement) {
-            mMeasurements.add(imageMeasurement);
-        }
-
-        ///
-        /// Calculate statistics for this channel
-        ///
-        public void calcStatistics() {
-            double avgGraySkale = 0;
-            double avgAreaSize = 0;
-            int exosomCount = 0;
-            int numberOfTooBigParticles = 0;
-            int numberOfTooSmallParticles = 0;
-
-            for (ImageMeasurement entry : mMeasurements) {
-                if (entry.areaBinGrayScale > mAnalyseSettings.mMinParticleSize) {
-                    if (entry.areaBinGrayScale < mAnalyseSettings.mMaxParticleSize) {
-                        if (entry.areaBinGrayScale > 0) {
-                            avgGraySkale += entry.areaGrayScale;
-                            avgAreaSize += entry.areaSize;
-                            exosomCount++;
-                        }
-                    } else {
-                        numberOfTooBigParticles++;
-                    }
-                } else {
-                    numberOfTooSmallParticles++;
-                }
-            }
-
-            mStatistics.numberOfParticles = mMeasurements.size();
-            mStatistics.numberOfTooSmallParticles = numberOfTooSmallParticles;
-            mStatistics.numberOfTooBigParticles = numberOfTooBigParticles;
-            mStatistics.numberOfParticlesInRange = exosomCount;
-            mStatistics.avgGrayScale = avgGraySkale / exosomCount;
-            mStatistics.avgAreaSize = avgAreaSize / exosomCount;
-
-        }
-
-        public String channelName() {
-            return mChannelName;
-        }
-
-        public String header() {
-            String ret = "NrOfParticles;NrOfSmall;NrOfBig;NrOfExosomes;AvgGrayscale;AvgAreaSize";
-            return ret;
-        }
-
-        public String toString() {
-            calcStatistics();
-            String ret = Double.toString(mStatistics.numberOfParticles) + ";"
-                    + Double.toString(mStatistics.numberOfTooSmallParticles) + ";"
-                    + Double.toString(mStatistics.numberOfTooBigParticles) + ";"
-                    + Double.toString(mStatistics.numberOfParticlesInRange) + ";"
-                    + Double.toString(mStatistics.avgGrayScale) + ";" + Double.toString(mStatistics.avgAreaSize);
-
-            return ret;
-        }
-
-        public ChannelStatistic getStatistics() {
-            return mStatistics;
-        }
-
-        String mChannelName = "";
-        ChannelStatistic mStatistics = new ChannelStatistic();
-        Vector<ImageMeasurement> mMeasurements = new Vector<>();
+        ChannelStatistic mSum = new ChannelStatistic();
+        ChannelStatistic mAvg = new ChannelStatistic();
 
     }
 
@@ -203,7 +87,7 @@ public class CountEvs extends BasicAlgorithm {
         public void addChannel(String channelName, ImageMeasurement imageMeasurement) {
             Channel actChannel = mChannels.get(channelName);
             if (null == actChannel) {
-                actChannel = new Channel(channelName);
+                actChannel = new Channel(channelName, mAnalyseSettings);
                 mChannels.put(channelName, actChannel);
             }
             actChannel.addMeasurement(imageMeasurement);
@@ -213,10 +97,10 @@ public class CountEvs extends BasicAlgorithm {
             String channelNames = ".;";
             String entry = "Name;";
             for (Map.Entry<String, Channel> img : mChannels.entrySet()) {
-                channelNames += img.getValue().mChannelName+";;;;;"+";;";
+                channelNames += img.getValue().mChannelName + ";;;;;" + ";;";
                 entry = entry + img.getValue().header() + ";;";
             }
-            channelNames = channelNames +"\n"+entry;
+            channelNames = channelNames + "\n" + entry;
             return channelNames;
         }
 
@@ -262,7 +146,7 @@ public class CountEvs extends BasicAlgorithm {
             mStatistics.clear();
             for (Map.Entry<String, Image> entry : mImages.entrySet()) {
                 Vector<ChannelStatistic> imgStatisitcs = entry.getValue().getStatistics();
-                while(mStatistics.size() < imgStatisitcs.size()){
+                while (mStatistics.size() < imgStatisitcs.size()) {
                     mStatistics.add(new FolderStatistic());
                 }
                 for (int n = 0; n < imgStatisitcs.size(); n++) {
@@ -297,12 +181,13 @@ public class CountEvs extends BasicAlgorithm {
             String statistics = "Avg;";
             for (int n = 0; n < mStatistics.size(); n++) {
                 FolderStatistic st = mStatistics.get(n);
-                statistics += Double.toString(st.mAvg.avgParticles) + ";" + Double.toString(st.mAvg.avgTooSmallParticles)
-                        + ";" + Double.toString(st.mAvg.avgTooBigParticles) + ";"
-                        + Double.toString(st.mAvg.avgParticlesInRange) + ";" + Double.toString(st.mAvg.avgGrayScale)
-                        + ";" + Double.toString(st.mAvg.avgAreaSize)+";;";
+                statistics += Double.toString(st.mAvg.numberOfParticles) + ";"
+                        + Double.toString(st.mAvg.numberOfTooSmallParticles) + ";"
+                        + Double.toString(st.mAvg.numberOfTooBigParticles) + ";"
+                        + Double.toString(st.mAvg.numberOfParticlesInRange) + ";" + Double.toString(st.mAvg.avgGrayScale)
+                        + ";" + Double.toString(st.mAvg.avgAreaSize) + ";;";
             }
-            retal +=statistics+"\n";
+            retal += statistics + "\n";
 
             return retal;
         }
@@ -344,17 +229,18 @@ public class CountEvs extends BasicAlgorithm {
         String folderName = imageFile.getParent();
 
         String[] imageTitles = WindowManager.getImageTitles();
-       
-        ImageInfo info = new ImageInfo();
 
+        ImageInfo info = new ImageInfo();
 
         for (int n = 0; n < imageTitles.length; n++) {
             ImagePlus image = WindowManager.getImage(imageTitles[n]);
 
             if (null != image) {
                 String imgTitle = imageTitles[n];
-                /*String imgInfo = info.getImageInfo(image);
-                String[] elements = imgInfo.split("\n");*/
+                /*
+                 * String imgInfo = info.getImageInfo(image); String[] elements =
+                 * imgInfo.split("\n");
+                 */
 
                 ImagePlus filtered = ApplyFilter(image);
                 ImagePlus thersholdImage = ApplyTherhold(filtered);

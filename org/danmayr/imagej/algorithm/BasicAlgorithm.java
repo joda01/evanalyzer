@@ -54,7 +54,7 @@ abstract public class BasicAlgorithm {
     }
 
     protected ImagePlus ApplyFilter(ImagePlus img) {
-        ImagePlus cpy = imp.duplicate();
+        ImagePlus cpy = img.duplicate();
         IJ.run(cpy, "Subtract Background...", "rolling=4 sliding");
         IJ.run(cpy, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
         return cpy;
