@@ -36,6 +36,8 @@ public class CountEvs extends BasicAlgorithm {
     // Constants for calcuation
     static int MAX_THERSHOLD = 255;
 
+    protected RoiManager rm = new RoiManager();
+
     protected class ImageMeasurement {
         public ImageMeasurement(String roi, double areaSize, double areaBinGrayScale, double areaGrayScale) {
             this.roi = roi;
@@ -342,31 +344,28 @@ public class CountEvs extends BasicAlgorithm {
         String folderName = imageFile.getParent();
 
         String[] imageTitles = WindowManager.getImageTitles();
-        RoiManager rm = new RoiManager();
+       
+        ImageInfo info = new ImageInfo();
+
 
         for (int n = 0; n < imageTitles.length; n++) {
             ImagePlus image = WindowManager.getImage(imageTitles[n]);
 
             if (null != image) {
+                String imgTitle = imageTitles[n];
+                /*String imgInfo = info.getImageInfo(image);
+                String[] elements = imgInfo.split("\n");*/
 
-                String channelName = imageTitles[n];
-
-                // mResults.get(folderName).mImages.get(imageName).mChannels.get(channelName);
-
-                if (true == mAnalyseSettings.mEnhanceContrastForRed) {
-                    EnhanceContrast(image);
-                }
-                ApplyFilter(image);
-                ImagePlus thersholdImage = ApplyTherhold(image);
+                ImagePlus filtered = ApplyFilter(image);
+                ImagePlus thersholdImage = ApplyTherhold(filtered);
 
                 AnalyzeParticles(thersholdImage);
-                SaveImageWithOverlay(thersholdImage, channelName, rm);
+                SaveImageWithOverlay(thersholdImage, imgTitle, rm);
 
-                IJ.log("Save result " + image.toString());
-                File resultThersholded = MeasureAndSaveResult(thersholdImage, channelName, rm, "th");
-                File resultOriginal = MeasureAndSaveResult(image, channelName, rm, "or");
+                File resultThersholded = MeasureAndSaveResult(thersholdImage, imgTitle, rm, "th");
+                File resultOriginal = MeasureAndSaveResult(filtered, imgTitle, rm, "or");
 
-                analyseChannel(folderName, imageFile.getName(), channelName, resultThersholded, resultOriginal);
+                analyseChannel(folderName, imageFile.getName(), imgTitle, resultThersholded, resultOriginal);
                 // Delete temporary files
                 resultOriginal.delete();
                 resultThersholded.delete();
@@ -382,7 +381,7 @@ public class CountEvs extends BasicAlgorithm {
      * @param redChannelResult
      * @param greenChannelResult
      */
-    private void analyseChannel(String folderName, String imageName, String channelName, File thersholdResult,
+    protected void analyseChannel(String folderName, String imageName, String channelName, File thersholdResult,
             File originalPictureResult) {
         IJ.log("Analyse: " + imageName + " " + channelName);
 

@@ -70,7 +70,7 @@ public class ImageProcessor extends Thread {
             IJ.log("Count Exosomes");
 
         }if(mAnalyseSettings.mSelectedFunction.equals(Function.calcColoc)){
-            mAnalysisAlgorithm = new CalcColoc(mAnalyseSettings);
+            mAnalysisAlgorithm = new ColocEvs(mAnalyseSettings);
         }
         if(null ==mAnalysisAlgorithm){
             mDialog.finishedAnalyse();

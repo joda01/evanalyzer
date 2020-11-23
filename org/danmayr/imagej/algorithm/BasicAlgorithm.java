@@ -53,9 +53,11 @@ abstract public class BasicAlgorithm {
         IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
     }
 
-    protected void ApplyFilter(ImagePlus img) {
-        IJ.run(img, "Subtract Background...", "rolling=4 sliding");
-        IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+    protected ImagePlus ApplyFilter(ImagePlus img) {
+        ImagePlus cpy = imp.duplicate();
+        IJ.run(cpy, "Subtract Background...", "rolling=4 sliding");
+        IJ.run(cpy, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+        return cpy;
     }
 
     protected ImagePlus ApplyTherhold(ImagePlus imp) {
@@ -67,11 +69,12 @@ abstract public class BasicAlgorithm {
     }
 
     protected void MergeChannels(ImagePlus red, ImagePlus green, String imageFile, RoiManager rm) {
+        ImagePlus ary[] = {red,green};
+        
+        RGBStackMerge rgb = new RGBStackMerge();
+        ImagePlus mrg = rgb.mergeChannels(ary,true);
 
-        IJ.run("Merge Channels...", "c1=[" + red.getTitle() + "] c2=[" + green.getTitle() + "] keep");
-        ImagePlus imp = WindowManager.getImage("RGB");
-
-        SaveImageWithOverlay(imp,imageFile,rm);
+        SaveImageWithOverlay(mrg,imageFile,rm);
     }
 
     protected void SaveImageWithOverlay(ImagePlus image, String imageName, RoiManager rm){
