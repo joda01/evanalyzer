@@ -31,7 +31,7 @@ public class ExosomColoc extends Pipeline {
         img1 = Filter.ApplyGaus(img1);
 
         img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod);
-        img1 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod);
+        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
@@ -86,9 +86,9 @@ public class ExosomColoc extends Pipeline {
         /// \brief Returns the name of the roi
         ///
         public String toString() {
-            return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaSize) + ";"
+            return roiName + ";" + Double.toString(areaSize) + ";"
                     + Double.toString(areaGrayScale) + ";" + Double.toString(circularity) + ";"
-                    + Double.toString(colocValue) + "\n";
+                    + Double.toString(colocValue);
         }
 
         public double colocValue;

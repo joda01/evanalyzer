@@ -27,4 +27,8 @@ public class FolderResults {
         }
         actFolder.addImage(imageName, channels);
     }
+
+    public TreeMap<String, Folder> getFolders(){
+        return mFolders;
+    }
 }

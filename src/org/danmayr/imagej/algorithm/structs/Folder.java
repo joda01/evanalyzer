@@ -36,4 +36,8 @@ public class Folder {
     public String toString() {
         return mFolderName;
     }
+
+    public TreeMap<String, Image> getImages(){
+        return mImages;
+    }
 }

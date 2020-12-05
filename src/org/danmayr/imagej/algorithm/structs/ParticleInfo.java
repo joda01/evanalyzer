@@ -20,8 +20,8 @@ public class ParticleInfo {
     /// \brief Returns the name of the roi
     ///
     public String toString() {
-        return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaSize) + ";"
-                + Double.toString(areaGrayScale) + ";" + Double.toString(circularity) + "\n";
+        return roiName + ";" + Double.toString(areaSize) + ";" 
+                + Double.toString(areaGrayScale) + ";" + Double.toString(circularity);
     }
 
     public String roiName;

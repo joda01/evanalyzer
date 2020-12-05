@@ -25,6 +25,7 @@ import ij.plugin.frame.*;
 import java.awt.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.exports.*;
 
 
 import org.danmayr.imagej.algorithm.*;
@@ -84,6 +85,8 @@ public class ImageProcessor extends Thread {
             return;
         }
         walkThroughFiles(pipeline, mFoundFiles);
+
+        CsvExport.Export(mAnalyseSettings.mOutputFolder, mResuls);
 
         // Write statistics to file
         /*

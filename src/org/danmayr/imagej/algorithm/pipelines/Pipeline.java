@@ -54,11 +54,11 @@ abstract public class Pipeline {
 
     for (int i = 0; i < imageTitles.length; i++) {
       String actTitle = imageTitles[i];
-      if (true == actTitle.endsWith("C=1")) {
+      if (true == actTitle.endsWith("C=0")) {
         imgChannel0 = WindowManager.getImage(actTitle);
-      } else if (true == actTitle.endsWith("C=2")) {
+      } else if (true == actTitle.endsWith("C=1")) {
         imgChannel1 = WindowManager.getImage(actTitle);
-      } else if (true == actTitle.endsWith("C=3")) {
+      } else if (true == actTitle.endsWith("C=2")) {
         imgChannel2 = WindowManager.getImage(actTitle);
       }
     }
