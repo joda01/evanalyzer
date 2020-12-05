@@ -3,5 +3,6 @@
         "lib/**/*.jar",
         "/home/joachim/Documents/programme/Fiji.app/jars/**/*.jar",
         "/workspaces/test_plugin/**/*.jar"
-    ]
+    ],
+    "java.dependency.packagePresentation": "flat"
 }
