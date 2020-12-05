@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
 import java.util.*;
 
 import javax.swing.JDialog;
@@ -22,6 +23,9 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
+
+import org.danmayr.imagej.algorithm.structs.*;
+
 
 import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.filters.*;
@@ -36,6 +40,7 @@ public class ImageProcessor extends Thread {
     EvColocDialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
+    FolderResults mResuls = new FolderResults();
 
     public ImageProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
@@ -52,6 +57,8 @@ public class ImageProcessor extends Thread {
 
         mDialog.setProgressBarMaxSize(0);
         mDialog.setProgressBarValue(0);
+
+
 
         //
         // List all files in folders and subfolders
@@ -119,7 +126,8 @@ public class ImageProcessor extends Thread {
             // * green channel negative control
 
             try {
-                algorithm.ProcessImage(file);
+                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file);
+                mResuls.addImage(file.getAbsolutePath(),file.getName(), images);
             } catch (Exception ey) {
 
             }

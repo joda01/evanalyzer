@@ -1,12 +1,11 @@
 package org.danmayr.imagej.algorithm.structs;
 
-
 ///
 /// \class  ParticleInfo
 /// \brief  Region on interest
 ///
 public class ParticleInfo {
-    
+
     ///
     /// \brief Constructor
     ///
@@ -20,8 +19,9 @@ public class ParticleInfo {
     ///
     /// \brief Returns the name of the roi
     ///
-    public String toString(){
-        return roiName;
+    public String toString() {
+        return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaSize) + ";"
+                + Double.toString(areaGrayScale) + ";" + Double.toString(circularity) + "\n";
     }
 
     public String roiName;

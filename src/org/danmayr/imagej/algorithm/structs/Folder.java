@@ -21,13 +21,13 @@ public class Folder {
     ///
     /// Add an image to the folder
     ///
-    public void addImage(String imageName, int channelNr, String chName, ParticleInfo roi) {
+    public void addImage(String imageName, TreeMap<Integer, Channel> channels) {
         Image actImage = mImages.get(imageName);
         if (null == actImage) {
             actImage = new Image(imageName);
             mImages.put(imageName, actImage);
         }
-        actImage.addChannel(channelNr,chName, roi);
+        actImage.addChannel(channels);
     }
 
     ///

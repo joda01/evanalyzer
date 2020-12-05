@@ -20,13 +20,8 @@ public class Image {
     ///
     /// \brief Adds a channel to the image
     ///
-    public void addChannel(int channelNr, String chName, ParticleInfo roi) {
-        Channel actChannel = mChannels.get(channelNr);
-        if (null == actChannel) {
-            actChannel = new Channel(channelNr,chName);
-            mChannels.put(channelNr, actChannel);
-        }
-        actChannel.addRoi(roi);
+    public void addChannel(TreeMap<Integer, Channel> channels) {
+        mChannels = channels;
     }
 
     ///
