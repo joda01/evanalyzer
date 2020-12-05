@@ -1,4 +1,4 @@
-package org.danmayr.imagej.algorithm.struct;
+package org.danmayr.imagej.algorithm.structs;
 
 import java.util.TreeMap;
 
@@ -21,13 +21,13 @@ public class Folder {
     ///
     /// Add an image to the folder
     ///
-    public void addImage(String imageName, int channelNr, Roi roi) {
+    public void addImage(String imageName, int channelNr, String chName, ParticleInfo roi) {
         Image actImage = mImages.get(imageName);
         if (null == actImage) {
             actImage = new Image(imageName);
             mImages.put(imageName, actImage);
         }
-        actImage.addChannel(channelNr, roi);
+        actImage.addChannel(channelNr,chName, roi);
     }
 
     ///

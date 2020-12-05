@@ -1,16 +1,16 @@
-package org.danmayr.imagej.algorithm.struct;
+package org.danmayr.imagej.algorithm.structs;
 
 
 ///
-/// \class  Roi
+/// \class  ParticleInfo
 /// \brief  Region on interest
 ///
-public class Roi {
+public class ParticleInfo {
     
     ///
     /// \brief Constructor
     ///
-    public Roi(String roiName, double areaSize, double areaGrayScale, double circularity) {
+    public ParticleInfo(String roiName, double areaSize, double areaGrayScale, double circularity) {
         this.roiName = roiName;
         this.areaSize = areaSize;
         this.areaGrayScale = areaGrayScale;

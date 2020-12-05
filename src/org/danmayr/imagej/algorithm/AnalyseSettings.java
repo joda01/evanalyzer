@@ -1,6 +1,5 @@
 package org.danmayr.imagej.algorithm;
 
-import org.danmayr.imagej.algorithm.Function;
 
 public class AnalyseSettings {
     public enum Function {

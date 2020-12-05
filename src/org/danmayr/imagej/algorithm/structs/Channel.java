@@ -1,4 +1,4 @@
-package org.danmayr.imagej.algorithm.struct;
+package org.danmayr.imagej.algorithm.structs;
 
 import java.util.TreeMap;
 
@@ -9,19 +9,21 @@ import java.util.TreeMap;
 public class Channel {
 
     int mChannelNr = 0;
-    TreeMap<String, Roi> mRois = new TreeMap<>();
+    String mName;
+    TreeMap<String, ParticleInfo> mRois = new TreeMap<>();
 
     ///
     /// \brief Constructor
     ///
-    public Channel(int channelNr) {
+    public Channel(int channelNr, String name) {
         mChannelNr = channelNr;
+        mName = name;
     }
 
     ///
     /// \brief Add a Region of Interest
     ///
-    public void addRoi(Roi roi) {
+    public void addRoi(ParticleInfo roi) {
         mRois.put(roi.toString(), roi);
     }
 
@@ -39,7 +41,7 @@ public class Channel {
     ///
     /// \brief Returns the Region of Interests
     ///
-    public TreeMap<String, Roi> getRois() {
+    public TreeMap<String, ParticleInfo> getRois() {
         return mRois;
     }
 }

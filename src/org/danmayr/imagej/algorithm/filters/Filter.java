@@ -23,7 +23,7 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 import ij.plugin.filter.ParticleAnalyzer;
 
-import org.danmayr.algorithm.structs.Channel;
+import org.danmayr.imagej.algorithm.structs.*;
 
 public class Filter {
     static int RESULT_FILE_ROI_IDX = 0;
@@ -61,9 +61,9 @@ public class Filter {
         return cpy;
     }
 
-    public static ImagePlus ApplyThershold(ImagePlus imp) {
+    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod) {
         ImagePlus cpy = imp.duplicate();
-        IJ.setAutoThreshold(cpy, mAnalyseSettings.mThersholdMethod + " dark");
+        IJ.setAutoThreshold(cpy, thersholdMethod + " dark");
         Prefs.blackBackground = true;
         IJ.run(cpy, "Convert to Mask", "");
         return cpy;
@@ -93,7 +93,7 @@ public class Filter {
     }
 
 
-    public static Channel MeasureImage(String channelName,ImagePlus image, RoiManager rm) {
+    public static Channel MeasureImage(int chNr, String channelName,ImagePlus image, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
         // import ij.plugin.frame.RoiManager
@@ -105,18 +105,19 @@ public class Filter {
         IJ.saveAs("Results", fileNameResult);
         IJ.run("Clear Results", "");
         File resultFile = new File(fileNameResult);
-        Channel ch = createChannelFromMeasurement(channelName,resultFile);
+        Channel ch = createChannelFromMeasurement(chNr, channelName,resultFile);
         resultFile.delete();
+        return ch;
     }
 
 
 
-    private static Channel createChannelFromMeasurement(String channelName, File resultsFile) {
+    private static Channel createChannelFromMeasurement(int chNr, String channelName, File resultsFile) {
 
-        Channel ch = new Channel(channelName);
+        Channel ch = new Channel(chNr,channelName);
         try {
             String[] readLines = new String(
-                    Files.readAllBytes(Paths.get(thersholdResult.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
+                    Files.readAllBytes(Paths.get(resultsFile.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
                             .split("\n");
 
             // First line is header therefore start with 1
@@ -143,8 +144,8 @@ public class Filter {
                 } catch (NumberFormatException ex) {
                 }
 
-                Roi exosom = new Roi(line[RESULT_FILE_ROI_IDX], areaSize, grayScale, circularity);
-                ch.addRoi(roi);
+                ParticleInfo exosom = new ParticleInfo(line[RESULT_FILE_ROI_IDX], areaSize, grayScale, circularity);
+                ch.addRoi(exosom);
             }
 
         } catch (IOException ex) {

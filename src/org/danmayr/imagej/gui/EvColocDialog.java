@@ -3,7 +3,6 @@ package org.danmayr.imagej.gui;
 import javax.swing.*;
 
 import org.danmayr.imagej.algorithm.*;
-import org.danmayr.imagej.algorithm.Function;
 
 
 import java.awt.*;
@@ -58,11 +57,11 @@ public class EvColocDialog extends JFrame {
         c.gridy = 0;
         this.add(new JLabel("Function:"), c);
 
-        Function[] functions = { Function.noSelection, Function.calcColoc, Function.countExosomes };
+        AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection, AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 0;
-        mFunctionSelection = new JComboBox<Function>(functions);
+        mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
         this.add(mFunctionSelection, c);
 
         ////////////////////////////////////////////////////
@@ -327,7 +326,7 @@ public class EvColocDialog extends JFrame {
         }
         
         
-        sett.mSelectedFunction = (Function)mFunctionSelection.getSelectedItem();
+        sett.mSelectedFunction = (AnalyseSettings.Function)mFunctionSelection.getSelectedItem();
 
         
         sett.mOutputFolder = mOutputFolder.getText();
@@ -341,7 +340,7 @@ public class EvColocDialog extends JFrame {
         }
 
         sett.mNegativeControl = mNegativeControls.getText();
-        if (sett.mNegativeControl.equals(Function.noSelection)){
+        if (sett.mNegativeControl.equals(AnalyseSettings.Function.noSelection)){
             error += PLEASE_SELECT_A_FUNCTION;
         }
     

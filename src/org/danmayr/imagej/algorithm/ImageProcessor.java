@@ -23,9 +23,10 @@ import ij.plugin.frame.*;
 
 import java.awt.*;
 
-import org.danmayr.imagej.algorithm.BasicAlgorithm;
-import org.danmayr.imagej.algorithm.CalcColoc;
-import org.danmayr.imagej.algorithm.Function;
+import org.danmayr.imagej.algorithm.*;
+import org.danmayr.imagej.algorithm.filters.*;
+import org.danmayr.imagej.algorithm.pipelines.*;
+
 import org.danmayr.imagej.excel.CsvToExcel;
 import org.danmayr.imagej.excel.InputFiles;
 import org.danmayr.imagej.gui.EvColocDialog;
@@ -55,43 +56,35 @@ public class ImageProcessor extends Thread {
         //
         // List all files in folders and subfolders
         //
-        ArrayList<File>  mFoundFiles = new ArrayList<>();
-        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(),mFoundFiles);
+        ArrayList<File> mFoundFiles = new ArrayList<>();
+        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
         ArrayList<File> mFoundNegativeControlFiles = new ArrayList<>();
-        findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles(),mFoundNegativeControlFiles);
-        mDialog.setProgressBarMaxSize(mFoundFiles.size()+mFoundNegativeControlFiles.size());
-        
-        
-        // Analyse images
-        BasicAlgorithm mAnalysisAlgorithm = null;
+        findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles(), mFoundNegativeControlFiles);
+        mDialog.setProgressBarMaxSize(mFoundFiles.size() + mFoundNegativeControlFiles.size());
 
-        if(mAnalyseSettings.mSelectedFunction.equals(Function.countExosomes)){
-            mAnalysisAlgorithm = new CountEvs(mAnalyseSettings);
+        // Analyse images
+        Pipeline pipeline = null;
+
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
             IJ.log("Count Exosomes");
 
-        }if(mAnalyseSettings.mSelectedFunction.equals(Function.calcColoc)){
-            mAnalysisAlgorithm = new ColocEvs(mAnalyseSettings);
         }
-        if(null ==mAnalysisAlgorithm){
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
+            pipeline = new ExosomColoc(mAnalyseSettings, Pipeline.ChannelType.GFP, Pipeline.ChannelType.CY3);
+        }
+        if (null == pipeline) {
             mDialog.finishedAnalyse();
             return;
         }
-        walkThroughFiles(mAnalysisAlgorithm,mFoundFiles);
-        String analysisOutput = mAnalysisAlgorithm.writeAllOverStatisticToFile("analysis");
-
-
-        // Analyse negative control
-        CountEvs mNegativeControlAlgorithm = new CountEvs(mAnalyseSettings);
-        walkThroughFiles(mNegativeControlAlgorithm,mFoundNegativeControlFiles);
-        String negativeControl = mNegativeControlAlgorithm.writeAllOverStatisticToFile("negativeControl");
-
+        walkThroughFiles(pipeline, mFoundFiles);
 
         // Write statistics to file
-        InputFiles input = new InputFiles();
-        input.add(analysisOutput,"Results");
-        input.add(negativeControl,"NegativeControls");
-        String xlsxResult = mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
-        String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
+        /*
+         * InputFiles input = new InputFiles(); input.add(analysisOutput,"Results");
+         * input.add(negativeControl,"NegativeControls"); String xlsxResult =
+         * mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+         * String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
+         */
 
         mDialog.finishedAnalyse();
     }
@@ -106,7 +99,7 @@ public class ImageProcessor extends Thread {
     /**
      * Walk through all found files and analyse each image after the other
      */
-    private void walkThroughFiles(BasicAlgorithm algorithm, ArrayList<File> fileList) {
+    private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
         int value = 0;
         for (final File file : fileList) {
             value++;
@@ -115,19 +108,22 @@ public class ImageProcessor extends Thread {
                     + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
                     + mAnalyseSettings.mSelectedSeries + " c_begin_1=1 c_end_1=2 c_step_1=1");
 
-            //String[] imageTitles = WindowManager.getImageTitles();
-            //if (imageTitles.length > 1) {
+            // String[] imageTitles = WindowManager.getImageTitles();
+            // if (imageTitles.length > 1) {
 
             // File has:
             // * red channel and green channel
-            // * red channel 
+            // * red channel
             // * green channel
             // * red channel | negative control
             // * green channel negative control
 
-    
-            algorithm.analyseImage(file);
-           
+            try {
+                algorithm.ProcessImage(file);
+            } catch (Exception ey) {
+
+            }
+
             closeAllWindow();
             WindowManager.closeAllWindows();
             mDialog.incrementProgressBarValue();
@@ -142,11 +138,11 @@ public class ImageProcessor extends Thread {
      * 
      * @param files
      */
-    private void findFiles(final File[] files,ArrayList<File> foundFiles) {
-        if(null != files){
+    private void findFiles(final File[] files, ArrayList<File> foundFiles) {
+        if (null != files) {
             for (final File file : files) {
                 if (file.isDirectory()) {
-                    findFiles(file.listFiles(),foundFiles);
+                    findFiles(file.listFiles(), foundFiles);
                 } else if (file.getName().endsWith(".vsi")) {
                     foundFiles.add(file);
                 }

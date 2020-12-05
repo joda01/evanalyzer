@@ -1,7 +1,14 @@
 package org.danmayr.imagej.algorithm.pipelines;
 
+import ij.*;
+import ij.process.*;
+import ij.gui.*;
+
+import java.io.File;
 import java.util.*;
-import org.danmayr.structs.*;
+import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.algorithm.AnalyseSettings;
+
 
 ///
 /// \class  Channel
@@ -15,6 +22,7 @@ abstract public class Pipeline {
 
   protected ChannelType mCh0;
   protected ChannelType mCh1;
+  protected AnalyseSettings mSettings;
 
   private ImagePlus imgChannel0;
   private ImagePlus imgChannel1;
@@ -22,23 +30,26 @@ abstract public class Pipeline {
 
   private int nrOfExpectedChannels = 0;
 
-  Pipeline(ChannelType ch0) {
+  Pipeline(AnalyseSettings settings, ChannelType ch0) {
     mCh0 = ch0;
     mCh1 = ChannelType.OFF;
     nrOfExpectedChannels = 1;
+    mSettings = settings;
   }
 
-  Pipeline(ChannelType ch0, ChannelType ch1) {
+  Pipeline(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
     mCh0 = ch0;
     mCh1 = ch1;
     nrOfExpectedChannels = 2;
+    mSettings = settings;
   }
 
   ///
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile) {
+  public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception
+  {
     String[] imageTitles = WindowManager.getImageTitles();
 
     for (int i = 0; i < imageTitles.length; i++) {
@@ -60,8 +71,7 @@ abstract public class Pipeline {
     else{
       return startPipeline(imageFile);
     }
-    return new TreeMap<Integer, Channel>();
-    
+    //return new TreeMap<Integer, Channel>();
   }
 
   ImagePlus getImageCh0() {
