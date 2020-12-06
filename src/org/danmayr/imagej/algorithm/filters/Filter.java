@@ -29,7 +29,7 @@ public class Filter {
     static int RESULT_FILE_ROI_IDX = 0;
     static int RESULT_FILE_IDX_AREA_SIZE = 1;
     static int RESULT_FILE_IDX_MEAN_GRAYSCALE = 2;
-    static int RESULT_FILE_IDX_CIRCULARITY = 3;
+    static int RESULT_FILE_IDX_CIRCULARITY = 5;
 
     public Filter() {
 
@@ -92,7 +92,6 @@ public class Filter {
         IJ.run(image, "Analyze Particles...", "clear add");
     }
 
-
     public static Channel MeasureImage(int chNr, String channelName,ImagePlus image, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
@@ -101,7 +100,7 @@ public class Filter {
         // ij.measure.ResultsTable
         IJ.run("Clear Results", "");
         rm.runCommand(image, "Measure");
-        String fileNameResult = "tempFile.csv";
+        String fileNameResult = "tempfile.csv";
         IJ.saveAs("Results", fileNameResult);
         IJ.run("Clear Results", "");
         File resultFile = new File(fileNameResult);
@@ -144,12 +143,19 @@ public class Filter {
                 } catch (NumberFormatException ex) {
                 }
 
-                ParticleInfo exosom = new ParticleInfo(line[RESULT_FILE_ROI_IDX], areaSize, grayScale, circularity);
+                int roiNr = 0;
+                try {
+                    roiNr = Integer.parseInt(line[RESULT_FILE_ROI_IDX]);
+                } catch (NumberFormatException ex) {
+                }
+
+                ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, circularity);
                 ch.addRoi(exosom);
             }
 
         } catch (IOException ex) {
             IJ.log("Catch: " + ex.getMessage());
+            ex.printStackTrace();
         }
 
         return ch;

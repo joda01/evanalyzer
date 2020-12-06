@@ -9,7 +9,7 @@ public class ParticleInfo {
     ///
     /// \brief Constructor
     ///
-    public ParticleInfo(String roiName, double areaSize, double areaGrayScale, double circularity) {
+    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double circularity) {
         this.roiName = roiName;
         this.areaSize = areaSize;
         this.areaGrayScale = areaGrayScale;
@@ -24,7 +24,7 @@ public class ParticleInfo {
                 + Double.toString(areaGrayScale) + ";" + Double.toString(circularity);
     }
 
-    public String roiName;
+    public int roiName;
     public double areaSize;
     public double areaGrayScale;
     public double circularity;

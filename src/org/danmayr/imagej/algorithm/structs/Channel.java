@@ -10,7 +10,7 @@ public class Channel {
 
     int mChannelNr = 0;
     String mName;
-    TreeMap<String, ParticleInfo> mRois = new TreeMap<>();
+    TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
 
     ///
     /// \brief Constructor
@@ -24,7 +24,7 @@ public class Channel {
     /// \brief Add a Region of Interest
     ///
     public void addRoi(ParticleInfo roi) {
-        mRois.put(roi.toString(), roi);
+        mRois.put(roi.roiName, roi);
     }
 
     ///
@@ -41,7 +41,7 @@ public class Channel {
     ///
     /// \brief Returns the Region of Interests
     ///
-    public TreeMap<String, ParticleInfo> getRois() {
+    public TreeMap<Integer, ParticleInfo> getRois() {
         return mRois;
     }
 }

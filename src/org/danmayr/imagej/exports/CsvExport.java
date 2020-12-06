@@ -1,5 +1,7 @@
 package org.danmayr.imagej.exports;
 
+import ij.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -16,6 +18,7 @@ public class CsvExport {
             String key = entry.getKey();
             outPut += key;
             outPut += "\n";
+
             Folder folder = entry.getValue();
             for (Map.Entry<String, Image> entry1 : folder.getImages().entrySet()) {
                 String imgName = entry1.getKey();
@@ -30,8 +33,8 @@ public class CsvExport {
                     outPut += "\n";
                     outPut += "\n";
 
-                    for (Map.Entry<String, ParticleInfo> entry3 : channel.getRois().entrySet()) {
-                        String chNr = entry3.getKey();
+                    for (Map.Entry<Integer, ParticleInfo> entry3 : channel.getRois().entrySet()) {
+                        int chNr = entry3.getKey();
                         ParticleInfo info = entry3.getValue();
                         outPut += info.toString() + "\n";
                     }
@@ -39,12 +42,12 @@ public class CsvExport {
             }
         }
 
-        try{
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder+"/"+"result.csv"));
-        writer.write(outPut);
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + "/" + "result.csv"));
+            writer.write(outPut);
 
-        writer.close();
-        }catch(IOException io){
+            writer.close();
+        } catch (IOException io) {
 
         }
     }

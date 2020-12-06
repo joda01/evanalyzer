@@ -132,7 +132,7 @@ public class ImageProcessor extends Thread {
                 TreeMap<Integer, Channel> images = algorithm.ProcessImage(file);
                 mResuls.addImage(file.getAbsolutePath(),file.getName(), images);
             } catch (Exception ey) {
-
+                ey.printStackTrace();
             }
 
             closeAllWindow();

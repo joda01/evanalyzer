@@ -14,6 +14,7 @@ import org.danmayr.imagej.algorithm.AnalyseSettings;
 
 public class ExosomColoc extends Pipeline {
 
+    RoiManager rm = new RoiManager();
     static int MAX_THERSHOLD = 255;
 
     public ExosomColoc(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
@@ -22,7 +23,7 @@ public class ExosomColoc extends Pipeline {
 
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
-        RoiManager rm = new RoiManager();
+       
 
         ImagePlus img0 = Filter.SubtractBackground(getImageCh0());
         ImagePlus img1 = Filter.SubtractBackground(getImageCh1());
@@ -52,14 +53,13 @@ public class ExosomColoc extends Pipeline {
     private Channel calculateColoc(Channel ch0, Channel ch1) {
         Channel ch = new Channel(2, "Coloc");
 
-        TreeMap<String, ParticleInfo> roiCh0 = ch0.getRois();
-        TreeMap<String, ParticleInfo> roiCh1 = ch1.getRois();
+        TreeMap<Integer, ParticleInfo> roiCh0 = ch0.getRois();
+        TreeMap<Integer, ParticleInfo> roiCh1 = ch1.getRois();
 
         if (roiCh0.size() == roiCh1.size()) {
 
-            for (Map.Entry<String, ParticleInfo> entry : roiCh0.entrySet()) {
-                String key = entry.getKey();
-
+            for (Map.Entry<Integer, ParticleInfo> entry : roiCh0.entrySet()) {
+                int key = entry.getKey();
                 ParticleInfo ch0Info = entry.getValue();
                 ParticleInfo ch1Info = roiCh1.get(key);
 
@@ -77,7 +77,7 @@ public class ExosomColoc extends Pipeline {
 
     class ColocRoi extends ParticleInfo {
 
-        public ColocRoi(String roiName, double areaSize, double areaGrayScale, double circularity, double coloValue) {
+        public ColocRoi(int roiName, double areaSize, double areaGrayScale, double circularity, double coloValue) {
             super(roiName, areaSize, areaGrayScale, circularity);
             this.colocValue = coloValue;
         }
@@ -86,7 +86,7 @@ public class ExosomColoc extends Pipeline {
         /// \brief Returns the name of the roi
         ///
         public String toString() {
-            return roiName + ";" + Double.toString(areaSize) + ";"
+            return Integer.toString(roiName) + ";" + Double.toString(areaSize) + ";"
                     + Double.toString(areaGrayScale) + ";" + Double.toString(circularity) + ";"
                     + Double.toString(colocValue);
         }
