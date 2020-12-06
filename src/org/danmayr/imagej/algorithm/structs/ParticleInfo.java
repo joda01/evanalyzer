@@ -24,6 +24,20 @@ public class ParticleInfo {
                 + Double.toString(areaGrayScale) + ";" + Double.toString(circularity);
     }
 
+    public int getRoiNr(){
+        return roiName;
+    }
+
+    public double[] getValues(){
+        double[] values={areaSize,areaGrayScale,circularity};
+        return values;
+    }
+
+    public String[] getTitle(){
+        String[] title = {"area size","gray scale","circularity"};
+        return title;
+    }
+
     public int roiName;
     public double areaSize;
     public double areaGrayScale;

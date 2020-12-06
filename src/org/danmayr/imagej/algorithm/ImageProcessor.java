@@ -32,8 +32,6 @@ import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.filters.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 
-import org.danmayr.imagej.excel.CsvToExcel;
-import org.danmayr.imagej.excel.InputFiles;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class ImageProcessor extends Thread {
@@ -86,7 +84,7 @@ public class ImageProcessor extends Thread {
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        CsvExport.Export(mAnalyseSettings.mOutputFolder, mResuls);
+        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls);
 
         // Write statistics to file
         /*

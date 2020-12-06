@@ -93,6 +93,17 @@ public class ExosomColoc extends Pipeline {
 
         public double colocValue;
 
+        @Override
+        public double[] getValues(){
+            double[] values={areaSize,areaGrayScale,circularity,colocValue};
+            return values;
+        }
+
+        public String[] getTitle(){
+            String[] title = {"area size","gray scale","circularity","coloc"};
+            return title;
+        }
+
     }
 
 }
