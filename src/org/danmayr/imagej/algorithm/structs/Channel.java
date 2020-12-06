@@ -31,7 +31,7 @@ public class Channel {
     /// \brief returns the channel name
     ///
     public String toString() {
-        return Integer.toString(mChannelNr);
+        return mName;
     }
 
     public Integer getChannelNumber() {

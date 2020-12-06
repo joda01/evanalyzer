@@ -14,7 +14,6 @@ import org.danmayr.imagej.algorithm.AnalyseSettings;
 
 public class ExosomColoc extends Pipeline {
 
-    RoiManager rm = new RoiManager();
     static int MAX_THERSHOLD = 255;
 
     public ExosomColoc(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
@@ -24,6 +23,7 @@ public class ExosomColoc extends Pipeline {
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
        
+        RoiManager rm = new RoiManager();
 
         ImagePlus img0 = Filter.SubtractBackground(getImageCh0());
         ImagePlus img1 = Filter.SubtractBackground(getImageCh1());

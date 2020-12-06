@@ -8,15 +8,25 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.math.*;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Cell;
+
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.common.usermodel.HyperlinkType;
+
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.*;
+
 
 import com.opencsv.CSVReader;
 import java.util.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
+
 
 public class ExcelExport {
     ExcelExport() {
@@ -28,21 +38,39 @@ public class ExcelExport {
         FileOutputStream fileOutputStream = null;
 
         Workbook workBook = new XSSFWorkbook();
+        CreationHelper createHelper = workBook.getCreationHelper();
 
         int rowNum = 0;
 
         outputFolder = outputFolder + "/result.xlsx";
         int sheetNr = 0;
 
+        XSSFSheet overview = (XSSFSheet) workBook.createSheet("overview");
+        int overviewRowCnt = 0;
+
         for (Map.Entry<String, Folder> entry : results.getFolders().entrySet()) {
-            String key = entry.getKey();
+            String folderName = entry.getKey();
 
             Folder folder = entry.getValue();
             for (Map.Entry<String, Image> entry1 : folder.getImages().entrySet()) {
                 String imgName = entry1.getKey();
                 Image image = entry1.getValue();
 
-                XSSFSheet imageSheet = (XSSFSheet) workBook.createSheet(Integer.toString(sheetNr));
+                // Overview table
+                Row overviewRow = overview.createRow(overviewRowCnt++);
+                overviewRow.createCell(0).setCellValue(folderName);
+                overviewRow.createCell(1).setCellValue(imgName);
+                Cell linkCell = overviewRow.createCell(2);
+                String sheetName = Integer.toString(sheetNr);
+                linkCell.setCellValue("Sheet Nr: "+sheetName);
+
+
+                Hyperlink link2 = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
+                link2.setAddress("'"+sheetName+"'!A1");
+                linkCell.setHyperlink(link2);
+
+
+                XSSFSheet imageSheet = (XSSFSheet) workBook.createSheet(sheetName);
                 sheetNr++;
                 int column = 1;
                 int columnAdd = 0;
@@ -50,7 +78,6 @@ public class ExcelExport {
                 for (Map.Entry<Integer, Channel> entry2 : image.getChannels().entrySet()) {
                     int chName = entry2.getKey();
                     Channel channel = entry2.getValue();
-                    
                     
                     int row = 2;
                     // Write channel name
@@ -60,8 +87,6 @@ public class ExcelExport {
                     }
                     chanelNameRow.createCell(column).setCellValue(channel.toString());
                     
-
-
 
                     for (Map.Entry<Integer, ParticleInfo> entry3 : channel.getRois().entrySet()) {
                         int chNr = entry3.getKey();
