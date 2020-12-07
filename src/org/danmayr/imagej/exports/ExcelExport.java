@@ -57,10 +57,6 @@ public class ExcelExport {
                 Image image = entry1.getValue();
 
 
-     
-      
-
-
                 // Overview table
                 Row overviewRowChannelName = overview.createRow(0);
                 Row overviewRowHeader = overview.createRow(1);
@@ -161,6 +157,26 @@ public class ExcelExport {
                     columnSumary +=columnAddSumary;
                 }
             }
+        
+            //
+            // Write folder statistics
+            //
+            TreeMap<Integer, double[]> folderStatistics = folder.calcStatistic();
+
+            overviewRowCnt++;
+            Row overviewRow = overview.createRow(overviewRowCnt);
+            int folderSumaryCell = 4;
+            
+            for (Map.Entry<Integer, double[]> folderStatistic : folderStatistics.entrySet()) {
+                double values[] = folderStatistic.getValue();
+                for(int x=0;x<values.length;x++){
+                    overviewRow.createCell(folderSumaryCell).setCellValue(values[x]);
+                    folderSumaryCell++;
+                }
+                folderSumaryCell++;         // One free column because this column is used for the image link
+            }
+            overviewRowCnt++;
+        
         }
 
         try {
