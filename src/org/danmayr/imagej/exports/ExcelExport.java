@@ -56,6 +56,11 @@ public class ExcelExport {
                 String imgName = entry1.getKey();
                 Image image = entry1.getValue();
 
+
+     
+      
+
+
                 // Overview table
                 Row overviewRowChannelName = overview.createRow(0);
                 Row overviewRowHeader = overview.createRow(1);
@@ -63,11 +68,11 @@ public class ExcelExport {
                 Row overviewRow = overview.createRow(overviewRowCnt++);
                 overviewRow.createCell(0).setCellValue(folderName);
                 overviewRow.createCell(1).setCellValue(imgName);
+               
+                // Link to sheet
                 Cell linkCell = overviewRow.createCell(2);
                 String sheetName = Integer.toString(sheetNr);
                 linkCell.setCellValue("Sheet Nr: "+sheetName);
-
-
                 Hyperlink link2 = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
                 link2.setAddress("'"+sheetName+"'!A1");
                 linkCell.setHyperlink(link2);
@@ -100,12 +105,22 @@ public class ExcelExport {
                     for (int x = 0;x<overViewTitle.length;x++) {
                         overviewRowHeader.createCell(columnSumary+x).setCellValue(overViewTitle[x]);
                     }
-                    columnAddSumary = overViewTitle.length;
+                    columnAddSumary = overViewTitle.length+1;
 
                     double[] sumarayValues = channel.getValues();
                     for (int x = 0;x<sumarayValues.length;x++) {
                         overviewRow.createCell(columnSumary+x).setCellValue(sumarayValues[x]);
                     }
+
+                    // Link to picture
+                    Cell linkPicture = overviewRow.createCell(columnSumary+sumarayValues.length);
+                    String fileName = channel.getCtrlImagePath();
+                    linkPicture.setCellValue("Open control picture");
+                    Hyperlink linkImage = createHelper.createHyperlink(HyperlinkType.FILE);
+                    linkImage.setAddress(fileName);
+                    linkPicture.setHyperlink(linkImage);
+
+
 
                     for (Map.Entry<Integer, ParticleInfo> entry3 : channel.getRois().entrySet()) {
                         int chNr = entry3.getKey();

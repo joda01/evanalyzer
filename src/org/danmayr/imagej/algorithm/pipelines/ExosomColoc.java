@@ -49,6 +49,46 @@ public class ExosomColoc extends Pipeline {
         channels.put(1, measCh1);
         channels.put(2, measColoc);
 
+        // Save debug images
+        if(true == mSettings.mSaveDebugImages){
+            Channel greenChannel;
+            Channel redChannel;
+            
+            ImagePlus greenImg;
+            ImagePlus redImg;
+            if(mSettings.ch0 == Pipeline.ChannelType.GFP){
+                greenImg = img0;
+                redImg = img1;
+
+                greenChannel = measCh0;
+                redChannel = measCh1;
+
+            }else if(mSettings.ch0 == Pipeline.ChannelType.CY3){
+                redImg = img0;
+                greenImg = img1;
+
+                greenChannel = measCh1;
+                redChannel = measCh0;
+            }else{
+                return channels;
+            }
+            
+            String name = img.getAbsolutePath().replace(java.io.File.separator, "");
+            name=name.replaceAll("%", "");
+            name=name.replaceAll(" ", "");
+
+            String path = mSettings.mOutputFolder+java.io.File.separator+ name;
+            ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
+            Filter.SaveImage(mergedChannel,path+"_merged");
+            Filter.SaveImageWithOverlay(greenImg,rm,path+"_gfp");
+            Filter.SaveImageWithOverlay(redImg,rm,path+"_cy3");
+
+            greenChannel.addControlImagePath(name+"_gfp.jpg");
+            redChannel.addControlImagePath(name+"_cy3.jpg");
+            measColoc.addControlImagePath(name+"_merged.jpg");
+        }
+
+
         return channels;
     }
 

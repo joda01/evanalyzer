@@ -1,5 +1,6 @@
 package org.danmayr.imagej.algorithm;
 
+import org.danmayr.imagej.algorithm.pipelines.*;
 
 public class AnalyseSettings {
     public enum Function {
@@ -23,12 +24,16 @@ public class AnalyseSettings {
         }
     }
 
+    public boolean mSaveDebugImages = true;
 
     public Function mSelectedFunction;
     public String mInputFolder;
     public String mNegativeControl;
     public String mOutputFolder;
     public int mGreenChannel;
+
+    public Pipeline.ChannelType ch0 = Pipeline.ChannelType.GFP;
+    public Pipeline.ChannelType ch1;
     public String mThersholdMethod;
 
     public boolean mEnhanceContrastForGreen;

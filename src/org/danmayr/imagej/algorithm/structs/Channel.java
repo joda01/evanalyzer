@@ -13,6 +13,7 @@ public class Channel {
     String mName;
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
+    String mControlImgPath = "";
 
     ///
     /// \brief Constructor
@@ -28,6 +29,14 @@ public class Channel {
     ///
     public void addRoi(ParticleInfo roi) {
         mRois.put(roi.roiName, roi);
+    }
+
+    public void addControlImagePath(String ctrlImagePath){
+        mControlImgPath = ctrlImagePath;
+    }
+
+    public String getCtrlImagePath(){
+        return mControlImgPath;
     }
 
     ///
