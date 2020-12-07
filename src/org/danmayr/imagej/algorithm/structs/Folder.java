@@ -75,9 +75,9 @@ public class Folder {
         return mValues;
     }
 
-    public TreeMap<Integer,  Pair<String,String[]>> getTitle(){
+    public TreeMap<Integer,  Pair<String,String[]>> getStatisticTitle(){
         Image img = mImages.firstEntry().getValue();
-        return img.getTitle();
+        return img.getStatisticTitle();
     }
 
 }

@@ -13,7 +13,8 @@ import org.danmayr.imagej.algorithm.structs.Pair;
 public class Image {
     String mImageName;
     TreeMap<Integer, Channel> mChannels = new TreeMap<>(); // Channel Nr, Channel
-    TreeMap<Integer, Pair<String,String[]>> mTitles = new TreeMap<>();
+    TreeMap<Integer, Pair<String,String[]>> mStatisticTitles = new TreeMap<>();
+    TreeMap<Integer, Pair<String,String[]>> mTitle = new TreeMap<>();
     TreeMap<Integer, double[]> mStatistics = new TreeMap<>();
     TreeMap<Integer, String> mCtrlImage = new TreeMap<>();
 
@@ -30,9 +31,9 @@ public class Image {
     ///
     public void addChannel(TreeMap<Integer, Channel> channels) {
         mChannels = channels;
-        mTitles.clear();
         for (Map.Entry<Integer, Channel> channel : getChannels().entrySet()) {
-            mTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getTitle()));
+            mStatisticTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getStatisticTitle()));
+            mTitle.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getTitle()));
             mStatistics.put(channel.getKey(), channel.getValue().getStatistics());
             mCtrlImage.put(channel.getKey(), channel.getValue().getCtrlImagePath());
         }
@@ -56,13 +57,16 @@ public class Image {
         return mCtrlImage;
     }
 
-    public TreeMap<Integer, Pair<String,String[]>> getTitle(){
-        return mTitles;
+    public TreeMap<Integer, Pair<String,String[]>> getStatisticTitle(){
+        return mStatisticTitles;
     }
 
     public TreeMap<Integer, double[]> getStatistics(){
         return mStatistics;
     }
-    
+
+    public TreeMap<Integer, Pair<String,String[]>> getTitle(){
+        return mTitle;
+    }
 
 }

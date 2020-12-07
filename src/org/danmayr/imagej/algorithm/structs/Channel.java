@@ -58,8 +58,13 @@ public class Channel {
         return mStatistics.getValues();
     }
 
-    public String[] getTitle() {
+    public String[] getStatisticTitle() {
         return mStatistics.getTitle();
+    }
+
+
+    public String[] getTitle() {
+        return mRois.firstEntry().getValue().getTitle();
     }
 
     ///
