@@ -11,6 +11,8 @@ import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.statistics.*;
+
 
 public class ExosomColoc extends Pipeline {
 
@@ -22,7 +24,7 @@ public class ExosomColoc extends Pipeline {
 
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
-       
+
         RoiManager rm = new RoiManager();
 
         ImagePlus img0 = Filter.SubtractBackground(getImageCh0());
@@ -39,8 +41,8 @@ public class ExosomColoc extends Pipeline {
         Filter.AnalyzeParticles(sumImage);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
-        Channel measCh0 = Filter.MeasureImage(0, "ch0", img0, rm);
-        Channel measCh1 = Filter.MeasureImage(1, "ch1", img1, rm);
+        Channel measCh0 = Filter.MeasureImage(0, "ch0",mSettings, img0, rm);
+        Channel measCh1 = Filter.MeasureImage(1, "ch1",mSettings, img1, rm);
         Channel measColoc = calculateColoc(measCh0, measCh1);
 
         channels.put(0, measCh0);
@@ -51,7 +53,7 @@ public class ExosomColoc extends Pipeline {
     }
 
     private Channel calculateColoc(Channel ch0, Channel ch1) {
-        Channel ch = new Channel(2, "Coloc");
+        Channel ch = new Channel(2, "Coloc", new ColocStatistic());
 
         TreeMap<Integer, ParticleInfo> roiCh0 = ch0.getRois();
         TreeMap<Integer, ParticleInfo> roiCh1 = ch1.getRois();
@@ -65,9 +67,13 @@ public class ExosomColoc extends Pipeline {
 
                 double colocValue = Math.abs(MAX_THERSHOLD - Math.abs(ch0Info.areaGrayScale - ch1Info.areaGrayScale));
 
-                ColocRoi exosom = new ColocRoi(key, ch0Info.areaSize, ch0Info.areaGrayScale, ch0Info.circularity, colocValue);
+                ColocRoi exosom = new ColocRoi(key, ch0Info.areaSize, ch0Info.areaGrayScale, ch0Info.circularity,
+                        colocValue);
+                exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
+                        mSettings.mMinCircularity, mSettings.minIntensity);
                 ch.addRoi(exosom);
             }
+            ch.calcStatistics();
         } else {
             IJ.log("calculateColoc ROI size not equal.");
         }
@@ -86,24 +92,61 @@ public class ExosomColoc extends Pipeline {
         /// \brief Returns the name of the roi
         ///
         public String toString() {
-            return Integer.toString(roiName) + ";" + Double.toString(areaSize) + ";"
-                    + Double.toString(areaGrayScale) + ";" + Double.toString(circularity) + ";"
-                    + Double.toString(colocValue);
+            return Integer.toString(roiName) + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale)
+                    + ";" + Double.toString(circularity) + ";" + Double.toString(colocValue);
         }
 
         public double colocValue;
 
         @Override
-        public double[] getValues(){
-            double[] values={areaSize,areaGrayScale,circularity,colocValue};
+        public double[] getValues() {
+            double[] values = { areaSize, areaGrayScale, circularity, colocValue };
             return values;
         }
 
-        public String[] getTitle(){
-            String[] title = {"area size","gray scale","circularity","coloc"};
+        public String[] getTitle() {
+            String[] title = { "area size", "gray scale", "circularity", "coloc" };
             return title;
         }
 
+    }
+
+    class ColocStatistic extends Statistics
+    {
+        @Override
+        public void calcStatistics(Channel ch) {
+            int nrOfInvalid = 0;
+            int nrOfValid = 0;
+            mColocNr = 0;
+    
+            for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
+                int chNr = entry.getKey();
+                ParticleInfo info = entry.getValue();
+    
+                if (false == info.isValid()) {
+                    nrOfInvalid++;
+                } else {
+                    nrOfValid++;
+                    if(info.areaGrayScale > 0){
+                        mColocNr++;
+                    }
+                }
+            }
+            this.invalid = nrOfInvalid;
+            this.valid = nrOfValid;
+        }
+    
+        public double[] getValues() {
+            double[] values = { mColocNr,valid,invalid };
+            return values;
+        }
+    
+        public String[] getTitle() {
+            String[] title = { "coloc","valid","invalid" };
+            return title;
+        }
+
+        public int mColocNr = 0;
     }
 
 }

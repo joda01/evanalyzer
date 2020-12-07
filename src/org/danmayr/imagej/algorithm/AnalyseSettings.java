@@ -30,9 +30,15 @@ public class AnalyseSettings {
     public String mOutputFolder;
     public int mGreenChannel;
     public String mThersholdMethod;
+
     public boolean mEnhanceContrastForGreen;
     public boolean mEnhanceContrastForRed;
-    public int mMinParticleSize;
-    public int mMaxParticleSize;
+
+    public double mMinParticleSize = 0.0;
+    public double mMaxParticleSize = 999999999;
+    public double mMinCircularity = 0.0;
+    public double minIntensity = 0.0;
+
+
     public String mSelectedSeries;      // series_1
 }

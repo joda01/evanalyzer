@@ -24,6 +24,10 @@ import ij.plugin.frame.*;
 import ij.plugin.filter.ParticleAnalyzer;
 
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.algorithm.statistics.*;
+import org.danmayr.imagej.algorithm.AnalyseSettings;
+
+
 
 public class Filter {
     static int RESULT_FILE_ROI_IDX = 0;
@@ -92,7 +96,7 @@ public class Filter {
         IJ.run(image, "Analyze Particles...", "clear add");
     }
 
-    public static Channel MeasureImage(int chNr, String channelName,ImagePlus image, RoiManager rm) {
+    public static Channel MeasureImage(int chNr, String channelName,AnalyseSettings settings,ImagePlus image, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
         // import ij.plugin.frame.RoiManager
@@ -104,16 +108,16 @@ public class Filter {
         IJ.saveAs("Results", fileNameResult);
         IJ.run("Clear Results", "");
         File resultFile = new File(fileNameResult);
-        Channel ch = createChannelFromMeasurement(chNr, channelName,resultFile);
+        Channel ch = createChannelFromMeasurement(chNr, channelName,settings,resultFile);
         resultFile.delete();
         return ch;
     }
 
 
 
-    private static Channel createChannelFromMeasurement(int chNr, String channelName, File resultsFile) {
+    private static Channel createChannelFromMeasurement(int chNr, String channelName,AnalyseSettings settings, File resultsFile) {
 
-        Channel ch = new Channel(chNr,channelName);
+        Channel ch = new Channel(chNr,channelName, new Statistics());
         try {
             String[] readLines = new String(
                     Files.readAllBytes(Paths.get(resultsFile.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
@@ -150,8 +154,12 @@ public class Filter {
                 }
 
                 ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, circularity);
+                exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize,
+                settings.mMinCircularity, settings.minIntensity);
                 ch.addRoi(exosom);
             }
+
+            ch.calcStatistics();
 
         } catch (IOException ex) {
             IJ.log("Catch: " + ex.getMessage());

@@ -1,6 +1,7 @@
 package org.danmayr.imagej.algorithm.structs;
 
 import java.util.TreeMap;
+import org.danmayr.imagej.algorithm.statistics.*;
 
 ///
 /// \class  Channel
@@ -11,13 +12,15 @@ public class Channel {
     int mChannelNr = 0;
     String mName;
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
+    Statistics mStatistics = null;
 
     ///
     /// \brief Constructor
     ///
-    public Channel(int channelNr, String name) {
+    public Channel(int channelNr, String name, Statistics statistics) {
         mChannelNr = channelNr;
         mName = name;
+        mStatistics = statistics;
     }
 
     ///
@@ -36,6 +39,18 @@ public class Channel {
 
     public Integer getChannelNumber() {
         return mChannelNr;
+    }
+
+    public void calcStatistics(){
+        mStatistics.calcStatistics(this);
+    }
+
+    public double[] getValues() {
+        return mStatistics.getValues();
+    }
+
+    public String[] getTitle() {
+        return mStatistics.getTitle();
     }
 
     ///

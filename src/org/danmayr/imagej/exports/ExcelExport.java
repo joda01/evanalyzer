@@ -46,7 +46,7 @@ public class ExcelExport {
         int sheetNr = 0;
 
         XSSFSheet overview = (XSSFSheet) workBook.createSheet("overview");
-        int overviewRowCnt = 0;
+        int overviewRowCnt = 2;
 
         for (Map.Entry<String, Folder> entry : results.getFolders().entrySet()) {
             String folderName = entry.getKey();
@@ -57,6 +57,9 @@ public class ExcelExport {
                 Image image = entry1.getValue();
 
                 // Overview table
+                Row overviewRowChannelName = overview.createRow(0);
+                Row overviewRowHeader = overview.createRow(1);
+
                 Row overviewRow = overview.createRow(overviewRowCnt++);
                 overviewRow.createCell(0).setCellValue(folderName);
                 overviewRow.createCell(1).setCellValue(imgName);
@@ -73,12 +76,15 @@ public class ExcelExport {
                 XSSFSheet imageSheet = (XSSFSheet) workBook.createSheet(sheetName);
                 sheetNr++;
                 int column = 1;
+                int columnSumary = 4;
                 int columnAdd = 0;
+                int columnAddSumary = 0;
 
                 for (Map.Entry<Integer, Channel> entry2 : image.getChannels().entrySet()) {
                     int chName = entry2.getKey();
                     Channel channel = entry2.getValue();
                     
+
                     int row = 2;
                     // Write channel name
                     Row chanelNameRow = imageSheet.getRow(0);
@@ -87,6 +93,19 @@ public class ExcelExport {
                     }
                     chanelNameRow.createCell(column).setCellValue(channel.toString());
                     
+                    // Write summary for the channel
+                    overviewRowChannelName.createCell(columnSumary).setCellValue(channel.toString());
+
+                    String[] overViewTitle = channel.getTitle();
+                    for (int x = 0;x<overViewTitle.length;x++) {
+                        overviewRowHeader.createCell(columnSumary+x).setCellValue(overViewTitle[x]);
+                    }
+                    columnAddSumary = overViewTitle.length;
+
+                    double[] sumarayValues = channel.getValues();
+                    for (int x = 0;x<sumarayValues.length;x++) {
+                        overviewRow.createCell(columnSumary+x).setCellValue(sumarayValues[x]);
+                    }
 
                     for (Map.Entry<Integer, ParticleInfo> entry3 : channel.getRois().entrySet()) {
                         int chNr = entry3.getKey();
@@ -102,7 +121,6 @@ public class ExcelExport {
                         for (int c = 0; c < titles.length; c++) {
                             currentRow.createCell(column+c).setCellValue(titles[c]);
                         }
-
 
                         // Write title
                         
@@ -125,6 +143,7 @@ public class ExcelExport {
                     }
 
                     column += columnAdd;
+                    columnSumary +=columnAddSumary;
                 }
             }
         }
