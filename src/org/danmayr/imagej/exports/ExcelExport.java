@@ -130,6 +130,7 @@ public class ExcelExport {
         // Overview Sheet
         SXSSFSheet overviewSheet = (SXSSFSheet) workBook.createSheet("overview");
         int overViewRow = 0;
+        int imgSheetCount = 0;
 
         //
         //
@@ -142,7 +143,6 @@ public class ExcelExport {
             //
             // Process images in Folder
             //
-            int imgSheetCount = 0;
             for (Map.Entry<String, Image> imageMap : folder.getImages().entrySet()) {
                 imgSheetCount++;
                 String imageName = imageMap.getKey();
