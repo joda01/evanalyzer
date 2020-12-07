@@ -1,6 +1,10 @@
 package org.danmayr.imagej.algorithm.structs;
 
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.Vector;
+import org.danmayr.imagej.algorithm.structs.Pair;
+
 
 ///
 /// \class  Image
@@ -9,6 +13,10 @@ import java.util.TreeMap;
 public class Image {
     String mImageName;
     TreeMap<Integer, Channel> mChannels = new TreeMap<>(); // Channel Nr, Channel
+    TreeMap<Integer, Pair<String,String[]>> mTitles = new TreeMap<>();
+    TreeMap<Integer, double[]> mStatistics = new TreeMap<>();
+    TreeMap<Integer, String> mCtrlImage = new TreeMap<>();
+
 
     ///
     /// \brief Constructor
@@ -22,6 +30,12 @@ public class Image {
     ///
     public void addChannel(TreeMap<Integer, Channel> channels) {
         mChannels = channels;
+        mTitles.clear();
+        for (Map.Entry<Integer, Channel> channel : getChannels().entrySet()) {
+            mTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getTitle()));
+            mStatistics.put(channel.getKey(), channel.getValue().getStatistics());
+            mCtrlImage.put(channel.getKey(), channel.getValue().getCtrlImagePath());
+        }
     }
 
     ///
@@ -37,5 +51,18 @@ public class Image {
     public TreeMap<Integer, Channel> getChannels(){
         return mChannels;
     }
+
+    public TreeMap<Integer, String> getCtrlImages(){
+        return mCtrlImage;
+    }
+
+    public TreeMap<Integer, Pair<String,String[]>> getTitle(){
+        return mTitles;
+    }
+
+    public TreeMap<Integer, double[]> getStatistics(){
+        return mStatistics;
+    }
+    
 
 }

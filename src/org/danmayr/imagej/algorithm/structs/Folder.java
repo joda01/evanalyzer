@@ -2,6 +2,9 @@ package org.danmayr.imagej.algorithm.structs;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Vector;
+import org.danmayr.imagej.algorithm.structs.Pair;
+
 
 ///
 /// \class  Folder
@@ -47,8 +50,10 @@ public class Folder {
         TreeMap<Integer, double[]> mValues = new TreeMap<>();
 
         for (Map.Entry<String, Image> image : getImages().entrySet()) {
-            for (Map.Entry<Integer, Channel> channel : image.getValue().getChannels().entrySet()) {
-                double[] getValues = channel.getValue().getValues();
+            TreeMap<Integer, double[]> imgStatistic = image.getValue().getStatistics();
+            
+            for (Map.Entry<Integer, double[]> channel : imgStatistic.entrySet()) {
+                double[] getValues = channel.getValue();
                 double[] values = mValues.get(channel.getKey());
                 if(values == null){
                     values = new double[getValues.length];
@@ -68,6 +73,11 @@ public class Folder {
         }
 
         return mValues;
+    }
+
+    public TreeMap<Integer,  Pair<String,String[]>> getTitle(){
+        Image img = mImages.firstEntry().getValue();
+        return img.getTitle();
     }
 
 }

@@ -54,7 +54,7 @@ public class Channel {
         mStatistics.calcStatistics(this);
     }
 
-    public double[] getValues() {
+    public double[] getStatistics() {
         return mStatistics.getValues();
     }
 
