@@ -42,8 +42,8 @@ public class ExosomCount extends Pipeline {
         img0 = Filter.ApplyGaus(img0);
         img1 = Filter.ApplyGaus(img1);
 
-        img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod,-1,-1);
-        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod,-1,-1);
+        img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod,-1,-1, null);
+        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod,-1,-1, null);
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 

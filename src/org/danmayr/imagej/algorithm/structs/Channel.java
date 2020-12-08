@@ -67,6 +67,11 @@ public class Channel {
         return mRois.firstEntry().getValue().getTitle();
     }
 
+
+    public void setThershold(double minTH, double maxTH){
+        mStatistics.setThershold(minTH, maxTH);
+    }
+
     ///
     /// \brief Returns the Region of Interests
     ///

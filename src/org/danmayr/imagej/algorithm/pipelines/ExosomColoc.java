@@ -33,8 +33,11 @@ public class ExosomColoc extends Pipeline {
         img0 = Filter.ApplyGaus(img0);
         img1 = Filter.ApplyGaus(img1);
 
-        img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod, -1, -1);
-        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod, -1, -1);
+        double[] in = new double[2];
+        img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod, -1, -1,in);
+
+        double[] in1 = new double[2];
+        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod, -1, -1,in1);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
@@ -44,6 +47,10 @@ public class ExosomColoc extends Pipeline {
         Channel measCh0 = Filter.MeasureImage(0, "ch0",mSettings, img0, rm);
         Channel measCh1 = Filter.MeasureImage(1, "ch1",mSettings, img1, rm);
         Channel measColoc = calculateColoc(measCh0, measCh1);
+
+        
+        measCh0.setThershold(in[0],in[1]);
+        measCh1.setThershold(in1[0],in1[1]);
 
         channels.put(0, measCh0);
         channels.put(1, measCh1);

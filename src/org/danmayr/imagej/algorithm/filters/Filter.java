@@ -65,7 +65,7 @@ public class Filter {
         return cpy;
     }
 
-    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold) {
+    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold, double[] thRet) {
         int lower, upper;
         ImagePlus cpy = imp.duplicate();
         IJ.setAutoThreshold(cpy, thersholdMethod + " dark");
@@ -73,6 +73,12 @@ public class Filter {
             IJ.setRawThreshold(cpy, lowerThershold, upperThershold, null);
         }
         Prefs.blackBackground = true;
+
+        if(thRet != null){
+            double[] th = getAutoThreshold(cpy);
+            thRet[0] = th[0];
+            thRet[1] = th[1];
+        }
         IJ.run(cpy, "Convert to Mask", "");
 
         return cpy;
@@ -83,7 +89,7 @@ public class Filter {
         ImageProcessor ip = imp.getProcessor();
         double max = ip.getMaxThreshold();
         double min = ip.getMinThreshold();
-        double[] ret = {max,min};
+        double[] ret = {min,max};
         return ret;
     }
 

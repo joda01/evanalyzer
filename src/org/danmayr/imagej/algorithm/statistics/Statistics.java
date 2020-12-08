@@ -9,6 +9,11 @@ public class Statistics {
 
     }
 
+    public void setThershold(double minTH, double maxTH){
+        this.minTH = minTH;
+        this.maxTH = maxTH;
+    }
+
     public void calcStatistics(Channel ch) {
         int nrOfInvalid = 0;
         int nrOfValid = 0;
@@ -37,12 +42,12 @@ public class Statistics {
     }
 
     public double[] getValues() {
-        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid };
+        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH, maxTH };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "gray scale", "circularity","valid","invalid" };
+        String[] title = { "area size", "gray scale", "circularity","valid","invalid","min TH", "max TH" };
         return title;
     }
 
@@ -51,4 +56,6 @@ public class Statistics {
     public double avgAreaSize;
     public double avgGrayScale;
     public double avgCircularity;
+    public double minTH;
+    public double maxTH;
 }
