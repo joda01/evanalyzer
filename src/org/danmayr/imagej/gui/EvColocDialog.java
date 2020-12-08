@@ -25,6 +25,9 @@ public class EvColocDialog extends JFrame {
     private JTextField mMinCircularity = new JTextField("0");
     private JTextField mMinIntensity = new JTextField("0");
 
+    private JTextField minThCh0 = new JTextField("-1");
+    private JTextField minThCh1 = new JTextField("-1");
+
     private JButton mbInputFolder;
     private JButton mbOutputFolder;
     private JButton mbStart;
@@ -200,6 +203,30 @@ public class EvColocDialog extends JFrame {
         mEnhanceContrastRed = new JCheckBox("Enhance contrast for red channel");
         mEnhanceContrastRed.setContentAreaFilled(false);
         this.add(mEnhanceContrastRed, c);
+
+
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        c.gridwidth = 1;
+        this.add(new JLabel("Lower Thersholf CH0:"), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        this.add(minThCh0, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        this.add(new JLabel("Lower Thersholf CH1:"), c);// (Square Pixel):
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        this.add(minThCh1, c);
+
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -380,6 +407,20 @@ public class EvColocDialog extends JFrame {
         } catch (NumberFormatException ex) {
             error += "Max particle size wrong!\n";
         }
+
+
+        try {
+            sett.minThersholdCh0 = Integer.parseInt(minThCh0.getText());
+        } catch (NumberFormatException ex) {
+            error += "Min Therhold CH0 wrong!\n";
+        }
+        try {
+            sett.minThersholdCh1 = Integer.parseInt(minThCh1.getText());
+        } catch (NumberFormatException ex) {
+            error += "Min Therhold CH1 wrong!\n";
+        }
+
+
 
         if (error.length() <= 0) {
             mActAnalyzer = new ImageProcessor(this, sett);

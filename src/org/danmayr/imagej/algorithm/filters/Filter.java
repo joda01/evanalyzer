@@ -69,7 +69,7 @@ public class Filter {
         int lower, upper;
         ImagePlus cpy = imp.duplicate();
         IJ.setAutoThreshold(cpy, thersholdMethod + " dark");
-        if(lowerThershold > 0 && upperThershold > 0){
+        if(lowerThershold >= 0 && upperThershold >= 0){
             IJ.setRawThreshold(cpy, lowerThershold, upperThershold, null);
         }
         Prefs.blackBackground = true;

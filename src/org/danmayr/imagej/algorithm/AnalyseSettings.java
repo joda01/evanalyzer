@@ -44,5 +44,10 @@ public class AnalyseSettings {
     public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
 
+    public int minThersholdCh0 = -1;
+    public int minThersholdCh1 = -1;
+
+    public int maxThersholdCh0 = 65535;
+    public int maxThersholdCh1 = 65535;
 
 }
