@@ -17,7 +17,7 @@ import org.danmayr.imagej.algorithm.AnalyseSettings;
 abstract public class Pipeline {
 
   public enum ChannelType {
-    OFF, GFP, CY3
+    OFF, GFP, CY3, NEGATIVE_CONTROL
   }
 
   protected ChannelType mCh0;

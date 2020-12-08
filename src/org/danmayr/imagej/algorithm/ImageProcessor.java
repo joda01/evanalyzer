@@ -64,19 +64,18 @@ public class ImageProcessor extends Thread {
         //
         ArrayList<File> mFoundFiles = new ArrayList<>();
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
-        ArrayList<File> mFoundNegativeControlFiles = new ArrayList<>();
-        findFiles(new File(mAnalyseSettings.mNegativeControl).listFiles(), mFoundNegativeControlFiles);
-        mDialog.setProgressBarMaxSize(mFoundFiles.size() + mFoundNegativeControlFiles.size());
+        mDialog.setProgressBarMaxSize(mFoundFiles.size());
 
         // Analyse images
         Pipeline pipeline = null;
 
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
-            IJ.log("Count Exosomes");
+            pipeline = new ExosomCount(mAnalyseSettings, mAnalyseSettings.ch0, mAnalyseSettings.ch1);
+
 
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            pipeline = new ExosomColoc(mAnalyseSettings, Pipeline.ChannelType.GFP, Pipeline.ChannelType.CY3);
+            pipeline = new ExosomColoc(mAnalyseSettings,  mAnalyseSettings.ch0, mAnalyseSettings.ch1);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse();

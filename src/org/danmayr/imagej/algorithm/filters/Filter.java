@@ -65,13 +65,28 @@ public class Filter {
         return cpy;
     }
 
-    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod) {
+    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold) {
+        int lower, upper;
         ImagePlus cpy = imp.duplicate();
         IJ.setAutoThreshold(cpy, thersholdMethod + " dark");
+        if(lowerThershold > 0 && upperThershold > 0){
+            IJ.setRawThreshold(cpy, lowerThershold, upperThershold, null);
+        }
         Prefs.blackBackground = true;
         IJ.run(cpy, "Convert to Mask", "");
+
         return cpy;
     }
+
+    public static double[] getAutoThreshold(ImagePlus imp)
+    {
+        ImageProcessor ip = imp.getProcessor();
+        double max = ip.getMaxThreshold();
+        double min = ip.getMinThreshold();
+        double[] ret = {max,min};
+        return ret;
+    }
+
 
     public static ImagePlus MergeChannels(ImagePlus red, ImagePlus green) {
         ImagePlus ary[] = { red, green };
@@ -97,6 +112,16 @@ public class Filter {
         // ParticleAnalyzer analyzer
         // Analyzer
         IJ.run(image, "Analyze Particles...", "clear add");
+    }
+
+    public static ImagePlus paintOval(ImagePlus image){
+        ImagePlus cpy = image.duplicate();
+        ImageProcessor ip = cpy.getProcessor();
+        IJ.setForegroundColor(255,255,0);
+        IJ.setBackgroundColor(255,255,0);
+        ip.setColor(java.awt.Color.WHITE);
+        ip.fillOval(20, 20, 10 ,10);
+        return cpy;
     }
 
     public static Channel MeasureImage(int chNr, String channelName,AnalyseSettings settings,ImagePlus image, RoiManager rm) {

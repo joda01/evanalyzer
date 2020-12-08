@@ -28,13 +28,13 @@ public class AnalyseSettings {
 
     public Function mSelectedFunction;
     public String mInputFolder;
-    public String mNegativeControl;
     public String mOutputFolder;
-    public int mGreenChannel;
 
     public Pipeline.ChannelType ch0 = Pipeline.ChannelType.GFP;
     public Pipeline.ChannelType ch1;
     public String mThersholdMethod;
+    public String mSelectedSeries;      // series_1
+
 
     public boolean mEnhanceContrastForGreen;
     public boolean mEnhanceContrastForRed;
@@ -45,5 +45,4 @@ public class AnalyseSettings {
     public double minIntensity = 0.0;
 
 
-    public String mSelectedSeries;      // series_1
 }

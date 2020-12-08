@@ -3,7 +3,7 @@ package org.danmayr.imagej.gui;
 import javax.swing.*;
 
 import org.danmayr.imagej.algorithm.*;
-
+import org.danmayr.imagej.algorithm.pipelines.*;
 
 import java.awt.*;
 import java.io.File;
@@ -19,12 +19,13 @@ public class EvColocDialog extends JFrame {
     private static final long serialVersionUID = 1L;
 
     private JTextField mInputFolder = new JTextField(30);
-    private JTextField mNegativeControls = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
     private JTextField mMinParticleSize = new JTextField("5");
     private JTextField mMaxParticleSize = new JTextField("999999999");
+    private JTextField mMinCircularity = new JTextField("0");
+    private JTextField mMinIntensity = new JTextField("0");
+
     private JButton mbInputFolder;
-    private JButton mbNegativeControls;
     private JButton mbOutputFolder;
     private JButton mbStart;
     private JButton mCancle;
@@ -32,13 +33,37 @@ public class EvColocDialog extends JFrame {
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
     private JComboBox mFunctionSelection;
-    private JComboBox mGreenChannel;
+    private JComboBox mCh0Settings;
+    private JComboBox mCh1Settings;
     private JComboBox mThersholdMethod;
     private JComboBox mSeries;
     private ImageProcessor mActAnalyzer = null;
     private JCheckBox mEnhanceContrastRed;
     private JCheckBox mEnhanceContrastGreen;
     private JPanel mMenu;
+
+    public class ComboItem<T> {
+        private T value;
+        private String label;
+
+        public ComboItem(T value, String label) {
+            this.value = value;
+            this.label = label;
+        }
+
+        public T getValue() {
+            return this.value;
+        }
+
+        public String getLabel() {
+            return this.label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 
     ///
     /// Constructor
@@ -57,7 +82,8 @@ public class EvColocDialog extends JFrame {
         c.gridy = 0;
         this.add(new JLabel("Function:"), c);
 
-        AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection, AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes };
+        AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
+                AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.gridy = 0;
@@ -72,12 +98,10 @@ public class EvColocDialog extends JFrame {
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy = 0;
         this.add(mInputFolder, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
-        //c.gridy = 0;
         mbInputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
         mbInputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -87,31 +111,6 @@ public class EvColocDialog extends JFrame {
         });
         this.add(mbInputFolder, c);
 
-
-        ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        this.add(new JLabel("Negative controls:"), c);
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        //c.gridy = 0;
-        this.add(mNegativeControls, c);
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 2;
-        //c.gridy = 0;
-        mbNegativeControls = new JButton(new ImageIcon(getClass().getResource("open.png")));
-        mbNegativeControls.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                OpenDirectoryChooser(mNegativeControls, null);
-            }
-        });
-        this.add(mbNegativeControls, c);
-
-
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
@@ -120,12 +119,10 @@ public class EvColocDialog extends JFrame {
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy++;
         this.add(mOutputFolder, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
-        //c.gridy = 1;
         mbOutputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
         mbOutputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -144,7 +141,6 @@ public class EvColocDialog extends JFrame {
         String[] series = { "series_1", "series_2" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy = 4;
         mSeries = new JComboBox<String>(series);
         this.add(mSeries, c);
 
@@ -152,14 +148,29 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 5;
-        this.add(new JLabel("Green channel:"), c);
+        this.add(new JLabel("Channel 0:"), c);
 
-        String[] channels = { "0", "1" };
+        ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[4];
+        channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "OFF");
+        channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP, "GFP");
+        channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3, "CY3");
+        channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL, "Negative Control");
+
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy = 4;
-        mGreenChannel = new JComboBox<String>(channels);
-        this.add(mGreenChannel, c);
+        mCh0Settings = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
+        this.add(mCh0Settings, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        this.add(new JLabel("Channel 0:"), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        mCh1Settings = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
+        this.add(mCh1Settings, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -170,7 +181,6 @@ public class EvColocDialog extends JFrame {
         String[] thersholdAlgo = { "Li", "MaxEntropy" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy = 5;
         mThersholdMethod = new JComboBox<String>(thersholdAlgo);
         this.add(mThersholdMethod, c);
 
@@ -196,23 +206,41 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 1;
-        this.add(new JLabel("Min particle size (Square Pixel):"), c);
+        this.add(new JLabel("Min particle size:"), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //.gridy = 8;
         this.add(mMinParticleSize, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
-        this.add(new JLabel("Max particle size (Square Pixel):"), c);
+        this.add(new JLabel("Max particle size:"), c);// (Square Pixel):
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        //c.gridy = 9;
         this.add(mMaxParticleSize, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        this.add(new JLabel("Min circularity [0-1]:"), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        this.add(mMinCircularity, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        this.add(new JLabel("Min Intensity [0-255]:"), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        this.add(mMinIntensity, c);
 
         ////////////////////////////////////////////////////
         mMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -265,13 +293,13 @@ public class EvColocDialog extends JFrame {
         mMenu.add(mClose);
 
         c.gridx = 0;
-        c.gridy = 11;
+        c.gridy++;
         c.gridwidth = 3;
         this.add(mMenu, c);
 
         ////////////////////////////////////////////////////
         c.gridx = 0;
-        c.gridy = 12;
+        c.gridy++;
         c.gridwidth = 3;
         mProgressbar.setStringPainted(true);
         mProgressbar.setString("0");
@@ -279,12 +307,12 @@ public class EvColocDialog extends JFrame {
 
         // Logo
         c.gridx = 0;
-        c.gridy = 13;
+        c.gridy++;
         c.gridwidth = 2;
         this.add(new JLabel(new ImageIcon(getClass().getResource("logo.jpg"))), c);
 
         c.gridx = 0;
-        c.gridy = 14;
+        c.gridy++;
         c.gridwidth = 3;
         this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.2.0", SwingConstants.RIGHT), c);
 
@@ -308,7 +336,7 @@ public class EvColocDialog extends JFrame {
     }
 
     public void incrementProgressBarValue() {
-        int value = mProgressbar.getValue()+1;
+        int value = mProgressbar.getValue() + 1;
         mProgressbar.setValue(value);
         mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()));
     }
@@ -324,26 +352,20 @@ public class EvColocDialog extends JFrame {
         if (false == parentFile.exists()) {
             error = "Please select an existing input folder!\n";
         }
-        
-        
-        sett.mSelectedFunction = (AnalyseSettings.Function)mFunctionSelection.getSelectedItem();
 
-        
         sett.mOutputFolder = mOutputFolder.getText();
         if (sett.mOutputFolder.length() <= 0) {
             error = "Please select an output folder!\n";
         }
-        try {
-            sett.mGreenChannel = Integer.parseInt(mGreenChannel.getSelectedItem().toString());
-        } catch (NumberFormatException ex) {
-            error = "Wrong selected channel!\n";
-        }
+        sett.ch0 = ((ComboItem<Pipeline.ChannelType>) mCh0Settings.getSelectedItem()).getValue();
+        sett.ch1 = ((ComboItem<Pipeline.ChannelType>) mCh1Settings.getSelectedItem()).getValue();
 
-        sett.mNegativeControl = mNegativeControls.getText();
-        if (sett.mNegativeControl.equals(AnalyseSettings.Function.noSelection)){
+        sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
+
+        if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
             error += PLEASE_SELECT_A_FUNCTION;
         }
-    
+
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
         sett.mThersholdMethod = mThersholdMethod.getSelectedItem().toString();
         sett.mEnhanceContrastForGreen = mEnhanceContrastGreen.isSelected();
@@ -358,7 +380,6 @@ public class EvColocDialog extends JFrame {
         } catch (NumberFormatException ex) {
             error += "Max particle size wrong!\n";
         }
-
 
         if (error.length() <= 0) {
             mActAnalyzer = new ImageProcessor(this, sett);
@@ -385,8 +406,7 @@ public class EvColocDialog extends JFrame {
 
     public void openResultsDialog() {
         try {
-            Desktop.getDesktop()
-                    .open(new File(mOutputFolder.getText() + File.separator + "statistic_all_over_final.xlsx"));
+            Desktop.getDesktop().open(new File(mOutputFolder.getText() + File.separator + "result.xlsx"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -22,6 +22,7 @@ public class ParticleInfo {
         this.circularity = circularity;
     }
 
+
     ///
     /// \breif check if this particle matches the filter criteria
     ///
