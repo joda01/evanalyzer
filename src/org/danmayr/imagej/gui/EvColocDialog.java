@@ -493,7 +493,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy++;
         c.weightx = 3;
-        this.add(new JLabel("(c) 2019 - 2020  MSJDMJ  | v1.2.0", SwingConstants.RIGHT), c);
+        this.add(new JLabel("(c) 2019 - 2020  SMMJJD  | v2.0.0 - alpha", SwingConstants.RIGHT), c);
 
         // Pack it
         // setBackground(Color.WHITE);
