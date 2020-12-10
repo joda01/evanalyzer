@@ -34,14 +34,14 @@ import org.danmayr.imagej.algorithm.pipelines.*;
 
 import org.danmayr.imagej.gui.EvColocDialog;
 
-public class ImageProcessor extends Thread {
+public class FileProcessor extends Thread {
 
     EvColocDialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
     FolderResults mResuls = new FolderResults();
 
-    public ImageProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
+    public FileProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
     }
@@ -50,6 +50,10 @@ public class ImageProcessor extends Thread {
      * Start the analyse thread
      */
     public void run() {
+
+        // Close all open windows
+        closeAllWindow();
+        WindowManager.closeAllWindows();
 
         // Prepare results folder
         prepareOutputFolder();
@@ -70,12 +74,12 @@ public class ImageProcessor extends Thread {
         Pipeline pipeline = null;
 
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
-            pipeline = new ExosomCount(mAnalyseSettings, mAnalyseSettings.ch0, mAnalyseSettings.ch1);
+            pipeline = new ExosomCount(mAnalyseSettings, mAnalyseSettings.ch0.type, mAnalyseSettings.ch1.type);
 
 
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            pipeline = new ExosomColoc(mAnalyseSettings,  mAnalyseSettings.ch0, mAnalyseSettings.ch1);
+            pipeline = new ExosomColoc(mAnalyseSettings,  mAnalyseSettings.ch0.type, mAnalyseSettings.ch1.type);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse();

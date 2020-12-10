@@ -84,6 +84,28 @@ public class Filter {
         return cpy;
     }
 
+    public static void ApplyThersholdPreview(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold, double[] thRet) {
+        int lower, upper;
+        IJ.setAutoThreshold(imp, thersholdMethod + " dark");
+        ThresholdAdjuster.setMode("Red");
+
+        if(lowerThershold >= 0 && upperThershold >= 0){
+            IJ.setRawThreshold(imp, lowerThershold, upperThershold, null);
+        }
+        Prefs.blackBackground = true;
+
+        if(thRet != null){
+            double[] th = getAutoThreshold(imp);
+            thRet[0] = th[0];
+            thRet[1] = th[1];
+        }
+        //IJ.run(cpy, "Convert to Mask", "");
+    }
+
+    // IJ.resetThreshold(imp);
+
+
+
     public static double[] getAutoThreshold(ImagePlus imp)
     {
         ImageProcessor ip = imp.getProcessor();

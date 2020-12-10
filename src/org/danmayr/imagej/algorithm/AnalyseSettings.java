@@ -24,30 +24,26 @@ public class AnalyseSettings {
         }
     }
 
-    public boolean mSaveDebugImages = true;
+    public class ChannelSettings{
+        public Pipeline.ChannelType type;
+        public String mThersholdMethod;
+        public boolean enhanceContrast;
+        public int minThershold = -1;
+        public int maxThershold = -1;
+    }
 
+    public boolean mSaveDebugImages = true;
     public Function mSelectedFunction;
     public String mInputFolder;
     public String mOutputFolder;
-
-    public Pipeline.ChannelType ch0 = Pipeline.ChannelType.GFP;
-    public Pipeline.ChannelType ch1;
-    public String mThersholdMethod;
     public String mSelectedSeries;      // series_1
-
-
-    public boolean mEnhanceContrastForGreen;
-    public boolean mEnhanceContrastForRed;
-
     public double mMinParticleSize = 0.0;
     public double mMaxParticleSize = 999999999;
     public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
 
-    public int minThersholdCh0 = -1;
-    public int minThersholdCh1 = -1;
+    public ChannelSettings ch0 = new ChannelSettings();
+    public ChannelSettings ch1 = new ChannelSettings();
 
-    public int maxThersholdCh0 = 65535;
-    public int maxThersholdCh1 = 65535;
 
 }

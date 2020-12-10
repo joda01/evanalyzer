@@ -29,10 +29,10 @@ public class ExosomCount extends Pipeline {
         ImagePlus img0 = getImageCh0();
         ImagePlus img1 = getImageCh1();
 
-        if (mSettings.ch0 == Pipeline.ChannelType.NEGATIVE_CONTROL) {
+        if (mSettings.ch0.type == Pipeline.ChannelType.NEGATIVE_CONTROL) {
             img0 = Filter.paintOval(img0);
         } 
-        if (mSettings.ch1 == Pipeline.ChannelType.NEGATIVE_CONTROL) {
+        if (mSettings.ch1.type == Pipeline.ChannelType.NEGATIVE_CONTROL) {
             img1 = Filter.paintOval(img1);
         }
 
@@ -42,8 +42,8 @@ public class ExosomCount extends Pipeline {
         img0 = Filter.ApplyGaus(img0);
         img1 = Filter.ApplyGaus(img1);
 
-        img0 = Filter.ApplyThershold(img0, mSettings.mThersholdMethod,mSettings.minThersholdCh0,mSettings.maxThersholdCh0, null);
-        img1 = Filter.ApplyThershold(img1, mSettings.mThersholdMethod,mSettings.minThersholdCh1,mSettings.maxThersholdCh1, null);
+        img0 = Filter.ApplyThershold(img0, mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, null);
+        img1 = Filter.ApplyThershold(img1, mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, null);
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
@@ -63,14 +63,14 @@ public class ExosomCount extends Pipeline {
 
             ImagePlus greenImg;
             ImagePlus redImg;
-            if (mSettings.ch0 == Pipeline.ChannelType.GFP) {
+            if (mSettings.ch0.type == Pipeline.ChannelType.GFP) {
                 greenImg = img0;
                 redImg = img1;
 
                 greenChannel = measCh0;
                 redChannel = measCh1;
 
-            } else if (mSettings.ch0 == Pipeline.ChannelType.CY3) {
+            } else if (mSettings.ch0.type == Pipeline.ChannelType.CY3) {
                 redImg = img0;
                 greenImg = img1;
 
