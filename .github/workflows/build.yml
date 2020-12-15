@@ -27,6 +27,7 @@ jobs:
         run: |
           ls -l
           echo Hello, world!
+          cd ./src
           ./build.sh
           echo Finished!
 
