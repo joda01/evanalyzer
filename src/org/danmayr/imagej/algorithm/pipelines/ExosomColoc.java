@@ -13,7 +13,6 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.statistics.*;
 
-
 public class ExosomColoc extends Pipeline {
 
     static int MAX_THERSHOLD = 255;
@@ -27,74 +26,85 @@ public class ExosomColoc extends Pipeline {
 
         RoiManager rm = new RoiManager();
 
-        ImagePlus img0 = Filter.SubtractBackground(getImageCh0());
-        ImagePlus img1 = Filter.SubtractBackground(getImageCh1());
+        ImagePlus img0 = getImageCh0();
+        ImagePlus img1 = getImageCh1();
+
+        if (true == mSettings.ch0.enhanceContrast) {
+            img0 = Filter.EnhanceContrast(img0);
+        }
+
+        if (true == mSettings.ch1.enhanceContrast) {
+            img1 = Filter.EnhanceContrast(img1);
+        }
+
+        img0 = Filter.SubtractBackground(img0);
+        img1 = Filter.SubtractBackground(img1);
 
         img0 = Filter.ApplyGaus(img0);
         img1 = Filter.ApplyGaus(img1);
 
         double[] in = new double[2];
-        img0 = Filter.ApplyThershold(img0, mSettings.ch0.mThersholdMethod, mSettings.ch0.minThershold,mSettings.ch0.maxThershold,in);
+        img0 = Filter.ApplyThershold(img0, mSettings.ch0.mThersholdMethod, mSettings.ch0.minThershold,
+                mSettings.ch0.maxThershold, in);
 
         double[] in1 = new double[2];
-        img1 = Filter.ApplyThershold(img1, mSettings.ch1.mThersholdMethod, mSettings.ch1.minThershold,mSettings.ch1.maxThershold,in1);
+        img1 = Filter.ApplyThershold(img1, mSettings.ch1.mThersholdMethod, mSettings.ch1.minThershold,
+                mSettings.ch1.maxThershold, in1);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
         Filter.AnalyzeParticles(sumImage);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
-        Channel measCh0 = Filter.MeasureImage(0, "ch0",mSettings, img0, rm);
-        Channel measCh1 = Filter.MeasureImage(1, "ch1",mSettings, img1, rm);
+        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0, rm);
+        Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1, rm);
         Channel measColoc = calculateColoc(measCh0, measCh1);
 
-        
-        measCh0.setThershold(in[0],in[1]);
-        measCh1.setThershold(in1[0],in1[1]);
+        measCh0.setThershold(in[0], in[1]);
+        measCh1.setThershold(in1[0], in1[1]);
 
         channels.put(0, measCh0);
         channels.put(1, measCh1);
         channels.put(2, measColoc);
 
         // Save debug images
-        if(true == mSettings.mSaveDebugImages){
+        if (true == mSettings.mSaveDebugImages) {
             Channel greenChannel;
             Channel redChannel;
-            
+
             ImagePlus greenImg;
             ImagePlus redImg;
-            if(mSettings.ch0.type == Pipeline.ChannelType.GFP){
+            if (mSettings.ch0.type == Pipeline.ChannelType.GFP) {
                 greenImg = img0;
                 redImg = img1;
 
                 greenChannel = measCh0;
                 redChannel = measCh1;
 
-            }else if(mSettings.ch0.type == Pipeline.ChannelType.CY3){
+            } else if (mSettings.ch0.type == Pipeline.ChannelType.CY3) {
                 redImg = img0;
                 greenImg = img1;
 
                 greenChannel = measCh1;
                 redChannel = measCh0;
-            }else{
+            } else {
                 return channels;
             }
-            
+
             String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-            name=name.replaceAll("%", "");
-            name=name.replaceAll(" ", "");
+            name = name.replaceAll("%", "");
+            name = name.replaceAll(" ", "");
 
-            String path = mSettings.mOutputFolder+java.io.File.separator+ name;
+            String path = mSettings.mOutputFolder + java.io.File.separator + name;
             ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
-            Filter.SaveImage(mergedChannel,path+"_merged");
-            Filter.SaveImageWithOverlay(greenImg,rm,path+"_gfp");
-            Filter.SaveImageWithOverlay(redImg,rm,path+"_cy3");
+            Filter.SaveImage(mergedChannel, path + "_merged");
+            Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp");
+            Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3");
 
-            greenChannel.addControlImagePath(name+"_gfp.jpg");
-            redChannel.addControlImagePath(name+"_cy3.jpg");
-            measColoc.addControlImagePath(name+"_merged.jpg");
+            greenChannel.addControlImagePath(name + "_gfp.jpg");
+            redChannel.addControlImagePath(name + "_cy3.jpg");
+            measColoc.addControlImagePath(name + "_merged.jpg");
         }
-
 
         return channels;
     }
@@ -158,23 +168,22 @@ public class ExosomColoc extends Pipeline {
 
     }
 
-    class ColocStatistic extends Statistics
-    {
+    class ColocStatistic extends Statistics {
         @Override
         public void calcStatistics(Channel ch) {
             int nrOfInvalid = 0;
             int nrOfValid = 0;
             mColocNr = 0;
-    
+
             for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
                 int chNr = entry.getKey();
                 ParticleInfo info = entry.getValue();
-    
+
                 if (false == info.isValid()) {
                     nrOfInvalid++;
                 } else {
                     nrOfValid++;
-                    if(info.areaGrayScale > 0){
+                    if (info.areaGrayScale > 0) {
                         mColocNr++;
                     }
                 }
@@ -182,14 +191,14 @@ public class ExosomColoc extends Pipeline {
             this.invalid = nrOfInvalid;
             this.valid = nrOfValid;
         }
-    
+
         public double[] getValues() {
-            double[] values = { mColocNr,valid,invalid };
+            double[] values = { mColocNr, valid, invalid };
             return values;
         }
-    
+
         public String[] getTitle() {
-            String[] title = { "coloc","valid","invalid" };
+            String[] title = { "coloc", "valid", "invalid" };
             return title;
         }
 
