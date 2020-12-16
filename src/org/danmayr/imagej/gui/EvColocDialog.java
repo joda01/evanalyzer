@@ -192,8 +192,7 @@ public class EvColocDialog extends JFrame {
 
 
         public void endPreview(){
-            mPreviewImage = Filter.duplicateImage(mOriginalImage);
-            mPreviewImage = null;
+            mPreviewImage.setImage(mOriginalImage);
         }
 
         public void refreshPreview()
