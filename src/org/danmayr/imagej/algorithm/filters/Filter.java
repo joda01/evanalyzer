@@ -46,64 +46,40 @@ public class Filter {
         return sumImage;
     }
 
-
-    public static ImagePlus EnhanceContrast(ImagePlus img) {
-        ImagePlus cpy = img.duplicate();
-        IJ.run(cpy, "Enhance Contrast...", "saturated=0.3 normalize");
-        return cpy;
+    public static ImagePlus duplicateImage(ImagePlus img){
+        return  img.duplicate();
     }
 
-    public static ImagePlus SubtractBackground(ImagePlus img) {
-        ImagePlus cpy = img.duplicate();
-        IJ.run(cpy, "Subtract Background...", "rolling=4 sliding");
-        return cpy;
+    public static void EnhanceContrast(ImagePlus img) {
+        IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
     }
 
-    public static ImagePlus ApplyGaus(ImagePlus img) {
-        ImagePlus cpy = img.duplicate();
-        IJ.run(cpy, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
-        return cpy;
+    public static void SubtractBackground(ImagePlus img) {
+        IJ.run(img, "Subtract Background...", "rolling=4 sliding");
     }
 
-    public static ImagePlus ApplyThershold(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold, double[] thRet) {
+    public static void ApplyGaus(ImagePlus img) {
+        IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+    }
+
+    public static void ApplyThershold(ImagePlus img, String thersholdMethod, double lowerThershold, double upperThershold, double[] thRet, boolean convertToMask) {
         int lower, upper;
-        ImagePlus cpy = imp.duplicate();
-        IJ.setAutoThreshold(cpy, thersholdMethod + " dark");
+        IJ.setAutoThreshold(img, thersholdMethod + " dark");
         if(lowerThershold >= 0 && upperThershold >= 0){
-            IJ.setRawThreshold(cpy, lowerThershold, upperThershold, null);
+            IJ.setRawThreshold(img, lowerThershold, upperThershold, null);
         }
         Prefs.blackBackground = true;
 
         if(thRet != null){
-            double[] th = getAutoThreshold(cpy);
+            double[] th = getAutoThreshold(img);
             thRet[0] = th[0];
             thRet[1] = th[1];
         }
-        IJ.run(cpy, "Convert to Mask", "");
 
-        return cpy;
-    }
-
-    public static void ApplyThersholdPreview(ImagePlus imp, String thersholdMethod, double lowerThershold, double upperThershold, double[] thRet) {
-        int lower, upper;
-        IJ.setAutoThreshold(imp, thersholdMethod + " dark");
-        ThresholdAdjuster.setMode("Red");
-
-        if(lowerThershold >= 0 && upperThershold >= 0){
-            IJ.setRawThreshold(imp, lowerThershold, upperThershold, null);
+        if(true == convertToMask){
+            IJ.run(img, "Convert to Mask", "");
         }
-        Prefs.blackBackground = true;
-
-        if(thRet != null){
-            double[] th = getAutoThreshold(imp);
-            thRet[0] = th[0];
-            thRet[1] = th[1];
-        }
-        //IJ.run(cpy, "Convert to Mask", "");
     }
-
-    // IJ.resetThreshold(imp);
-
 
 
     public static double[] getAutoThreshold(ImagePlus imp)

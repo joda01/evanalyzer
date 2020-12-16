@@ -29,27 +29,11 @@ public class ExosomColoc extends Pipeline {
         ImagePlus img0 = getImageCh0();
         ImagePlus img1 = getImageCh1();
 
-        if (true == mSettings.ch0.enhanceContrast) {
-            img0 = Filter.EnhanceContrast(img0);
-        }
-
-        if (true == mSettings.ch1.enhanceContrast) {
-            img1 = Filter.EnhanceContrast(img1);
-        }
-
-        img0 = Filter.SubtractBackground(img0);
-        img1 = Filter.SubtractBackground(img1);
-
-        img0 = Filter.ApplyGaus(img0);
-        img1 = Filter.ApplyGaus(img1);
-
-        double[] in = new double[2];
-        img0 = Filter.ApplyThershold(img0, mSettings.ch0.mThersholdMethod, mSettings.ch0.minThershold,
-                mSettings.ch0.maxThershold, in);
-
+        double[] in0 = new double[2];
         double[] in1 = new double[2];
-        img1 = Filter.ApplyThershold(img1, mSettings.ch1.mThersholdMethod, mSettings.ch1.minThershold,
-                mSettings.ch1.maxThershold, in1);
+
+        preFilterSetColoc(img0, mSettings.ch0.enhanceContrast,mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, in0);
+        preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, in1);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
@@ -60,7 +44,7 @@ public class ExosomColoc extends Pipeline {
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1, rm);
         Channel measColoc = calculateColoc(measCh0, measCh1);
 
-        measCh0.setThershold(in[0], in[1]);
+        measCh0.setThershold(in0[0], in0[1]);
         measCh1.setThershold(in1[0], in1[1]);
 
         channels.put(0, measCh0);

@@ -36,14 +36,11 @@ public class ExosomCount extends Pipeline {
             img1 = Filter.paintOval(img1);
         }
 
-        img0 = Filter.SubtractBackground(img0);
-        img1 = Filter.SubtractBackground(img1);
+        double[] in0 = new double[2];
+        double[] in1 = new double[2];
+        preFilterSetColoc(img0, mSettings.ch0.enhanceContrast,mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, in0);
+        preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, in1);
 
-        img0 = Filter.ApplyGaus(img0);
-        img1 = Filter.ApplyGaus(img1);
-
-        img0 = Filter.ApplyThershold(img0, mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, null);
-        img1 = Filter.ApplyThershold(img1, mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, null);
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
@@ -52,6 +49,9 @@ public class ExosomCount extends Pipeline {
 
         Filter.AnalyzeParticles(img1);
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1, rm);
+
+        measCh0.setThershold(in0[0], in0[1]);
+        measCh1.setThershold(in1[0], in1[1]);
 
         channels.put(0, measCh0);
         channels.put(1, measCh1);

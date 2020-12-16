@@ -5,12 +5,18 @@ import ij.process.*;
 import ij.gui.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 import org.danmayr.imagej.algorithm.filters.*;
 
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -65,8 +71,9 @@ public class EvColocDialog extends JFrame {
         private JTextField minTheshold = new JTextField("-1");
         private JComboBox channelType;
         private JComboBox thersholdMethod;
+        private JSlider manualMinThershold = new JSlider(JSlider.HORIZONTAL, -1, 65535, -1);
         private JCheckBox enchanceContrast;
-        private JButton thersholdPreview;
+        private JToggleButton thersholdPreview;
 
         public PanelChannelSettings(Container parent) {
             GridBagLayout layout = new GridBagLayout();
@@ -101,8 +108,27 @@ public class EvColocDialog extends JFrame {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
+            c.gridwidth = 2;
             channelType = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
             this.add(channelType, c);
+
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 3;
+            c.weightx = 0;
+            c.gridwidth = 1;
+            thersholdPreview = new JToggleButton(new ImageIcon(getClass().getResource("preview.png")));
+            thersholdPreview.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    if (thersholdPreview.isSelected()) {
+                        startPreview();
+                        refreshPreview();
+                    } else {
+                        endPreview();
+                    }
+                }
+            });
+            this.add(thersholdPreview, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -117,13 +143,24 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter1 = new ImageIcon(getClass().getResource("thershold.png"));
             l1.setIcon(diamter1);
             this.add(l1, c);
-            
 
             String[] thersholdAlgo = { "Li", "MaxEntropy" };
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
+            c.gridwidth = 2;
             thersholdMethod = new JComboBox<String>(thersholdAlgo);
+
+            thersholdMethod.addItemListener(new ItemListener() {
+
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    refreshPreview();
+                }
+            });
+
+            
+
             this.add(thersholdMethod, c);
 
             ////////////////////////////////////////////////////
@@ -132,6 +169,7 @@ public class EvColocDialog extends JFrame {
             c.gridy++;
             c.weightx = 1;
             c.weightx = 0.0;
+            c.gridwidth = 1;
             JLabel l2 = new JLabel("Man. thersh. [-1-65535]:");
             l2.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l2.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -141,22 +179,54 @@ public class EvColocDialog extends JFrame {
             l2.setIcon(diamter2);
             this.add(l2, c);
 
+            manualMinThershold.addChangeListener(new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    // TODO Auto-generated method stub
+                    minTheshold.setText(Integer.toString(manualMinThershold.getValue()));
+                }
+
+            });
+
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
-            this.add(minTheshold, c);
+            this.add(manualMinThershold, c);
+
+            minTheshold.getDocument().addDocumentListener(new DocumentListener() {
+                public void changedUpdate(DocumentEvent e) {
+                    try {
+                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
+                        refreshPreview();
+                    } catch (NumberFormatException ex) {
+
+                    }
+                }
+
+                public void removeUpdate(DocumentEvent e) {
+                    try {
+                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
+                        refreshPreview();
+                    } catch (NumberFormatException ex) {
+
+                    }
+                }
+
+                public void insertUpdate(DocumentEvent e) {
+                    try {
+                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
+                        refreshPreview();
+                    } catch (NumberFormatException ex) {
+
+                    }
+                }
+            });
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 2;
-            c.weightx = 0;
-            thersholdPreview = new JButton(new ImageIcon(getClass().getResource("preview.png")));
-            thersholdPreview.addActionListener(new java.awt.event.ActionListener() {
-                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-                public void actionPerformed(java.awt.event.ActionEvent e) {
-                    showPreview();
-                }
-            });
-            this.add(thersholdPreview, c);
+            c.weightx = 1;
+            this.add(minTheshold, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -164,27 +234,51 @@ public class EvColocDialog extends JFrame {
             c.gridy++;
             c.weightx = 2;
             c.weightx = 1;
+            c.gridwidth = 2;
             enchanceContrast = new JCheckBox("Enhance contrast");
             enchanceContrast.setContentAreaFilled(false);
             this.add(enchanceContrast, c);
         }
 
+        private ImagePlus mOriginalImage;
+        private ImagePlus mPreviewImage;
 
-        public void showPreview()
-        {
+        public void startPreview() {
             String[] imageTitles = WindowManager.getImageTitles();
-             if (imageTitles.length > 0) {
-                ImagePlus image = IJ.getImage();//WindowManager.getImage(imageTitles[0]);
+            if (imageTitles.length > 0) {
+                ImagePlus image = IJ.getImage();// WindowManager.getImage(imageTitles[0]);
+                mPreviewImage = image;
+                mOriginalImage = Filter.duplicateImage(image);
+
+            } else {
+                thersholdPreview.setSelected(false);
+                JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        public void endPreview() {
+            mPreviewImage.setImage(mOriginalImage);
+        }
+
+        public void refreshPreview() {
+            if (mPreviewImage != null) {
+
                 int lowThershold = -1;
                 try {
                     lowThershold = Integer.parseInt(minTheshold.getText());
                 } catch (NumberFormatException ex) {
                 }
                 double[] th = new double[2];
-                Filter.ApplyThersholdPreview(image,thersholdMethod.getSelectedItem().toString(),lowThershold,65535,th);
-             }else{
-                JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog", JOptionPane.WARNING_MESSAGE);
-             }
+                ImagePlus newImg = Filter.duplicateImage(mOriginalImage);
+                mPreviewImage.setImage(newImg);
+
+                Pipeline.preFilterSetColocPreview(mPreviewImage, enchanceContrast.isSelected(),
+                        thersholdMethod.getSelectedItem().toString(), lowThershold, 65535, th);
+            } else {
+                JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
+                        JOptionPane.WARNING_MESSAGE);
+            }
         }
     }
 
