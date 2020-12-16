@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.*;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
-
+import org.danmayr.imagej.algorithm.filters.Filter;
 
 ///
 /// \class  Channel
@@ -48,8 +48,7 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception
-  {
+  public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception {
     String[] imageTitles = WindowManager.getImageTitles();
 
     for (int i = 0; i < imageTitles.length; i++) {
@@ -63,15 +62,14 @@ abstract public class Pipeline {
       }
     }
 
-    if(1 == nrOfExpectedChannels && null == getImageCh0()){
+    if (1 == nrOfExpectedChannels && null == getImageCh0()) {
       throw new Exception("One channel expected, zero channels given.");
-    } else if(2 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1())){
+    } else if (2 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1())) {
       throw new Exception("Two channel expected but just one or zero given.");
-    }
-    else{
+    } else {
       return startPipeline(imageFile);
     }
-    //return new TreeMap<Integer, Channel>();
+    // return new TreeMap<Integer, Channel>();
   }
 
   ImagePlus getImageCh0() {
@@ -84,6 +82,26 @@ abstract public class Pipeline {
 
   ImagePlus getImageCh2() {
     return imgChannel2;
+  }
+
+  public static void preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
+    preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,true);
+  }
+
+  public static void preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
+    preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,false);
+  }
+
+
+  public static void preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+    if (true == enhanceContrast) {
+      Filter.EnhanceContrast(img);
+    }
+
+    Filter.SubtractBackground(img);
+    Filter.ApplyGaus(img);
+
+    Filter.ApplyThershold(img,thMethod , thMin, thMax, thershold,convertToMask);
   }
 
   abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);

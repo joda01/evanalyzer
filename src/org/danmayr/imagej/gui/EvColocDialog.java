@@ -66,7 +66,7 @@ public class EvColocDialog extends JFrame {
         private JComboBox channelType;
         private JComboBox thersholdMethod;
         private JCheckBox enchanceContrast;
-        private JButton thersholdPreview;
+        private JToggleButton thersholdPreview;
 
         public PanelChannelSettings(Container parent) {
             GridBagLayout layout = new GridBagLayout();
@@ -149,11 +149,16 @@ public class EvColocDialog extends JFrame {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 2;
             c.weightx = 0;
-            thersholdPreview = new JButton(new ImageIcon(getClass().getResource("preview.png")));
+            thersholdPreview = new JToggleButton(new ImageIcon(getClass().getResource("preview.png")));
             thersholdPreview.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    showPreview();
+                    if(thersholdPreview.isSelected()){
+                        startPreview();
+                        refreshPreview();
+                    }else{
+                        endPreview();
+                    }
                 }
             });
             this.add(thersholdPreview, c);
@@ -169,19 +174,39 @@ public class EvColocDialog extends JFrame {
             this.add(enchanceContrast, c);
         }
 
+        private ImagePlus mOriginalImage;
+        private ImagePlus mPreviewImage;
 
-        public void showPreview()
-        {
+
+        public void startPreview(){
             String[] imageTitles = WindowManager.getImageTitles();
-             if (imageTitles.length > 0) {
-                ImagePlus image = IJ.getImage();//WindowManager.getImage(imageTitles[0]);
+            if (imageTitles.length > 0) {
+               ImagePlus image = IJ.getImage();//WindowManager.getImage(imageTitles[0]);
+               mPreviewImage = image;
+               mOriginalImage = Filter.duplicateImage(image);
+
+            }else{
+               JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+
+        public void endPreview(){
+            mPreviewImage = Filter.duplicateImage(mOriginalImage);
+            mPreviewImage = null;
+        }
+
+        public void refreshPreview()
+        {
+             if (mPreviewImage != null) {
+
                 int lowThershold = -1;
                 try {
                     lowThershold = Integer.parseInt(minTheshold.getText());
                 } catch (NumberFormatException ex) {
                 }
                 double[] th = new double[2];
-                Filter.ApplyThersholdPreview(image,thersholdMethod.getSelectedItem().toString(),lowThershold,65535,th);
+                Pipeline.preFilterSetColocPreview(mPreviewImage,enchanceContrast.isSelected(), thersholdMethod.getSelectedItem().toString(),lowThershold,65535,th);
              }else{
                 JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog", JOptionPane.WARNING_MESSAGE);
              }
