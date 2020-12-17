@@ -68,7 +68,12 @@ public class EvColocDialog extends JFrame {
     }
 
     class PanelChannelSettings extends JPanel {
-        private JTextField minTheshold = new JTextField("-1");
+        SpinnerModel model =
+        new SpinnerNumberModel(-1, //initial value
+                               -1, //min
+                               65535, //max
+                               1);                //step
+        private JSpinner minTheshold = new JSpinner(model);
         private JComboBox channelType;
         private JComboBox thersholdMethod;
         private JSlider manualMinThershold = new JSlider(JSlider.HORIZONTAL, -1, 65535, -1);
@@ -159,8 +164,6 @@ public class EvColocDialog extends JFrame {
                 }
             });
 
-            
-
             this.add(thersholdMethod, c);
 
             ////////////////////////////////////////////////////
@@ -184,7 +187,7 @@ public class EvColocDialog extends JFrame {
                 @Override
                 public void stateChanged(ChangeEvent e) {
                     // TODO Auto-generated method stub
-                    minTheshold.setText(Integer.toString(manualMinThershold.getValue()));
+                    minTheshold.setValue(manualMinThershold.getValue());
                 }
 
             });
@@ -194,34 +197,18 @@ public class EvColocDialog extends JFrame {
             c.weightx = 1;
             this.add(manualMinThershold, c);
 
-            minTheshold.getDocument().addDocumentListener(new DocumentListener() {
-                public void changedUpdate(DocumentEvent e) {
-                    try {
-                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
-                        refreshPreview();
-                    } catch (NumberFormatException ex) {
 
-                    }
-                }
-
-                public void removeUpdate(DocumentEvent e) {
-                    try {
-                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
-                        refreshPreview();
-                    } catch (NumberFormatException ex) {
-
-                    }
-                }
-
-                public void insertUpdate(DocumentEvent e) {
-                    try {
-                        manualMinThershold.setValue(Integer.parseInt(minTheshold.getText()));
-                        refreshPreview();
-                    } catch (NumberFormatException ex) {
-
-                    }
+            minTheshold.addChangeListener(new ChangeListener()
+            {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    // TODO Auto-generated method stub
+                    manualMinThershold.setValue((Integer)minTheshold.getValue());
+                    refreshPreview();
                 }
             });
+
+           
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 2;
@@ -262,22 +249,25 @@ public class EvColocDialog extends JFrame {
         }
 
         public void refreshPreview() {
-            if (mPreviewImage != null) {
+            if (thersholdPreview.isSelected() == true) {
+                if (mPreviewImage != null) {
 
-                int lowThershold = -1;
-                try {
-                    lowThershold = Integer.parseInt(minTheshold.getText());
-                } catch (NumberFormatException ex) {
+                    int lowThershold = -1;
+                    try {
+                        lowThershold = (Integer)minTheshold.getValue();
+                    } catch (NumberFormatException ex) {
+                    }
+                    double[] th = new double[2];
+                    ImagePlus newImg = Filter.duplicateImage(mOriginalImage);
+                    mPreviewImage.setImage(newImg);
+
+                    Pipeline.preFilterSetColocPreview(mPreviewImage, enchanceContrast.isSelected(),
+                            thersholdMethod.getSelectedItem().toString(), lowThershold, 65535, th);
+
+                } else {
+                    JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
+                            JOptionPane.WARNING_MESSAGE);
                 }
-                double[] th = new double[2];
-                ImagePlus newImg = Filter.duplicateImage(mOriginalImage);
-                mPreviewImage.setImage(newImg);
-
-                Pipeline.preFilterSetColocPreview(mPreviewImage, enchanceContrast.isSelected(),
-                        thersholdMethod.getSelectedItem().toString(), lowThershold, 65535, th);
-            } else {
-                JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
-                        JOptionPane.WARNING_MESSAGE);
             }
         }
     }
@@ -670,12 +660,12 @@ public class EvColocDialog extends JFrame {
         }
 
         try {
-            sett.ch0.minThershold = Integer.parseInt(ch0Settings.minTheshold.getText());
+            sett.ch0.minThershold = (Integer)(ch0Settings.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH0 wrong!\n";
         }
         try {
-            sett.ch1.minThershold = Integer.parseInt(ch0Settings.minTheshold.getText());
+            sett.ch1.minThershold = (Integer)(ch0Settings.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH1 wrong!\n";
         }
