@@ -68,11 +68,10 @@ public class EvColocDialog extends JFrame {
     }
 
     class PanelChannelSettings extends JPanel {
-        SpinnerModel model =
-        new SpinnerNumberModel(-1, //initial value
-                               -1, //min
-                               65535, //max
-                               1);                //step
+        SpinnerModel model = new SpinnerNumberModel(-1, // initial value
+                -1, // min
+                65535, // max
+                1); // step
         private JSpinner minTheshold = new JSpinner(model);
         private JComboBox channelType;
         private JComboBox thersholdMethod;
@@ -197,18 +196,14 @@ public class EvColocDialog extends JFrame {
             c.weightx = 1;
             this.add(manualMinThershold, c);
 
-
-            minTheshold.addChangeListener(new ChangeListener()
-            {
+            minTheshold.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
                     // TODO Auto-generated method stub
-                    manualMinThershold.setValue((Integer)minTheshold.getValue());
+                    manualMinThershold.setValue((Integer) minTheshold.getValue());
                     refreshPreview();
                 }
             });
-
-           
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 2;
@@ -254,7 +249,7 @@ public class EvColocDialog extends JFrame {
 
                     int lowThershold = -1;
                     try {
-                        lowThershold = (Integer)minTheshold.getValue();
+                        lowThershold = (Integer) minTheshold.getValue();
                     } catch (NumberFormatException ex) {
                     }
                     double[] th = new double[2];
@@ -343,9 +338,74 @@ public class EvColocDialog extends JFrame {
         }
     }
 
+    class PanelReport extends JPanel {
+
+        private JComboBox mComboReportGenerator;
+        private JComboBox mControlPictures;
+
+        public PanelReport(Container parent) {
+            GridBagLayout layout = new GridBagLayout();
+            setLayout(layout);
+            layout.preferredLayoutSize(parent);
+
+            GridBagConstraints c = new GridBagConstraints();
+            c.insets = new Insets(5, 5, 5, 5); // top padding
+            c.anchor = GridBagConstraints.WEST;
+
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy = 0;
+            c.weightx = 0;
+            JLabel l = new JLabel("Report type:");
+            ImageIcon diamter = new ImageIcon(getClass().getResource("report.png"));
+            l.setIcon(diamter);
+            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
+            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
+            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l.setSize(new Dimension(200, l.getSize().height));
+            this.add(l, c);
+
+            ComboItem<Pipeline.ChannelType>[] reportTypes = new ComboItem[2];
+            reportTypes[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "Full report");
+            reportTypes[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "Fast report");
+            mComboReportGenerator = new JComboBox<ComboItem<Pipeline.ChannelType>>(reportTypes);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            this.add(mComboReportGenerator, c);
+
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l1 = new JLabel("Control pictures:");
+            ImageIcon diamter1 = new ImageIcon(getClass().getResource("picture.png"));
+            l1.setIcon(diamter1);
+            l1.setMinimumSize(new Dimension(200, l1.getMinimumSize().height));
+            l1.setMaximumSize(new Dimension(200, l1.getMaximumSize().height));
+            l1.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l1.setSize(new Dimension(200, l1.getSize().height));
+            this.add(l1, c);
+
+            ComboItem<Pipeline.ChannelType>[] ctrlPictures = new ComboItem[2];
+            ctrlPictures[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF,
+                    "Generate control pictures");
+            ctrlPictures[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "No control pictures");
+            mControlPictures = new JComboBox<ComboItem<Pipeline.ChannelType>>(ctrlPictures);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            this.add(mControlPictures, c);
+
+        }
+    }
+
     PanelChannelSettings ch0Settings = new PanelChannelSettings(this);
     PanelChannelSettings ch1Settings = new PanelChannelSettings(this);
     PanelFilter filter = new PanelFilter(this);
+    PanelReport reportSettings = new PanelReport(this);
 
     ///
     /// Constructor
@@ -506,6 +566,32 @@ public class EvColocDialog extends JFrame {
         this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        c.weightx = 0;
+        this.add(new JLabel("Report settings: "), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        this.add(reportSettings, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        c.gridwidth = 3;
+        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+
+        ////////////////////////////////////////////////////
+        c.gridx = 0;
+        c.gridy++;
+        c.weightx = 3;
+        mProgressbar.setStringPainted(true);
+        mProgressbar.setString("0");
+        this.add(mProgressbar, c);
+
+        ////////////////////////////////////////////////////
         mMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         // mMenu.setBackground(Color.WHITE);
 
@@ -561,23 +647,37 @@ public class EvColocDialog extends JFrame {
         this.add(mMenu, c);
 
         ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
-        c.weightx = 3;
-        mProgressbar.setStringPainted(true);
-        mProgressbar.setString("0");
-        this.add(mProgressbar, c);
+        c.gridwidth = 3;
+        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+
+        ////////////////////////////////////////
 
         // Logo
-        c.gridx = 0;
+        JLabel logo = new JLabel("(c) 2019 - 2020  SMMJJD", SwingConstants.RIGHT);
+        ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_32.png"));
+        logo.setIcon(logoIcon);
+
+        c.gridx = 2;
         c.gridy++;
         c.weightx = 2;
-        this.add(new JLabel(new ImageIcon(getClass().getResource("logo.png"))), c);
+        this.add(logo, c);
 
+
+        JButton about = new JButton(new ImageIcon(getClass().getResource("close.png")));
+        about.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                JOptionPane.showMessageDialog(new JFrame(),"Exosome analyzer v2.2.0 . alpha.\n\nWith many thanks to Melanie Schürz and Maria Jaritsch.\nIcons from https://icons8.de.\n\nLicensed under MIT primary for use in non profit research and development.\n\n (c) 2020 Joachim Danmayr", "Dialog", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+        });
+        about.setText("About");
         c.gridx = 0;
-        c.gridy++;
-        c.weightx = 3;
-        this.add(new JLabel("(c) 2019 - 2020  SMMJJD  | v2.1.0 - alpha", SwingConstants.RIGHT), c);
+        c.weightx = 1;
+        mMenu.add(about);
 
         // Pack it
         // setBackground(Color.WHITE);
@@ -660,12 +760,12 @@ public class EvColocDialog extends JFrame {
         }
 
         try {
-            sett.ch0.minThershold = (Integer)(ch0Settings.minTheshold.getValue());
+            sett.ch0.minThershold = (Integer) (ch0Settings.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH0 wrong!\n";
         }
         try {
-            sett.ch1.minThershold = (Integer)(ch0Settings.minTheshold.getValue());
+            sett.ch1.minThershold = (Integer) (ch0Settings.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH1 wrong!\n";
         }

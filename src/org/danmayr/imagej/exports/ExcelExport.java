@@ -44,7 +44,7 @@ public class ExcelExport {
         int imgSheetCount = 0;
 
         //
-        //
+        // Process folders
         //
         for (Map.Entry<String, Folder> folderMap : results.getFolders().entrySet()) {
             String folderName = folderMap.getKey();
