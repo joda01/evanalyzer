@@ -52,7 +52,7 @@ public class ExosomColoc extends Pipeline {
         channels.put(2, measColoc);
 
         // Save debug images
-        if (true == mSettings.mSaveDebugImages) {
+        if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
             Channel greenChannel;
             Channel redChannel;
 

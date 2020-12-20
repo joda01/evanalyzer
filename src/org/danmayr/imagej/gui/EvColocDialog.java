@@ -20,6 +20,10 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 
+import org.danmayr.imagej.Version;
+
+import org.danmayr.imagej.algorithm.AnalyseSettings;
+
 ///
 ///
 ///
@@ -366,10 +370,10 @@ public class EvColocDialog extends JFrame {
             l.setSize(new Dimension(200, l.getSize().height));
             this.add(l, c);
 
-            ComboItem<Pipeline.ChannelType>[] reportTypes = new ComboItem[2];
-            reportTypes[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "Full report");
-            reportTypes[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "Fast report");
-            mComboReportGenerator = new JComboBox<ComboItem<Pipeline.ChannelType>>(reportTypes);
+            ComboItem<AnalyseSettings.ReportType>[] reportTypes = new ComboItem[2];
+            reportTypes[0] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FullReport, "Full report");
+            reportTypes[1] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FastReport, "Fast report");
+            mComboReportGenerator = new JComboBox<ComboItem<AnalyseSettings.ReportType>>(reportTypes);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -389,11 +393,12 @@ public class EvColocDialog extends JFrame {
             l1.setSize(new Dimension(200, l1.getSize().height));
             this.add(l1, c);
 
-            ComboItem<Pipeline.ChannelType>[] ctrlPictures = new ComboItem[2];
-            ctrlPictures[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF,
+            ComboItem<AnalyseSettings.CotrolPicture>[] ctrlPictures = new ComboItem[2];
+            ctrlPictures[0] = new ComboItem<AnalyseSettings.CotrolPicture>(AnalyseSettings.CotrolPicture.WithControlPicture,
                     "Generate control pictures");
-            ctrlPictures[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "No control pictures");
-            mControlPictures = new JComboBox<ComboItem<Pipeline.ChannelType>>(ctrlPictures);
+            ctrlPictures[1] = new ComboItem<AnalyseSettings.CotrolPicture>(AnalyseSettings.CotrolPicture.WithoutControlPicture,
+                    "No control pictures");
+            mControlPictures = new JComboBox<ComboItem<AnalyseSettings.CotrolPicture>>(ctrlPictures);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -660,24 +665,27 @@ public class EvColocDialog extends JFrame {
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_32.png"));
         logo.setIcon(logoIcon);
 
-        c.gridx = 2;
+        c.gridx = 0;
         c.gridy++;
         c.weightx = 2;
+        c.gridwidth = 2;
         this.add(logo, c);
 
-
-        JButton about = new JButton(new ImageIcon(getClass().getResource("close.png")));
+        JButton about = new JButton(new ImageIcon(getClass().getResource("about.png")));
         about.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                JOptionPane.showMessageDialog(new JFrame(),"Exosome analyzer v2.2.0 . alpha.\n\nWith many thanks to Melanie Schürz and Maria Jaritsch.\nIcons from https://icons8.de.\n\nLicensed under MIT primary for use in non profit research and development.\n\n (c) 2020 Joachim Danmayr", "Dialog", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(new JFrame(),
+                        "Exosome Analyzer v"+Version.getVersion()+".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 Joachim Danmayr",
+                        "About", JOptionPane.INFORMATION_MESSAGE);
 
             }
         });
         about.setText("About");
-        c.gridx = 0;
-        c.weightx = 1;
-        mMenu.add(about);
+        c.gridx = 2;
+        c.weightx = 0;
+        c.gridwidth = 1;
+        this.add(about, c);
 
         // Pack it
         // setBackground(Color.WHITE);
@@ -686,7 +694,7 @@ public class EvColocDialog extends JFrame {
 
         this.setAlwaysOnTop(true);
         this.setResizable(false);
-        setTitle("EV analyzer");
+        setTitle("Exosome analyzer");
     }
 
     public void setProgressBarMaxSize(int value) {
@@ -723,8 +731,11 @@ public class EvColocDialog extends JFrame {
         }
         sett.ch0.type = ((ComboItem<Pipeline.ChannelType>) ch0Settings.channelType.getSelectedItem()).getValue();
         sett.ch1.type = ((ComboItem<Pipeline.ChannelType>) ch1Settings.channelType.getSelectedItem()).getValue();
-
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
+
+        if(sett.ch0.type == Pipeline.ChannelType.OFF){
+            error += "Select channel Type for channel 0!";
+        }
 
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
             error += PLEASE_SELECT_A_FUNCTION;
@@ -777,7 +788,13 @@ public class EvColocDialog extends JFrame {
             JOptionPane.showMessageDialog(new JFrame(), error, "Dialog", JOptionPane.WARNING_MESSAGE);
             finishedAnalyse();
         }
+
+        sett.mSaveDebugImages =  ((ComboItem<AnalyseSettings.CotrolPicture>)reportSettings.mControlPictures.getSelectedItem()).getValue();
+    
+        sett.reportType =  ((ComboItem<AnalyseSettings.ReportType>)reportSettings.mComboReportGenerator.getSelectedItem()).getValue();
+
     }
+
 
     public void cancleAnalyse() {
         if (mActAnalyzer != null) {

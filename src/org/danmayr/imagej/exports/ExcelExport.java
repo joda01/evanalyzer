@@ -28,13 +28,15 @@ import java.util.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.structs.Pair;
+import org.danmayr.imagej.algorithm.AnalyseSettings;
+
 
 public class ExcelExport {
     ExcelExport() {
 
     }
 
-    public static void Export(String outputFolder, FolderResults results) {
+    public static void Export(String outputFolder, FolderResults results, AnalyseSettings.ReportType reportType) {
         Workbook workBook = new SXSSFWorkbook(2000);
         CreationHelper createHelper = workBook.getCreationHelper();
 
@@ -59,7 +61,6 @@ public class ExcelExport {
                 String imageName = imageMap.getKey();
                 Image image = imageMap.getValue();
                 String sheetName = Integer.toString(imgSheetCount);
-                SXSSFSheet imageSheet = (SXSSFSheet) workBook.createSheet(sheetName);
 
                 //
                 // Write image sumary to overview sheet
@@ -70,7 +71,10 @@ public class ExcelExport {
                 //
                 // Write image Particles
                 //
-                WriteImageSheet(imageSheet, image);
+                if(reportType == AnalyseSettings.ReportType.FullReport){
+                    SXSSFSheet imageSheet = (SXSSFSheet) workBook.createSheet(sheetName);
+                    WriteImageSheet(imageSheet, image);
+                }
 
             }
 

@@ -87,7 +87,7 @@ public class FileProcessor extends Thread {
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls);
+        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls, mAnalyseSettings.reportType);
 
         // Write statistics to file
         /*

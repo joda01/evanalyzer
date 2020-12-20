@@ -57,7 +57,7 @@ public class ExosomCount extends Pipeline {
         channels.put(1, measCh1);
 
         // Save debug images
-        if (true == mSettings.mSaveDebugImages) {
+        if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
             Channel greenChannel;
             Channel redChannel;
 

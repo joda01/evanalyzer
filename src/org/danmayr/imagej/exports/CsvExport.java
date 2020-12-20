@@ -6,13 +6,15 @@ import java.io.*;
 import java.util.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.algorithm.AnalyseSettings;
+
 
 public class CsvExport {
     CsvExport() {
 
     }
 
-    public static void Export(String outputFolder, FolderResults results) {
+    public static void Export(String outputFolder, FolderResults results, AnalyseSettings.ReportType reportType ) {
         String outPut = "";
         for (Map.Entry<String, Folder> entry : results.getFolders().entrySet()) {
             String key = entry.getKey();
