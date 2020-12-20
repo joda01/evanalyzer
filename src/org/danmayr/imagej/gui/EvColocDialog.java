@@ -697,20 +697,20 @@ public class EvColocDialog extends JFrame {
         setTitle("Exosome analyzer");
     }
 
-    public void setProgressBarMaxSize(int value) {
+    public void setProgressBarMaxSize(int value,String lable) {
         mProgressbar.setMaximum(value);
-        mProgressbar.setString(Integer.toString(0) + "/" + Integer.toString(mProgressbar.getMaximum()));
+        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
     }
 
-    public void setProgressBarValue(int value) {
+    public void setProgressBarValue(int value, String lable) {
         mProgressbar.setValue(value);
-        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()));
+        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
     }
 
-    public void incrementProgressBarValue() {
+    public void incrementProgressBarValue(String lable) {
         int value = mProgressbar.getValue() + 1;
         mProgressbar.setValue(value);
-        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()));
+        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
     }
 
     public void startAnalyse() {
@@ -805,6 +805,9 @@ public class EvColocDialog extends JFrame {
     }
 
     public void finishedAnalyse() {
+        mProgressbar.setString("Finished");
+        mProgressbar.setValue(mProgressbar.getMaximum());
+
         mbStart.setEnabled(true);
         mOpenResult.setEnabled(true);
         mCancle.setEnabled(false);

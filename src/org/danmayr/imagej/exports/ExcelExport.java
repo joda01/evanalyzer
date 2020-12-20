@@ -30,13 +30,22 @@ import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.structs.Pair;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 
+import org.danmayr.imagej.gui.EvColocDialog;
 
 public class ExcelExport {
     ExcelExport() {
 
     }
 
-    public static void Export(String outputFolder, FolderResults results, AnalyseSettings.ReportType reportType) {
+    public static void Export(String outputFolder, FolderResults results, AnalyseSettings.ReportType reportType,
+            EvColocDialog mDialog) {
+
+        mDialog.setProgressBarValue(0, "generating report ...");
+
+        int max = getLoopCount(results);
+        mDialog.setProgressBarMaxSize(max,"generating report ...");
+
+
         Workbook workBook = new SXSSFWorkbook(2000);
         CreationHelper createHelper = workBook.getCreationHelper();
 
@@ -71,10 +80,11 @@ public class ExcelExport {
                 //
                 // Write image Particles
                 //
-                if(reportType == AnalyseSettings.ReportType.FullReport){
+                if (reportType == AnalyseSettings.ReportType.FullReport) {
                     SXSSFSheet imageSheet = (SXSSFSheet) workBook.createSheet(sheetName);
                     WriteImageSheet(imageSheet, image);
                 }
+                mDialog.incrementProgressBarValue("generating report ...");
 
             }
 
@@ -90,6 +100,22 @@ public class ExcelExport {
             workBook.write(fileOutputStream);
         } catch (Exception exObj) {
         }
+
+    }
+
+   ///
+    /// Calculate how many loop iterations will be done
+    ///
+    private static int getLoopCount(FolderResults results)
+    {
+        int max = 0;
+        for (Map.Entry<String, Folder> folderMap : results.getFolders().entrySet()) {
+            Folder folder = folderMap.getValue();
+
+            max = max + folder.getImages().size();
+
+        }
+        return max;
 
     }
 
@@ -182,7 +208,6 @@ public class ExcelExport {
                 ParticleInfo info = roiMap.getValue();
                 double values[] = info.getValues();
 
-
                 Vector<double[]> vec = rows.get(roiMap.getKey());
                 if (null == vec) {
                     vec = new Vector<>();
@@ -199,7 +224,7 @@ public class ExcelExport {
             currentRow.createCell(0).setCellValue(entry3.getKey());
             Vector<double[]> valVec = entry3.getValue();
 
-            for(int n=0;n<valVec.size();n++){
+            for (int n = 0; n < valVec.size(); n++) {
                 for (int c = 0; c < valVec.get(n).length; c++) {
                     currentRow.createCell(column).setCellValue(valVec.get(n)[c]);
                     column++;
@@ -209,7 +234,6 @@ public class ExcelExport {
         }
 
     }
-
 
     ///
     /// Write folder statistics

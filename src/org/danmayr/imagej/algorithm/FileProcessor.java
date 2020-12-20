@@ -58,8 +58,8 @@ public class FileProcessor extends Thread {
         // Prepare results folder
         prepareOutputFolder();
 
-        mDialog.setProgressBarMaxSize(0);
-        mDialog.setProgressBarValue(0);
+        mDialog.setProgressBarMaxSize(0,"look for images ...");
+        mDialog.setProgressBarValue(0,"look for images ...");
 
 
 
@@ -68,7 +68,7 @@ public class FileProcessor extends Thread {
         //
         ArrayList<File> mFoundFiles = new ArrayList<>();
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
-        mDialog.setProgressBarMaxSize(mFoundFiles.size());
+        mDialog.setProgressBarMaxSize(mFoundFiles.size(),"analyzing ...");
 
         // Analyse images
         Pipeline pipeline = null;
@@ -87,7 +87,7 @@ public class FileProcessor extends Thread {
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls, mAnalyseSettings.reportType);
+        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls, mAnalyseSettings.reportType, mDialog);
 
         // Write statistics to file
         /*
@@ -138,7 +138,7 @@ public class FileProcessor extends Thread {
 
             closeAllWindow();
             WindowManager.closeAllWindows();
-            mDialog.incrementProgressBarValue();
+            mDialog.incrementProgressBarValue("analyzing ...");
             if (true == mStopping) {
                 break;
             }
