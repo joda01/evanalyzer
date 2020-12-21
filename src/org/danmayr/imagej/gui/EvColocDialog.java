@@ -734,7 +734,7 @@ public class EvColocDialog extends JFrame {
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
 
         if(sett.ch0.type == Pipeline.ChannelType.OFF){
-            error += "Select channel Type for channel 0!";
+            error += "Select channel Type for channel 0!\n";
         }
 
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
