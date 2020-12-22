@@ -776,7 +776,7 @@ public class EvColocDialog extends JFrame {
             error += "Min Therhold CH0 wrong!\n";
         }
         try {
-            sett.ch1.minThershold = (Integer) (ch0Settings.minTheshold.getValue());
+            sett.ch1.minThershold = (Integer) (ch1Settings.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH1 wrong!\n";
         }
