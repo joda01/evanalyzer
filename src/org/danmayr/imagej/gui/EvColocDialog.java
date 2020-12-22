@@ -692,7 +692,7 @@ public class EvColocDialog extends JFrame {
         // getContentPane().setBackground(Color.WHITE);
         pack();
 
-        this.setAlwaysOnTop(true);
+        //this.setAlwaysOnTop(true);
         this.setResizable(false);
         setTitle("Exosome analyzer");
     }

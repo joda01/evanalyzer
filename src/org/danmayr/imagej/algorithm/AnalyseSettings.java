@@ -37,7 +37,7 @@ public class AnalyseSettings {
         public String mThersholdMethod;
         public boolean enhanceContrast;
         public int minThershold = -1;
-        public int maxThershold = -1;
+        public int maxThershold = 65535;
     }
 
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
