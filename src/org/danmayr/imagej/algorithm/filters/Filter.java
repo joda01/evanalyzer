@@ -135,6 +135,7 @@ public class Filter {
         // https://imagej.nih.gov/ij/developer/api/ij/measure/ResultsTable.html
         // ij.measure.ResultsTable
         IJ.run("Clear Results", "");
+        IJ.run("Set Measurements...", "area mean min shape redirect=None decimal=3");
         rm.runCommand(image, "Measure");
         String fileNameResult = "tempfile.csv";
         IJ.saveAs("Results", fileNameResult);
