@@ -69,6 +69,8 @@ public class FileProcessor extends Thread {
         ArrayList<File> mFoundFiles = new ArrayList<>();
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
         mDialog.setProgressBarMaxSize(mFoundFiles.size(),"analyzing ...");
+        mDialog.setProgressBarValue(0,"analyzing ...");
+
 
         // Analyse images
         Pipeline pipeline = null;
