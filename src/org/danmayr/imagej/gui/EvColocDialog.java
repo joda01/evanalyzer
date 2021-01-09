@@ -79,7 +79,6 @@ public class EvColocDialog extends JFrame {
         private JSpinner minTheshold = new JSpinner(model);
         private JComboBox channelType;
         private JComboBox thersholdMethod;
-        private JSlider manualMinThershold = new JSlider(JSlider.HORIZONTAL, -1, 65535, -1);
         private JCheckBox enchanceContrast;
         private JToggleButton thersholdPreview;
 
@@ -185,32 +184,16 @@ public class EvColocDialog extends JFrame {
             l2.setIcon(diamter2);
             this.add(l2, c);
 
-            manualMinThershold.addChangeListener(new ChangeListener() {
-
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    // TODO Auto-generated method stub
-                    minTheshold.setValue(manualMinThershold.getValue());
-                }
-
-            });
-
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 1;
-            c.weightx = 1;
-            this.add(manualMinThershold, c);
 
             minTheshold.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    // TODO Auto-generated method stub
-                    manualMinThershold.setValue((Integer) minTheshold.getValue());
                     refreshPreview();
                 }
             });
 
             c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 2;
+            c.gridx = 1;
             c.weightx = 1;
             this.add(minTheshold, c);
 
