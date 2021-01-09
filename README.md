@@ -7,7 +7,6 @@ Exosome colocolizer is a Fiji ImageJ plugin designed for analyzing microscope pi
 *  Analysis of a large amount of images automatically.
 *  Generating XLSX (Excel) reports with automatic statistics generation.
 
-----
 
 ## Installation
 *  Download and instal Fiji from [Fiji](https://imagej.net/Fiji/Downloads).
@@ -16,7 +15,6 @@ Exosome colocolizer is a Fiji ImageJ plugin designed for analyzing microscope pi
 *  Restart Fiji.
 *  You will find the plugin the menu: Plugins -> Analyze -> Exosoms
 
-----
 
 ## Contributing
 For development Visual Studio Code is used. Compiling is done within a docker image (dev container).
@@ -26,7 +24,6 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 *  Reopen the project in Dev Container.
 *  Run ```./src/build.sh``` to compile the project.
 
-----
 
 ## Common issues
 *  Images used in the plugin cannot be in the RGB format, and must be monochromatic.
@@ -34,7 +31,6 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 *  Images must contain exact two or one channels.
 
 
-----
 
 ## Screenshot
 
