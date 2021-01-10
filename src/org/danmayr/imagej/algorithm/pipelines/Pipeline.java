@@ -84,24 +84,28 @@ abstract public class Pipeline {
     return imgChannel2;
   }
 
-  public static void preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
-    preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,true);
+  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
+    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,true);
   }
 
-  public static void preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
-    preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,false);
+  public static ImagePlus preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
+    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,false);
   }
 
 
-  public static void preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+    Filter.Make16BitImage(img);
     if (true == enhanceContrast) {
       Filter.EnhanceContrast(img);
     }
 
     Filter.SubtractBackground(img);
     Filter.ApplyGaus(img);
+    
+    ImagePlus beforeThershold = Filter.duplicateImage(img);
 
     Filter.ApplyThershold(img,thMethod , thMin, thMax, thershold,convertToMask);
+    return beforeThershold;
   }
 
   abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);

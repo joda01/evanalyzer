@@ -32,16 +32,16 @@ public class ExosomColoc extends Pipeline {
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
-        preFilterSetColoc(img0, mSettings.ch0.enhanceContrast,mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, in0);
-        preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, in1);
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0, mSettings.ch0.enhanceContrast,mSettings.ch0.mThersholdMethod,mSettings.ch0.minThershold,mSettings.ch0.maxThershold, in0);
+        ImagePlus img1BeforeTh = preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,mSettings.ch1.mThersholdMethod,mSettings.ch1.minThershold,mSettings.ch1.maxThershold, in1);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
         Filter.AnalyzeParticles(sumImage);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
-        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0, rm);
-        Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1, rm);
+        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings,img0BeforeTh, img0, rm);
+        Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings,img1BeforeTh, img1, rm);
         Channel measColoc = calculateColoc(measCh0, measCh1);
 
         measCh0.setThershold(in0[0], in0[1]);
@@ -108,9 +108,9 @@ public class ExosomColoc extends Pipeline {
                 ParticleInfo ch0Info = entry.getValue();
                 ParticleInfo ch1Info = roiCh1.get(key);
 
-                double colocValue = Math.abs(MAX_THERSHOLD - Math.abs(ch0Info.areaGrayScale - ch1Info.areaGrayScale));
+                double colocValue = Math.abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch1Info.areaThersholdScale));
 
-                ColocRoi exosom = new ColocRoi(key, ch0Info.areaSize, ch0Info.areaGrayScale, ch0Info.circularity,
+                ColocRoi exosom = new ColocRoi(key, ch0Info.areaSize,ch0Info.areaGrayScale, ch0Info.areaThersholdScale, ch0Info.circularity,
                         colocValue);
                 exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
                         mSettings.mMinCircularity, mSettings.minIntensity);
@@ -126,8 +126,8 @@ public class ExosomColoc extends Pipeline {
 
     class ColocRoi extends ParticleInfo {
 
-        public ColocRoi(int roiName, double areaSize, double areaGrayScale, double circularity, double coloValue) {
-            super(roiName, areaSize, areaGrayScale, circularity);
+        public ColocRoi(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, double coloValue) {
+            super(roiName, areaSize,areaGrayScale, areaThersholdScale, circularity);
             this.colocValue = coloValue;
         }
 
@@ -135,20 +135,19 @@ public class ExosomColoc extends Pipeline {
         /// \brief Returns the name of the roi
         ///
         public String toString() {
-            return Integer.toString(roiName) + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale)
-                    + ";" + Double.toString(circularity) + ";" + Double.toString(colocValue);
+            return Integer.toString(roiName) + ";" + Double.toString(areaSize) + ";" + Double.toString(circularity) + ";" + Double.toString(colocValue);
         }
 
         public double colocValue;
 
         @Override
         public double[] getValues() {
-            double[] values = { areaSize, areaGrayScale, circularity, colocValue };
+            double[] values = { areaSize, circularity, colocValue };
             return values;
         }
 
         public String[] getTitle() {
-            String[] title = { "area size", "gray scale", "circularity", "coloc" };
+            String[] title = { "area size", "circularity", "coloc" };
             return title;
         }
 
@@ -169,7 +168,7 @@ public class ExosomColoc extends Pipeline {
                     nrOfInvalid++;
                 } else {
                     nrOfValid++;
-                    if (info.areaGrayScale > 0) {
+                    if (info.areaThersholdScale > 0) {
                         mColocNr++;
                     }
                 }

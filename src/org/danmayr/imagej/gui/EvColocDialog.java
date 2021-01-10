@@ -314,7 +314,7 @@ public class EvColocDialog extends JFrame {
             c.gridy++;
             c.weightx = 0;
             ImageIcon image1 = new ImageIcon(getClass().getResource("grayscale.png"));
-            JLabel intensity = new JLabel("Min Intensity [0-255]:");
+            JLabel intensity = new JLabel("Min Intensity [0-65535]:");
             intensity.setIcon(image1);
             this.add(intensity, c);
 
@@ -645,7 +645,7 @@ public class EvColocDialog extends JFrame {
         ////////////////////////////////////////
 
         // Logo
-        JLabel logo = new JLabel("(c) 2019 - 2020  SMMJJD", SwingConstants.RIGHT);
+        JLabel logo = new JLabel("(c) 2019 - 2021  SMJD", SwingConstants.RIGHT);
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_32.png"));
         logo.setIcon(logoIcon);
 

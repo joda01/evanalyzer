@@ -2,8 +2,8 @@ package org.danmayr.imagej;
 
 public class Version {
     static String major = "2";
-    static String minor = "2";
-    static String fix = "1";
+    static String minor = "3";
+    static String fix = "0";
     static String status = "beta";
     static long build;
 

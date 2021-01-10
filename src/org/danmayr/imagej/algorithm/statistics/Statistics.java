@@ -47,7 +47,7 @@ public class Statistics {
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "gray scale", "circularity","valid","invalid","min TH", "max TH" };
+        String[] title = { "area size", "intensity", "circularity","valid","invalid","min TH", "max TH" };
         return title;
     }
 

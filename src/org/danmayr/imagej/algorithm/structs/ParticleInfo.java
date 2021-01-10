@@ -15,13 +15,13 @@ public class ParticleInfo {
     ///
     /// \brief Constructor
     ///
-    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double circularity) {
+    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity) {
         this.roiName = roiName;
         this.areaSize = areaSize;
-        this.areaGrayScale = areaGrayScale;
+        this.areaThersholdScale = areaThersholdScale;
         this.circularity = circularity;
+        this.areaGrayScale = areaGrayScale;
     }
-
 
     ///
     /// \breif check if this particle matches the filter criteria
@@ -61,7 +61,7 @@ public class ParticleInfo {
     /// \brief Returns the name of the roi
     ///
     public String toString() {
-        return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale) + ";"
+        return roiName + ";" + Double.toString(areaSize) +";"+ Double.toString(areaGrayScale) + ";" + Double.toString(areaThersholdScale) + ";"
                 + Double.toString(circularity);
     }
 
@@ -70,18 +70,19 @@ public class ParticleInfo {
     }
 
     public double[] getValues() {
-        double[] values = { areaSize, areaGrayScale, circularity };
+        double[] values = { areaSize,areaGrayScale, areaThersholdScale, circularity };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "gray scale", "circularity" };
+        String[] title = { "area size", "intensity","thershold scale", "circularity" };
         return title;
     }
 
     public int status = VALID;
     public int roiName;
     public double areaSize;
-    public double areaGrayScale;
+    public double areaThersholdScale;
+    public double areaGrayScale=0;
     public double circularity;
 }
