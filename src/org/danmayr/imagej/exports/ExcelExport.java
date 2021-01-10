@@ -2,9 +2,12 @@ package org.danmayr.imagej.exports;
 
 import ij.*;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.math.*;
 import org.apache.poi.ss.usermodel.Row;
@@ -37,14 +40,13 @@ public class ExcelExport {
 
     }
 
-    public static void Export(String outputFolder, FolderResults results, AnalyseSettings.ReportType reportType,
+    public static String Export(String outputFolder, String reportFileName, FolderResults results, AnalyseSettings.ReportType reportType,
             EvColocDialog mDialog) {
 
         mDialog.setProgressBarValue(0, "generating report ...");
 
         int max = getLoopCount(results);
-        mDialog.setProgressBarMaxSize(max,"generating report ...");
-
+        mDialog.setProgressBarMaxSize(max, "generating report ...");
 
         Workbook workBook = new SXSSFWorkbook(2000);
         CreationHelper createHelper = workBook.getCreationHelper();
@@ -94,20 +96,21 @@ public class ExcelExport {
             overViewRow = WriteOverviewFolderStatistics(overviewSheet, folder, overViewRow);
         }
 
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmss");
+        LocalDateTime now = LocalDateTime.now();
+        String out = outputFolder + File.separator + dtf.format(now)+"__analysis-report__"+reportFileName+".xlsx";
         try {
-            String out = outputFolder + "/result.xlsx";
             FileOutputStream fileOutputStream = new FileOutputStream(out.trim());
             workBook.write(fileOutputStream);
         } catch (Exception exObj) {
         }
-
+        return out;
     }
 
-   ///
+    ///
     /// Calculate how many loop iterations will be done
     ///
-    private static int getLoopCount(FolderResults results)
-    {
+    private static int getLoopCount(FolderResults results) {
         int max = 0;
         for (Map.Entry<String, Folder> folderMap : results.getFolders().entrySet()) {
             Folder folder = folderMap.getValue();

@@ -84,12 +84,12 @@ public class FileProcessor extends Thread {
             pipeline = new ExosomColoc(mAnalyseSettings,  mAnalyseSettings.ch0.type, mAnalyseSettings.ch1.type);
         }
         if (null == pipeline) {
-            mDialog.finishedAnalyse();
+            mDialog.finishedAnalyse("");
             return;
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        ExcelExport.Export(mAnalyseSettings.mOutputFolder, mResuls, mAnalyseSettings.reportType, mDialog);
+        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName, mResuls, mAnalyseSettings.reportType, mDialog);
 
         // Write statistics to file
         /*
@@ -99,7 +99,7 @@ public class FileProcessor extends Thread {
          * String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
          */
 
-        mDialog.finishedAnalyse();
+        mDialog.finishedAnalyse(reportFileName);
     }
 
     /**

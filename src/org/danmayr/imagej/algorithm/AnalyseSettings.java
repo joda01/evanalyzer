@@ -51,6 +51,8 @@ public class AnalyseSettings {
     public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
 
+    public String mOutputFileName="";
+
     public ChannelSettings ch0 = new ChannelSettings();
     public ChannelSettings ch1 = new ChannelSettings();
 
