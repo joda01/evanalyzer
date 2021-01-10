@@ -34,7 +34,7 @@ public class EvColocDialog extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private String mNameOfLastGeneratedReportFile=new String("");
+    private String mNameOfLastGeneratedReportFile = new String("");
 
     private JTextField mInputFolder = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
@@ -186,7 +186,6 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter2 = new ImageIcon(getClass().getResource("edge.png"));
             l2.setIcon(diamter2);
             this.add(l2, c);
-
 
             minTheshold.addChangeListener(new ChangeListener() {
                 @Override
@@ -343,27 +342,24 @@ public class EvColocDialog extends JFrame {
             c.insets = new Insets(5, 5, 5, 5); // top padding
             c.anchor = GridBagConstraints.WEST;
 
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy = 0;
+            c.weightx = 0;
+            JLabel l2 = new JLabel("Report filename:");
+            ImageIcon diamter2 = new ImageIcon(getClass().getResource("rename.png"));
+            l2.setIcon(diamter2);
+            l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
+            l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
+            l2.setPreferredSize(new Dimension(200, l2.getPreferredSize().height));
+            l2.setSize(new Dimension(200, l2.getSize().height));
+            this.add(l2, c);
 
-             ////////////////////////////////////////////////////
-             c.fill = GridBagConstraints.HORIZONTAL;
-             c.gridx = 0;
-             c.gridy = 0;
-             c.weightx = 0;
-             JLabel l2 = new JLabel("Report filename:");
-             ImageIcon diamter2 = new ImageIcon(getClass().getResource("picture.png"));
-             l2.setIcon(diamter2);
-             l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
-             l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
-             l2.setPreferredSize(new Dimension(200, l2.getPreferredSize().height));
-             l2.setSize(new Dimension(200, l2.getSize().height));
-             this.add(l2, c);
- 
-    
-             c.fill = GridBagConstraints.HORIZONTAL;
-             c.gridx = 1;
-             c.weightx = 1;
-             this.add(mReportFileName,c );
-
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            this.add(mReportFileName, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -380,8 +376,10 @@ public class EvColocDialog extends JFrame {
             this.add(l, c);
 
             ComboItem<AnalyseSettings.ReportType>[] reportTypes = new ComboItem[2];
-            reportTypes[0] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FullReport, "Full report");
-            reportTypes[1] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FastReport, "Fast report");
+            reportTypes[0] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FullReport,
+                    "Full report");
+            reportTypes[1] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FastReport,
+                    "Fast report");
             mComboReportGenerator = new JComboBox<ComboItem<AnalyseSettings.ReportType>>(reportTypes);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
@@ -403,10 +401,10 @@ public class EvColocDialog extends JFrame {
             this.add(l1, c);
 
             ComboItem<AnalyseSettings.CotrolPicture>[] ctrlPictures = new ComboItem[2];
-            ctrlPictures[0] = new ComboItem<AnalyseSettings.CotrolPicture>(AnalyseSettings.CotrolPicture.WithControlPicture,
-                    "Generate control pictures");
-            ctrlPictures[1] = new ComboItem<AnalyseSettings.CotrolPicture>(AnalyseSettings.CotrolPicture.WithoutControlPicture,
-                    "No control pictures");
+            ctrlPictures[0] = new ComboItem<AnalyseSettings.CotrolPicture>(
+                    AnalyseSettings.CotrolPicture.WithControlPicture, "Generate control pictures");
+            ctrlPictures[1] = new ComboItem<AnalyseSettings.CotrolPicture>(
+                    AnalyseSettings.CotrolPicture.WithoutControlPicture, "No control pictures");
             mControlPictures = new JComboBox<ComboItem<AnalyseSettings.CotrolPicture>>(ctrlPictures);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
@@ -475,7 +473,7 @@ public class EvColocDialog extends JFrame {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 OpenDirectoryChooser(mInputFolder, mOutputFolder);
                 String outFolder = mInputFolder.getText();
-                outFolder = outFolder.substring(outFolder.lastIndexOf(File.separator)+1);
+                outFolder = outFolder.substring(outFolder.lastIndexOf(File.separator) + 1);
                 outFolder.replaceAll(File.separator, "");
                 reportSettings.mReportFileName.setText(outFolder);
             }
@@ -688,8 +686,8 @@ public class EvColocDialog extends JFrame {
         about.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                JOptionPane.showMessageDialog(new JFrame(),
-                        "Exosome Analyzer v"+Version.getVersion()+".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 J. Danmayr",
+                JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
+                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 J. Danmayr",
                         "About", JOptionPane.INFORMATION_MESSAGE);
 
             }
@@ -705,25 +703,28 @@ public class EvColocDialog extends JFrame {
         // getContentPane().setBackground(Color.WHITE);
         pack();
 
-        //this.setAlwaysOnTop(true);
+        // this.setAlwaysOnTop(true);
         this.setResizable(false);
         setTitle("Exosome analyzer");
     }
 
-    public void setProgressBarMaxSize(int value,String lable) {
+    public void setProgressBarMaxSize(int value, String lable) {
         mProgressbar.setMaximum(value);
-        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
+        mProgressbar.setString(
+                Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " " + lable + "");
     }
 
     public void setProgressBarValue(int value, String lable) {
         mProgressbar.setValue(value);
-        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
+        mProgressbar.setString(
+                Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " " + lable + "");
     }
 
     public void incrementProgressBarValue(String lable) {
         int value = mProgressbar.getValue() + 1;
         mProgressbar.setValue(value);
-        mProgressbar.setString(Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " "+lable+"");
+        mProgressbar.setString(
+                Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " " + lable + "");
     }
 
     public void startAnalyse() {
@@ -746,7 +747,7 @@ public class EvColocDialog extends JFrame {
         sett.ch1.type = ((ComboItem<Pipeline.ChannelType>) ch1Settings.channelType.getSelectedItem()).getValue();
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
 
-        if(sett.ch0.type == Pipeline.ChannelType.OFF){
+        if (sett.ch0.type == Pipeline.ChannelType.OFF) {
             error += "Select channel Type for channel 0!\n";
         }
 
@@ -802,11 +803,12 @@ public class EvColocDialog extends JFrame {
             finishedAnalyse(mNameOfLastGeneratedReportFile);
         }
 
-        sett.mSaveDebugImages =  ((ComboItem<AnalyseSettings.CotrolPicture>)reportSettings.mControlPictures.getSelectedItem()).getValue();
-        sett.reportType =  ((ComboItem<AnalyseSettings.ReportType>)reportSettings.mComboReportGenerator.getSelectedItem()).getValue();
+        sett.mSaveDebugImages = ((ComboItem<AnalyseSettings.CotrolPicture>) reportSettings.mControlPictures
+                .getSelectedItem()).getValue();
+        sett.reportType = ((ComboItem<AnalyseSettings.ReportType>) reportSettings.mComboReportGenerator
+                .getSelectedItem()).getValue();
         sett.mOutputFileName = reportSettings.mReportFileName.getText();
     }
-
 
     public void cancleAnalyse() {
         if (mActAnalyzer != null) {
@@ -823,11 +825,11 @@ public class EvColocDialog extends JFrame {
         mbStart.setEnabled(true);
         mCancle.setEnabled(false);
 
-        if(nameOfGeneratedReportFile.length()>0){
+        if (nameOfGeneratedReportFile.length() > 0) {
             mOpenResult.setEnabled(true);
         }
 
-        mNameOfLastGeneratedReportFile=nameOfGeneratedReportFile;
+        mNameOfLastGeneratedReportFile = nameOfGeneratedReportFile;
     }
 
     public void openResultsDialog() {
