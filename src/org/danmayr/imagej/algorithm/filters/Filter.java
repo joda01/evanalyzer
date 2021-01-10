@@ -100,13 +100,13 @@ public class Filter {
     }
 
     public static void SaveImage(ImagePlus image, String imageName) {
-        IJ.saveAs(image, "Jpeg", imageName + ".jpg");
+        IJ.saveAs(image, "Jpeg", imageName);
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
         rm.runCommand(image, "Show All");
         ImagePlus overlayimage = image.flatten();
-        IJ.saveAs(overlayimage, "Jpeg", imageName + ".jpg");
+        IJ.saveAs(overlayimage, "Jpeg", imageName);
         rm.runCommand(image, "Show None");
     }
 

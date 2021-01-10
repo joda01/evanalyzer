@@ -78,12 +78,14 @@ public class ExosomColoc extends Pipeline {
             String name = img.getAbsolutePath().replace(java.io.File.separator, "");
             name = name.replaceAll("%", "");
             name = name.replaceAll(" ", "");
+            name = name.replaceAll(":", "");
+            name = name.toLowerCase();
 
             String path = mSettings.mOutputFolder + java.io.File.separator + name;
             ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
-            Filter.SaveImage(mergedChannel, path + "_merged");
-            Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp");
-            Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3");
+            Filter.SaveImage(mergedChannel, path + "_merged.jpg");
+            Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp.jpg");
+            Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3.jpg");
 
             greenChannel.addControlImagePath(name + "_gfp.jpg");
             redChannel.addControlImagePath(name + "_cy3.jpg");
