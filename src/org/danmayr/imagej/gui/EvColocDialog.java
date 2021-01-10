@@ -19,6 +19,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 import org.danmayr.imagej.Version;
 
@@ -806,14 +807,18 @@ public class EvColocDialog extends JFrame {
     }
 
     public void OpenDirectoryChooser(JTextField textfieldInput, JTextField textfieldOutput) {
+        Preferences prefs = Preferences.userRoot().node(getClass().getName());
+        String lastOpenFolder = prefs.get("LAST_USED_FOLDER", ".");
+
         JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new java.io.File("."));
+        chooser.setCurrentDirectory(new java.io.File(lastOpenFolder));
         chooser.setDialogTitle("select folder");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
         int result = chooser.showOpenDialog(this);
         if (result != JFileChooser.CANCEL_OPTION) {
             String selectedPath = chooser.getSelectedFile().getAbsolutePath();
+            prefs.put("LAST_USED_FOLDER", selectedPath);
             textfieldInput.setText(selectedPath);
             if (null != textfieldOutput) {
                 String outputPath = selectedPath + File.separator + "results";
