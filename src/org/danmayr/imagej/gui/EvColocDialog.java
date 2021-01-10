@@ -91,7 +91,7 @@ public class EvColocDialog extends JFrame {
             layout.preferredLayoutSize(parent);
 
             GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(5, 5, 5, 5); // top padding
+            c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
 
             ////////////////////////////////////////////////////
@@ -269,7 +269,7 @@ public class EvColocDialog extends JFrame {
             layout.preferredLayoutSize(parent);
 
             GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(5, 5, 5, 5); // top padding
+            c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
 
             ////////////////////////////////////////////////////
@@ -339,7 +339,7 @@ public class EvColocDialog extends JFrame {
             layout.preferredLayoutSize(parent);
 
             GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(5, 5, 5, 5); // top padding
+            c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
 
             ////////////////////////////////////////////////////
@@ -428,7 +428,7 @@ public class EvColocDialog extends JFrame {
         setLayout(layout);
 
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(5, 5, 5, 5); // top padding
+        c.insets = new Insets(4, 4, 4, 4); // top padding
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
