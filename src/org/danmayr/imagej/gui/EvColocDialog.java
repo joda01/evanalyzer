@@ -23,8 +23,6 @@ import java.util.prefs.Preferences;
 
 import org.danmayr.imagej.Version;
 
-import org.danmayr.imagej.algorithm.AnalyseSettings;
-
 ///
 ///
 ///
@@ -216,6 +214,15 @@ public class EvColocDialog extends JFrame {
 
         public void startPreview() {
             String[] imageTitles = WindowManager.getImageTitles();
+            if (imageTitles.length <= 0) {
+                File OpenImage = FileProcessor.getFile(0, mInputFolder.getText());
+                if(null != OpenImage){
+                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedItem().toString());
+                }
+            }
+
+            imageTitles = WindowManager.getImageTitles();
+            
             if (imageTitles.length > 0) {
                 ImagePlus image = IJ.getImage();// WindowManager.getImage(imageTitles[0]);
                 mPreviewImage = image;

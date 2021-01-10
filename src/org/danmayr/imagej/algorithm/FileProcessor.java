@@ -61,8 +61,6 @@ public class FileProcessor extends Thread {
         mDialog.setProgressBarMaxSize(0,"look for images ...");
         mDialog.setProgressBarValue(0,"look for images ...");
 
-
-
         //
         // List all files in folders and subfolders
         //
@@ -102,6 +100,27 @@ public class FileProcessor extends Thread {
         mDialog.finishedAnalyse(reportFileName);
     }
 
+
+    ///
+    /// \brief  Get file from selected folder
+    ///
+    public static File getFile(int idx, String inputFolder){
+        ArrayList<File> mFoundFiles = new ArrayList<>();
+        findFiles(new File(inputFolder).listFiles(), mFoundFiles);
+
+        if(idx < mFoundFiles.size()){
+            return mFoundFiles.get(idx);
+        }else{
+            return null;
+        }
+    }
+
+    public static void OpenImage(File imgToOpen, String series){
+        IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
+        + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
+        + series + " c_begin_1=1 c_end_1=2 c_step_1=1");
+    }
+
     /**
      * Cancle the process after the actual image has been finished
      */
@@ -117,9 +136,8 @@ public class FileProcessor extends Thread {
         for (final File file : fileList) {
             value++;
 
-            IJ.run("Bio-Formats Importer", "open=[" + file.getAbsoluteFile().toString()
-                    + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
-                    + mAnalyseSettings.mSelectedSeries + " c_begin_1=1 c_end_1=2 c_step_1=1");
+            OpenImage(file, mAnalyseSettings.mSelectedSeries);
+
 
             // String[] imageTitles = WindowManager.getImageTitles();
             // if (imageTitles.length > 1) {
@@ -152,7 +170,7 @@ public class FileProcessor extends Thread {
      * 
      * @param files
      */
-    private void findFiles(final File[] files, ArrayList<File> foundFiles) {
+    private static void findFiles(final File[] files, ArrayList<File> foundFiles) {
         if (null != files) {
             for (final File file : files) {
                 if (file.isDirectory()) {
