@@ -40,7 +40,7 @@ public class ExcelExport {
 
     }
 
-    public static String Export(String outputFolder, String reportFileName, FolderResults results, AnalyseSettings.ReportType reportType,
+    public static String Export(String outputFolder, String reportFileName, FolderResults results, AnalyseSettings.ReportType reportType, AnalyseSettings settings,
             EvColocDialog mDialog) {
 
         mDialog.setProgressBarValue(0, "generating report ...");
@@ -50,6 +50,10 @@ public class ExcelExport {
 
         Workbook workBook = new SXSSFWorkbook(2000);
         CreationHelper createHelper = workBook.getCreationHelper();
+
+        // Summary Sheet
+        SXSSFSheet summerySheet = (SXSSFSheet) workBook.createSheet("summary");
+        WriteSummary(summerySheet,settings);
 
         // Overview Sheet
         SXSSFSheet overviewSheet = (SXSSFSheet) workBook.createSheet("overview");
@@ -123,6 +127,56 @@ public class ExcelExport {
     }
 
     static int OVERVIEW_SHEET_START_STATISTIC_COLUMN = 4;
+
+
+    ///
+    /// Write summary
+    ///
+    private static int WriteSummary(SXSSFSheet summarySheet, AnalyseSettings settings)
+    {
+        int row = 0;
+        
+        row = WriteRow(summarySheet,row,"Save Cotrol Pictures",String.valueOf(settings.mSaveDebugImages));
+        row = WriteRow(summarySheet,row,"Report Type",String.valueOf(settings.reportType));
+
+        row = WriteRow(summarySheet,row,"Used Function",String.valueOf(settings.mSelectedFunction));
+
+        row = WriteRow(summarySheet,row,"Input folder",String.valueOf(settings.mInputFolder));
+        row = WriteRow(summarySheet,row,"Output folder",String.valueOf(settings.mOutputFolder));
+        row = WriteRow(summarySheet,row,"Selected Series",String.valueOf(settings.mSelectedSeries));
+        row = WriteRow(summarySheet,row,"Min particle Size",String.valueOf(settings.mMinParticleSize));
+        row = WriteRow(summarySheet,row,"Max particle Size",String.valueOf(settings.mMaxParticleSize));
+
+
+        row = WriteRow(summarySheet,row,"Min Circularity",String.valueOf(settings.mMinCircularity));
+        row = WriteRow(summarySheet,row,"Min Intensity",String.valueOf(settings.minIntensity));
+
+        row = WriteRow(summarySheet,row,"Report filename",String.valueOf(settings.mOutputFileName));
+
+        row = WriteChannelSettingToSummarySheet(summarySheet, row,"CH0",settings.ch0);
+        row = WriteChannelSettingToSummarySheet(summarySheet, row,"CH1",settings.ch1);
+        return row;
+    }
+
+
+    private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName, AnalyseSettings.ChannelSettings ch )
+    {
+        row = WriteRow(summarySheet,row,chName+" type",            String.valueOf(ch.type));
+        row = WriteRow(summarySheet,row,chName+" therhsolding",    String.valueOf(ch.mThersholdMethod));
+        row = WriteRow(summarySheet,row,chName+" enhance contrast",String.valueOf(ch.enhanceContrast));
+        row = WriteRow(summarySheet,row,chName+" min Threshold",   String.valueOf(ch.minThershold));
+        row = WriteRow(summarySheet,row,chName+" max Threshold",   String.valueOf(ch.maxThershold));
+        return row;
+    }
+
+    private static int WriteRow(SXSSFSheet summarySheet,int row, String title, String value)
+    {
+        Row rowChName = summarySheet.createRow(row);
+        rowChName.createCell(0).setCellValue(title);
+        rowChName.createCell(1).setCellValue(value);
+        row++;
+        return row;
+    }
 
     ///
     /// Write overview header

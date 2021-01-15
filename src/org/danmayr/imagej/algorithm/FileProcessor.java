@@ -87,7 +87,7 @@ public class FileProcessor extends Thread {
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName, mResuls, mAnalyseSettings.reportType, mDialog);
+        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName, mResuls, mAnalyseSettings.reportType,mAnalyseSettings, mDialog);
 
         // Write statistics to file
         /*
