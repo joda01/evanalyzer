@@ -152,7 +152,7 @@ public class EvColocDialog extends JFrame {
             l1.setIcon(diamter1);
             this.add(l1, c);
 
-            String[] thersholdAlgo = { "Li", "MaxEntropy" };
+            String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu" };
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -216,13 +216,13 @@ public class EvColocDialog extends JFrame {
             String[] imageTitles = WindowManager.getImageTitles();
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(0, mInputFolder.getText());
-                if(null != OpenImage){
+                if (null != OpenImage) {
                     FileProcessor.OpenImage(OpenImage, mSeries.getSelectedItem().toString());
                 }
             }
 
             imageTitles = WindowManager.getImageTitles();
-            
+
             if (imageTitles.length > 0) {
                 ImagePlus image = IJ.getImage();// WindowManager.getImage(imageTitles[0]);
                 mPreviewImage = image;

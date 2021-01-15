@@ -38,10 +38,17 @@ abstract public class Pipeline {
   }
 
   Pipeline(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
+    if (ch0 == ChannelType.OFF && ch1 == ChannelType.OFF) {
+      nrOfExpectedChannels = 0;
+    } else if (ch0 == ChannelType.OFF || ch1 == ChannelType.OFF) {
+      nrOfExpectedChannels = 1;
+    } else {
+      nrOfExpectedChannels = 2;
+    }
     mCh0 = ch0;
     mCh1 = ch1;
-    nrOfExpectedChannels = 2;
     mSettings = settings;
+
   }
 
   ///
@@ -84,16 +91,18 @@ abstract public class Pipeline {
     return imgChannel2;
   }
 
-  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
-    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,true);
+  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
+      int thMax, double[] thershold) {
+    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold, true);
   }
 
-  public static ImagePlus preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold) {
-    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold,false);
+  public static ImagePlus preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
+      int thMax, double[] thershold) {
+    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
-
-  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
+      int thMax, double[] thershold, boolean convertToMask) {
     Filter.Make16BitImage(img);
     if (true == enhanceContrast) {
       Filter.EnhanceContrast(img);
@@ -101,10 +110,10 @@ abstract public class Pipeline {
 
     Filter.SubtractBackground(img);
     Filter.ApplyGaus(img);
-    
+
     ImagePlus beforeThershold = Filter.duplicateImage(img);
 
-    Filter.ApplyThershold(img,thMethod , thMin, thMax, thershold,convertToMask);
+    Filter.ApplyThershold(img, thMethod, thMin, thMax, thershold, convertToMask);
     return beforeThershold;
   }
 

@@ -6,11 +6,11 @@ package org.danmayr.imagej.algorithm.structs;
 /// \brief  Region on interest
 ///
 public class ParticleInfo {
-    static int VALID = 0x00;
-    static int TOO_BIG = 0x02;
-    static int TOO_SMALL = 0x04;
-    static int WRONG_CIRCULARITY = 0x08;
-    static int WRONG_INTENSITY = 0x10;
+    static protected int VALID = 0x00;
+    static protected int TOO_BIG = 0x02;
+    static protected int TOO_SMALL = 0x04;
+    static protected int WRONG_CIRCULARITY = 0x08;
+    static protected int WRONG_INTENSITY = 0x10;
 
     ///
     /// \brief Constructor
