@@ -51,14 +51,15 @@ public class ExcelExport {
         Workbook workBook = new SXSSFWorkbook(2000);
         CreationHelper createHelper = workBook.getCreationHelper();
 
-        // Summary Sheet
-        SXSSFSheet summerySheet = (SXSSFSheet) workBook.createSheet("summary");
-        WriteSummary(summerySheet,settings);
 
         // Overview Sheet
         SXSSFSheet overviewSheet = (SXSSFSheet) workBook.createSheet("overview");
         int overViewRow = 0;
         int imgSheetCount = 0;
+        
+        // Summary Sheet
+        SXSSFSheet summerySheet = (SXSSFSheet) workBook.createSheet("settings");
+        WriteSummary(summerySheet,settings);
 
         //
         // Process folders
@@ -135,7 +136,7 @@ public class ExcelExport {
     private static int WriteSummary(SXSSFSheet summarySheet, AnalyseSettings settings)
     {
         int row = 0;
-        
+        summarySheet.setDefaultColumnWidth(25);
         row = WriteRow(summarySheet,row,"Save Cotrol Pictures",String.valueOf(settings.mSaveDebugImages));
         row = WriteRow(summarySheet,row,"Report Type",String.valueOf(settings.reportType));
 
