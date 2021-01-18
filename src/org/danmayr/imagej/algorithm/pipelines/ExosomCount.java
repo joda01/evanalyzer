@@ -25,21 +25,18 @@ public class ExosomCount extends Pipeline {
     protected TreeMap<Integer, Channel> startPipeline(File img) {
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
-
         RoiManager rm = new RoiManager();
+
 
         ImagePlus img0 = getImageCh0();
         ImagePlus img1 = getImageCh1();
 
-        if (mSettings.ch0.type == Pipeline.ChannelType.NEGATIVE_CONTROL) {
-            img0 = Filter.paintOval(img0);
-        }
 
         double[] in0 = new double[2];
         ImagePlus img0BeforeTh = preFilterSetColoc(img0, mSettings.ch0.enhanceContrast, mSettings.ch0.mThersholdMethod,
                 mSettings.ch0.minThershold, mSettings.ch0.maxThershold, in0);
 
-        Filter.AnalyzeParticles(img0);
+        Filter.AnalyzeParticles(img0,rm);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         measCh0.setThershold(in0[0], in0[1]);
         channels.put(0, measCh0);
@@ -49,14 +46,10 @@ public class ExosomCount extends Pipeline {
         if (null != img1) {
             double[] in1 = new double[2];
 
-            if (mSettings.ch1.type == Pipeline.ChannelType.NEGATIVE_CONTROL) {
-                img1 = Filter.paintOval(img1);
-            }
-
             ImagePlus img1BeforeTh = preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,
                     mSettings.ch1.mThersholdMethod, mSettings.ch1.minThershold, mSettings.ch1.maxThershold, in1);
 
-            Filter.AnalyzeParticles(img1);
+            Filter.AnalyzeParticles(img1,rm);
             measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
 
             measCh1.setThershold(in1[0], in1[1]);

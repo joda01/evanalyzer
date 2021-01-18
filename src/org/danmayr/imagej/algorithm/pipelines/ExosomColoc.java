@@ -37,15 +37,15 @@ public class ExosomColoc extends Pipeline {
         ImagePlus img1BeforeTh = preFilterSetColoc(img1, mSettings.ch1.enhanceContrast, mSettings.ch1.mThersholdMethod,
                 mSettings.ch1.minThershold, mSettings.ch1.maxThershold, in1);
 
-        Filter.AnalyzeParticles(img0);
+        Filter.AnalyzeParticles(img0,rm);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
 
-        Filter.AnalyzeParticles(img1);
+        Filter.AnalyzeParticles(img1,rm);
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
-        Filter.AnalyzeParticles(sumImage);
+        Filter.AnalyzeParticles(sumImage,rm);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
         Channel colocCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
@@ -182,7 +182,7 @@ public class ExosomColoc extends Pipeline {
                 double minGrayScale) {
             status = VALID;
 
-            if (areaSize < minAreaSize && areaSize != 0) {
+            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 !=0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)) {
                 status |= TOO_SMALL;
             }
 
@@ -210,12 +210,12 @@ public class ExosomColoc extends Pipeline {
 
             for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
                 int chNr = entry.getKey();
-                ParticleInfo info = entry.getValue();
+                ColocRoi info = (ColocRoi)entry.getValue();
 
                 if (false == info.isValid()) {
                     nrOfInvalid++;
                 } else {
-                    if (info.areaThersholdScale > 0) {
+                    if (info.colocValue > 0) {
                         mColocNr++;
                     }else{
                         nrOfNotColoc++;

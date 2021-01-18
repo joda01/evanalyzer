@@ -47,8 +47,7 @@ public class Filter {
         return img.duplicate();
     }
 
-    public static void Make16BitImage(ImagePlus img)
-    {
+    public static void Make16BitImage(ImagePlus img) {
         IJ.run(img, "16-bit", "");
     }
 
@@ -110,7 +109,11 @@ public class Filter {
         rm.runCommand(image, "Show None");
     }
 
-    public static void AnalyzeParticles(ImagePlus image) {
+    public static void AnalyzeParticles(ImagePlus image, RoiManager rm) {
+        image.setRoi(new OvalRoi(1, 1, 1, 1));
+        rm.addRoi(image.getRoi());
+        rm.runCommand(image, "Delete");
+        IJ.run(image, "Select None", "");
         IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/ParticleAnalyzer.html
         // ParticleAnalyzer analyzer
@@ -138,6 +141,9 @@ public class Filter {
 
         File original = new File("tempfileOriginal.csv");
         File thershold = new File("tempfileThershold.csv");
+
+        original.delete();
+        thershold.delete();
 
         measure(imageOrigial, original, rm);
         measure(imageThershold, thershold, rm);
@@ -176,7 +182,6 @@ public class Filter {
                 String[] lineThershold = readLinesThershold[i].split(",");
                 String[] lineOriginal = readLinesOriginal[i].split(",");
 
-
                 double areaSize = 0.0;
 
                 try {
@@ -208,7 +213,7 @@ public class Filter {
                 } catch (NumberFormatException ex) {
                 }
 
-                ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale,thersholdScale, circularity);
+                ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity);
                 exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
                         settings.minIntensity);
                 ch.addRoi(exosom);
@@ -217,8 +222,12 @@ public class Filter {
             ch.calcStatistics();
 
         } catch (IOException ex) {
-            IJ.log("Catch: " + ex.getMessage());
-            ex.printStackTrace();
+            IJ.log("No File: " + ex.getMessage());
+
+            ParticleInfo exosom = new ParticleInfo(0, 1, 0, 0, 0);
+            exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
+                    settings.minIntensity);
+            ch.addRoi(exosom);
         }
 
         return ch;
