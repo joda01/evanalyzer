@@ -246,19 +246,24 @@ public class ExcelExport {
         Row rowTitles = imgSheet.createRow(0 + 1);
 
         TreeMap<Integer, Pair<String, String[]>> titles = image.getTitle();
+        TreeMap<Integer,Integer> channelColumnSize =  new TreeMap<>(); // Stores the number of Columns per channel
+
         int column = 1;
         for (Map.Entry<Integer, Pair<String, String[]>> value : titles.entrySet()) {
             rowChName.createCell(column).setCellValue(value.getValue().getFirst());
+            channelColumnSize.put(value.getKey(),  column);
             for (int n = 0; n < value.getValue().getSecond().length; n++) {
                 rowTitles.createCell(column).setCellValue(value.getValue().getSecond()[n]);
                 column++;
             }
         }
 
+        
+
         ///
         /// Write values
         ///
-        TreeMap<Integer, Vector<double[]>> rows = new TreeMap<>();
+        TreeMap<Integer, TreeMap<Integer,double[]>> rows = new TreeMap<>(); // <ROI <ChannelNr,values>>
 
         for (Map.Entry<Integer, Channel> channelMap : image.getChannels().entrySet()) {
             Channel channel = channelMap.getValue();
@@ -266,26 +271,27 @@ public class ExcelExport {
                 ParticleInfo info = roiMap.getValue();
                 double values[] = info.getValues();
 
-                Vector<double[]> vec = rows.get(roiMap.getKey());
+                TreeMap<Integer,double[]> vec = rows.get(roiMap.getKey());
                 if (null == vec) {
-                    vec = new Vector<>();
+                    vec = new TreeMap<>();
                     rows.put(roiMap.getKey(), vec);
                 }
-                vec.add(values);
+                vec.put(channelMap.getKey(),values);
             }
         }
 
         int row = 2;
-        for (Map.Entry<Integer, Vector<double[]>> entry3 : rows.entrySet()) {
-            column = 1;
+        for (Map.Entry<Integer, TreeMap<Integer,double[]>> entry3 : rows.entrySet()) {
             Row currentRow = imgSheet.createRow(row);
             currentRow.createCell(0).setCellValue(entry3.getKey());
-            Vector<double[]> valVec = entry3.getValue();
+            TreeMap<Integer,double[]> valVec = entry3.getValue();
 
-            for (int n = 0; n < valVec.size(); n++) {
-                for (int c = 0; c < valVec.get(n).length; c++) {
-                    currentRow.createCell(column).setCellValue(valVec.get(n)[c]);
-                    column++;
+            for (Map.Entry<Integer,double[]> valVecEntry : valVec.entrySet()) {
+                double[] valVecVal = valVecEntry.getValue();
+                int columnCnt = channelColumnSize.get(valVecEntry.getKey());
+                for (int c = 0; c < valVecVal.length; c++) {
+                    currentRow.createCell(columnCnt).setCellValue(valVecVal[c]);
+                    columnCnt++;
                 }
             }
             row++;

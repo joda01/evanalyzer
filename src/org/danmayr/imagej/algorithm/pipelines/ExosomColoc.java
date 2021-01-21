@@ -232,7 +232,7 @@ public class ExosomColoc extends Pipeline {
         }
 
         public String[] getTitle() {
-            String[] title = { "coloc", "ot coloc", "invalid" };
+            String[] title = { "coloc", "Not coloc", "invalid" };
             return title;
         }
 
