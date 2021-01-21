@@ -103,7 +103,7 @@ public class Filter {
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
-        rm.runCommand(image, "Show All");
+        rm.runCommand(image, "Show All with label");
         ImagePlus overlayimage = image.flatten();
         IJ.saveAs(overlayimage, "Jpeg", imageName);
         rm.runCommand(image, "Show None");
