@@ -101,7 +101,7 @@ public class EvColocDialog extends JFrame {
             c.gridy = 0;
             c.weightx = 0.0;
             JLabel l = new JLabel("Type:");
-            ImageIcon diamter = new ImageIcon(getClass().getResource("type.png"));
+            ImageIcon diamter = new ImageIcon(getClass().getResource("icons8-protein-16.png"));
             l.setIcon(diamter);
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -127,7 +127,7 @@ public class EvColocDialog extends JFrame {
             c.gridx = 3;
             c.weightx = 0;
             c.gridwidth = 1;
-            thersholdPreview = new JToggleButton(new ImageIcon(getClass().getResource("preview.png")));
+            thersholdPreview = new JToggleButton(new ImageIcon(getClass().getResource("icons8-eye-16.png")));
             thersholdPreview.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -151,7 +151,7 @@ public class EvColocDialog extends JFrame {
             l1.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l1.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
             l1.setSize(new Dimension(200, l.getSize().height));
-            ImageIcon diamter1 = new ImageIcon(getClass().getResource("thershold.png"));
+            ImageIcon diamter1 = new ImageIcon(getClass().getResource("icons8-brightness-16.png"));
             l1.setIcon(diamter1);
             this.add(l1, c);
 
@@ -184,7 +184,7 @@ public class EvColocDialog extends JFrame {
             l2.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l2.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
             l2.setSize(new Dimension(200, l.getSize().height));
-            ImageIcon diamter2 = new ImageIcon(getClass().getResource("edge.png"));
+            ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-plus-slash-minus-16.png"));
             l2.setIcon(diamter2);
             this.add(l2, c);
 
@@ -312,7 +312,7 @@ public class EvColocDialog extends JFrame {
             c.gridy = 0;
             c.weightx = 0;
             JLabel l = new JLabel("Particle size [0-9999]:");
-            ImageIcon diamter = new ImageIcon(getClass().getResource("diameter.png"));
+            ImageIcon diamter = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
             l.setIcon(diamter);
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -333,7 +333,7 @@ public class EvColocDialog extends JFrame {
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0;
-            ImageIcon image = new ImageIcon(getClass().getResource("polygon.png"));
+            ImageIcon image = new ImageIcon(getClass().getResource("icons8-belarus-map-16.png"));
             JLabel circ = new JLabel("Min circularity [0-1]:");
             circ.setIcon(image);
             this.add(circ, c);
@@ -348,7 +348,7 @@ public class EvColocDialog extends JFrame {
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0;
-            ImageIcon image1 = new ImageIcon(getClass().getResource("grayscale.png"));
+            ImageIcon image1 = new ImageIcon(getClass().getResource("icons8-new-moon-16.png"));
             JLabel intensity = new JLabel("Min Intensity [0-65535]:");
             intensity.setIcon(image1);
             this.add(intensity, c);
@@ -382,7 +382,7 @@ public class EvColocDialog extends JFrame {
             c.gridy = 0;
             c.weightx = 0;
             JLabel l2 = new JLabel("Report filename:");
-            ImageIcon diamter2 = new ImageIcon(getClass().getResource("rename.png"));
+            ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-rename-16.png"));
             l2.setIcon(diamter2);
             l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
             l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
@@ -401,7 +401,7 @@ public class EvColocDialog extends JFrame {
             c.gridy++;
             c.weightx = 0;
             JLabel l = new JLabel("Report type:");
-            ImageIcon diamter = new ImageIcon(getClass().getResource("report.png"));
+            ImageIcon diamter = new ImageIcon(getClass().getResource("icons8-google-sheets-16.png"));
             l.setIcon(diamter);
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -426,7 +426,7 @@ public class EvColocDialog extends JFrame {
             c.gridy++;
             c.weightx = 0;
             JLabel l1 = new JLabel("Control pictures:");
-            ImageIcon diamter1 = new ImageIcon(getClass().getResource("picture.png"));
+            ImageIcon diamter1 = new ImageIcon(getClass().getResource("icons8-image-gallery-16.png"));
             l1.setIcon(diamter1);
             l1.setMinimumSize(new Dimension(200, l1.getMinimumSize().height));
             l1.setMaximumSize(new Dimension(200, l1.getMaximumSize().height));
@@ -501,7 +501,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 2;
         c.weightx = 0;
         c.weightx = 0;
-        mbInputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
+        mbInputFolder = new JButton(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
         mbInputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -529,7 +529,7 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 2;
         c.weightx = 0;
-        mbOutputFolder = new JButton(new ImageIcon(getClass().getResource("open.png")));
+        mbOutputFolder = new JButton(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
         mbOutputFolder.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -646,7 +646,7 @@ public class EvColocDialog extends JFrame {
         // mMenu.setBackground(Color.WHITE);
 
         mbStart = new JButton();
-        mbStart = new JButton(new ImageIcon(getClass().getResource("start.png")));
+        mbStart = new JButton(new ImageIcon(getClass().getResource("icons8-play-16.png")));
         mbStart.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -657,7 +657,7 @@ public class EvColocDialog extends JFrame {
         mMenu.add(mbStart);
 
         mOpenResult = new JButton();
-        mOpenResult = new JButton(new ImageIcon(getClass().getResource("normal.png")));
+        mOpenResult = new JButton(new ImageIcon(getClass().getResource("icons8-graph-16.png")));
         mOpenResult.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -669,7 +669,7 @@ public class EvColocDialog extends JFrame {
         mMenu.add(mOpenResult);
 
         mCancle = new JButton();
-        mCancle = new JButton(new ImageIcon(getClass().getResource("stop.png")));
+        mCancle = new JButton(new ImageIcon(getClass().getResource("icons8-stop-16.png")));
         mCancle.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -681,7 +681,7 @@ public class EvColocDialog extends JFrame {
         mMenu.add(mCancle);
 
         mClose = new JButton();
-        mClose = new JButton(new ImageIcon(getClass().getResource("close.png")));
+        mClose = new JButton(new ImageIcon(getClass().getResource("icons8-multiply-16.png")));
         mClose.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -716,7 +716,7 @@ public class EvColocDialog extends JFrame {
         c.gridwidth = 2;
         this.add(logo, c);
 
-        JButton about = new JButton(new ImageIcon(getClass().getResource("about.png")));
+        JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
         about.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
