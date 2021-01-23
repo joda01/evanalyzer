@@ -227,18 +227,20 @@ public class EvColocDialog extends JFrame {
             imageTitles = WindowManager.getImageTitles();
 
             if (imageTitles.length > 0) {
-                
-                ImagePlus image=null;
+
+                ImagePlus image = null;
                 for (int i = 0; i < imageTitles.length; i++) {
                     String actTitle = imageTitles[i];
                     ImagePlus imageTmp = WindowManager.getImage(actTitle);
-                    if (true == actTitle.endsWith("C="+Integer.toString(channel))) {
+                    if (true == actTitle.endsWith("C=" + Integer.toString(channel))) {
                         image = imageTmp;
+                        ImageWindow win = imageTmp.getWindow();
+                        win.setSize(800, 600);
+                        win.setLocation(this.getX() + this.getWidth() + 10, this.getY());
+                        IJ.run(imageTmp, "Scale to Fit", "");
+                    } else {
+                        imageTmp.close();
                     }
-                    ImageWindow win = imageTmp.getWindow();
-                    win.setSize(400,400);
-                    win.setLocation(this.getX()+this.getWidth()+10+i*400,this.getY());
-                    IJ.run(imageTmp,"Scale to Fit", "");
                 }
 
                 mPreviewImage = image;
@@ -248,19 +250,6 @@ public class EvColocDialog extends JFrame {
                 thersholdPreview.setSelected(false);
                 JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
                         JOptionPane.WARNING_MESSAGE);
-            }
-        }
-
-        public void endPreview() {
-            closeAllWindow();
-        }
-
-        private void closeAllWindow() {
-            ImagePlus img;
-            while (null != WindowManager.getCurrentImage()) {
-                img = WindowManager.getCurrentImage();
-                img.changes = false;
-                img.close();
             }
         }
 
@@ -284,6 +273,19 @@ public class EvColocDialog extends JFrame {
                     JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
+            }
+        }
+
+        public void endPreview() {
+            closeAllWindow();
+        }
+
+        private void closeAllWindow() {
+            ImagePlus img;
+            while (null != WindowManager.getCurrentImage()) {
+                img = WindowManager.getCurrentImage();
+                img.changes = false;
+                img.close();
             }
         }
     }
@@ -446,8 +448,8 @@ public class EvColocDialog extends JFrame {
         }
     }
 
-    PanelChannelSettings ch0Settings = new PanelChannelSettings(this,0);
-    PanelChannelSettings ch1Settings = new PanelChannelSettings(this,1);
+    PanelChannelSettings ch0Settings = new PanelChannelSettings(this, 0);
+    PanelChannelSettings ch1Settings = new PanelChannelSettings(this, 1);
     PanelFilter filter = new PanelFilter(this);
     PanelReport reportSettings = new PanelReport(this);
 
