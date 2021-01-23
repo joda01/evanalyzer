@@ -91,7 +91,7 @@ public class ExosomColoc extends Pipeline {
 
             String path = mSettings.mOutputFolder + java.io.File.separator + name;
             ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
-            Filter.SaveImage(mergedChannel, path + "_merged.jpg");
+            Filter.SaveImageWithOverlay(mergedChannel,rm, path + "_merged.jpg");
             Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp.jpg");
             Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3.jpg");
 

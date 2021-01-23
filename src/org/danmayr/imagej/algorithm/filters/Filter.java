@@ -15,6 +15,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import ij.*;
+import ij.process.*;
+import ij.gui.*;
+import ij.io.*;
+import ij.plugin.filter.*;
+import ij.plugin.Colors;
+import ij.plugin.OverlayLabels;
+import ij.plugin.FolderOpener;
+import ij.util.*;
+import ij.macro.*;
+import ij.measure.*;
+import ij.plugin.OverlayCommands;
 
 import javax.swing.JDialog;
 import javax.swing.JWindow;
@@ -103,11 +115,47 @@ public class Filter {
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
-        rm.runCommand(image, "Show All with label");
+        rm.runCommand(image, "Show All without labels");
+        PaintRoiLabels(image,rm);
+        //IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none label_1=right");
         ImagePlus overlayimage = image.flatten();
         IJ.saveAs(overlayimage, "Jpeg", imageName);
         rm.runCommand(image, "Show None");
     }
+
+    private static void PaintRoiLabels(ImagePlus image,RoiManager rm)
+    {
+
+        Overlay ov = new Overlay();
+
+        int fontSize = 12;
+
+        Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+
+        Roi[] rois = rm.getRoisAsArray();
+        for(int n = 0;n< rois.length;n++){
+            Rectangle rec = rois[n].getBounds();
+            
+            double p;
+            if (fontSize < 16){ p = 10;}
+            else if (fontSize < 24){ p = 12;}
+            else{ p= 20;}
+            
+            double x1 = rec.getX() + rec.getWidth() + 5;
+            double y1 = rec.getY() + 0.5*rec.getHeight()+p;
+            
+            TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n+1), font);
+            lbl.setStrokeColor(Color.red);
+            lbl.setFillColor(Color.black);
+            ov.add(lbl); 
+        }
+
+        image.setOverlay(ov);
+
+		
+    }
+
+
 
     public static void AnalyzeParticles(ImagePlus image, RoiManager rm) {
         image.setRoi(new OvalRoi(1, 1, 1, 1));
