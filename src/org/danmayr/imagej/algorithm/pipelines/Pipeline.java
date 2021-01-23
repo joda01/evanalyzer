@@ -58,14 +58,31 @@ abstract public class Pipeline {
   public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception {
     String[] imageTitles = WindowManager.getImageTitles();
 
-    for (int i = 0; i < imageTitles.length; i++) {
-      String actTitle = imageTitles[i];
-      if (true == actTitle.endsWith("C=0")) {
-        imgChannel0 = WindowManager.getImage(actTitle);
-      } else if (true == actTitle.endsWith("C=1")) {
-        imgChannel1 = WindowManager.getImage(actTitle);
-      } else if (true == actTitle.endsWith("C=2")) {
-        imgChannel2 = WindowManager.getImage(actTitle);
+    if(1==nrOfExpectedChannels)
+    {
+      String chToFind="C=0";
+      if(mCh0 != ChannelType.OFF){
+        chToFind="C=0";
+      }else if(mCh1 != ChannelType.OFF){
+        chToFind="C=1";
+      }
+      for (int i = 0; i < imageTitles.length; i++) {
+        String actTitle = imageTitles[i];
+        if (true == actTitle.endsWith(chToFind)) {
+          imgChannel0 = WindowManager.getImage(actTitle);
+        }
+      }
+    }
+    else if(2==nrOfExpectedChannels){
+      for (int i = 0; i < imageTitles.length; i++) {
+        String actTitle = imageTitles[i];
+        if (true == actTitle.endsWith("C=0")) {
+          imgChannel0 = WindowManager.getImage(actTitle);
+        } else if (true == actTitle.endsWith("C=1")) {
+          imgChannel1 = WindowManager.getImage(actTitle);
+        } else if (true == actTitle.endsWith("C=2")) {
+          imgChannel2 = WindowManager.getImage(actTitle);
+        }
       }
     }
 
