@@ -1,4 +1,4 @@
-# Exosome Colocalizer
+# Exosome Analyzer
 
 ## Description
 Exosome colocolizer is a Fiji ImageJ plugin designed for analyzing microscope pictures of Exosoms. This plugin can be used for:
