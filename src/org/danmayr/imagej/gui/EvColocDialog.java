@@ -82,8 +82,9 @@ public class EvColocDialog extends JFrame {
         private JComboBox thersholdMethod;
         private JCheckBox enchanceContrast;
         private JToggleButton thersholdPreview;
+        private int mChNr;
 
-        public PanelChannelSettings(Container parent) {
+        public PanelChannelSettings(Container parent, int chNr) {
             GridBagLayout layout = new GridBagLayout();
             setLayout(layout);
             layout.preferredLayoutSize(parent);
@@ -91,6 +92,8 @@ public class EvColocDialog extends JFrame {
             GridBagConstraints c = new GridBagConstraints();
             c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
+
+            mChNr = chNr;
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -129,7 +132,7 @@ public class EvColocDialog extends JFrame {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     if (thersholdPreview.isSelected()) {
-                        startPreview();
+                        startPreview(mChNr);
                         refreshPreview();
                     } else {
                         endPreview();
@@ -212,7 +215,7 @@ public class EvColocDialog extends JFrame {
         private ImagePlus mOriginalImage;
         private ImagePlus mPreviewImage;
 
-        public void startPreview() {
+        public void startPreview(int channel) {
             String[] imageTitles = WindowManager.getImageTitles();
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(0, mInputFolder.getText());
@@ -224,7 +227,20 @@ public class EvColocDialog extends JFrame {
             imageTitles = WindowManager.getImageTitles();
 
             if (imageTitles.length > 0) {
-                ImagePlus image = IJ.getImage();// WindowManager.getImage(imageTitles[0]);
+                
+                ImagePlus image=null;
+                for (int i = 0; i < imageTitles.length; i++) {
+                    String actTitle = imageTitles[i];
+                    ImagePlus imageTmp = WindowManager.getImage(actTitle);
+                    if (true == actTitle.endsWith("C="+Integer.toString(channel))) {
+                        image = imageTmp;
+                    }
+                    ImageWindow win = imageTmp.getWindow();
+                    win.setSize(400,400);
+                    win.setLocation(this.getX()+this.getWidth()+10+i*400,this.getY());
+                    IJ.run(imageTmp,"Scale to Fit", "");
+                }
+
                 mPreviewImage = image;
                 mOriginalImage = Filter.duplicateImage(image);
 
@@ -236,7 +252,16 @@ public class EvColocDialog extends JFrame {
         }
 
         public void endPreview() {
-            mPreviewImage.setImage(mOriginalImage);
+            closeAllWindow();
+        }
+
+        private void closeAllWindow() {
+            ImagePlus img;
+            while (null != WindowManager.getCurrentImage()) {
+                img = WindowManager.getCurrentImage();
+                img.changes = false;
+                img.close();
+            }
         }
 
         public void refreshPreview() {
@@ -421,8 +446,8 @@ public class EvColocDialog extends JFrame {
         }
     }
 
-    PanelChannelSettings ch0Settings = new PanelChannelSettings(this);
-    PanelChannelSettings ch1Settings = new PanelChannelSettings(this);
+    PanelChannelSettings ch0Settings = new PanelChannelSettings(this,0);
+    PanelChannelSettings ch1Settings = new PanelChannelSettings(this,1);
     PanelFilter filter = new PanelFilter(this);
     PanelReport reportSettings = new PanelReport(this);
 
