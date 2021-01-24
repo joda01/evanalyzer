@@ -73,16 +73,26 @@ public class EvColocDialog extends JFrame {
     }
 
     class PanelChannelSettings extends JPanel {
-        SpinnerModel model = new SpinnerNumberModel(-1, // initial value
-                -1, // min
-                65535, // max
-                1); // step
-        private JSpinner minTheshold = new JSpinner(model);
-        private JComboBox channelType;
-        private JComboBox thersholdMethod;
-        private JCheckBox enchanceContrast;
-        private JToggleButton thersholdPreview;
-        private int mChNr;
+        
+        
+        class ChannelElements
+        {        
+            SpinnerModel model = new SpinnerNumberModel(-1, // initial value
+                    -1, // min
+                    65535, // max
+                    1); // step
+            private JSpinner minTheshold = new JSpinner(model);
+            private JComboBox channelType;
+            private JComboBox thersholdMethod;
+            private JCheckBox enchanceContrast;
+            private JToggleButton thersholdPreview;
+            private int mChNr;
+
+            public ChannelElements(JPanel panel, GridBagConstraints c)
+            {
+
+            }
+        }
 
         public PanelChannelSettings(Container parent, int chNr) {
             GridBagLayout layout = new GridBagLayout();
@@ -588,24 +598,21 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
-        this.add(ch0Settings, c);
+        this.add(new JLabel("Channel 1: "), c);
 
-        ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
-
+       
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.weightx = 0;
-        this.add(new JLabel("Channel 1: "), c);
+        c.gridwidth = 1;
+        this.add(ch0Settings, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
+        c.weightx = 1;
+        c.gridwidth = 1;
         this.add(ch1Settings, c);
 
         ////////////////////////////////////////////////////
