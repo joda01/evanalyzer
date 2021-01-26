@@ -37,15 +37,19 @@ public class ExosomColoc extends Pipeline {
         ImagePlus img1BeforeTh = preFilterSetColoc(img1, mSettings.ch1.enhanceContrast, mSettings.ch1.mThersholdMethod,
                 mSettings.ch1.minThershold, mSettings.ch1.maxThershold, in1);
 
-        Filter.AnalyzeParticles(img0,rm);
-        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
+        Filter.AnalyzeParticles(img0, rm);
+        Channel measCh00 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
+        Channel measCh01 = Filter.MeasureImage(0, "ch0", mSettings, img1BeforeTh, img1, rm); // Measure the ROIs from                                                                   
+        Channel measCh0 = CombineChannel(measCh00,measCh01);
 
-        Filter.AnalyzeParticles(img1,rm);
-        Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
+        Filter.AnalyzeParticles(img1, rm);
+        Channel measCh10 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
+        Channel measCh11 = Filter.MeasureImage(1, "ch1", mSettings, img0BeforeTh, img0, rm); // Measure the ROIs from
+        Channel measCh1 = CombineChannel(measCh10,measCh11);                                                                                     // Channel 0 in Channel 1
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
-        Filter.AnalyzeParticles(sumImage,rm);
+        Filter.AnalyzeParticles(sumImage, rm);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
         Channel colocCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
@@ -91,7 +95,7 @@ public class ExosomColoc extends Pipeline {
 
             String path = mSettings.mOutputFolder + java.io.File.separator + name;
             ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
-            Filter.SaveImageWithOverlay(mergedChannel,rm, path + "_merged.jpg");
+            Filter.SaveImageWithOverlay(mergedChannel, rm, path + "_merged.jpg");
             Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp.jpg");
             Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3.jpg");
 
@@ -141,6 +145,117 @@ public class ExosomColoc extends Pipeline {
         return ch;
     }
 
+    class CombinedParticle extends ParticleInfo {
+
+        public CombinedParticle(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale,
+                double circularity, double areaGrayScaleOfSecondChannel) {
+            super(roiName, areaSize, areaGrayScale, areaThersholdScale, circularity);
+            this.areaGrayScaleOfSecondChannel = areaGrayScaleOfSecondChannel;
+        }
+
+        ///
+        /// \brief Returns the name of the roi
+        ///
+        public String toString() {
+            return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale)+ ";" + Double.toString(areaGrayScaleOfSecondChannel) + ";"
+                    + Double.toString(areaThersholdScale) + ";" + Double.toString(circularity) ;
+        }
+
+        @Override
+        public int getRoiNr() {
+            return roiName;
+        }
+
+        @Override
+        public double[] getValues() {
+            double[] values = { areaSize, areaGrayScale,areaGrayScaleOfSecondChannel, areaThersholdScale, circularity };
+            return values;
+        }
+
+        @Override
+        public String[] getTitle() {
+            String[] title = { "area size", "intensity","intensity other channel", "thershold scale", "circularity" };
+            return title;
+        }
+
+        double areaGrayScaleOfSecondChannel;
+    }
+
+    public class CombinedStatistics extends Statistics{
+        public CombinedStatistics() {
+    
+        }
+    
+        public void setThershold(double minTH, double maxTH){
+            this.minTH = minTH;
+            this.maxTH = maxTH;
+        }
+    
+        @Override
+        public void calcStatistics(Channel ch) {
+            int nrOfInvalid = 0;
+            int nrOfValid = 0;
+            double areaSizeSum = 0;
+            double grayScaleSum = 0;
+            double grayScaleSum2 = 0;
+            double circularitySum = 0;
+    
+            for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
+                int chNr = entry.getKey();
+                CombinedParticle info = (CombinedParticle)entry.getValue();
+    
+                if (false == info.isValid()) {
+                    nrOfInvalid++;
+                } else {
+                    nrOfValid++;
+                    areaSizeSum += info.areaSize;
+                    grayScaleSum += info.areaGrayScale;
+                    grayScaleSum2 += info.areaGrayScaleOfSecondChannel;
+                    circularitySum += info.circularity;
+                }
+            }
+            avgAreaSize = areaSizeSum / nrOfValid;
+            avgGrayScale = grayScaleSum / nrOfValid;
+            avgGrayScale2 = grayScaleSum2 / nrOfValid;
+            avgCircularity = circularitySum / nrOfValid;
+            this.invalid = nrOfInvalid;
+            this.valid = nrOfValid;
+        }
+    
+        @Override
+        public double[] getValues() {
+            double[] values = { avgAreaSize, avgGrayScale,avgGrayScale2, avgCircularity,valid,invalid, minTH, maxTH };
+            return values;
+        }
+    
+        @Override
+        public String[] getTitle() {
+            String[] title = { "area size", "intensity", "intensity other channel","circularity","valid","invalid","min TH", "max TH" };
+            return title;
+        }
+    
+        public double avgGrayScale2;
+    }
+
+    private Channel CombineChannel(Channel ch0, Channel ch1)
+    {
+        Channel ch = new Channel(ch0.getChannelNumber(),ch0.toString(), new CombinedStatistics());
+        for (Map.Entry<Integer, ParticleInfo> entry : ch0.getRois().entrySet()) {
+            int chNr = entry.getKey();
+            ParticleInfo info1 = entry.getValue();
+            ParticleInfo info2 = ch1.getRois().get(chNr);
+
+
+            CombinedParticle cp = new CombinedParticle(info1.roiName,info1.areaSize,info1.areaGrayScale,info1.areaThersholdScale,info1.circularity,info2.areaGrayScale);
+            cp.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
+                        mSettings.mMinCircularity, mSettings.minIntensity);
+            ch.addRoi(cp); 
+        }
+        ch.calcStatistics();
+        return ch;
+    }
+
+
     class ColocRoi extends ParticleInfo {
 
         public ColocRoi(int roiName, double smallestAreaSize, double areaSizeCh0, double areaSizeCh1,
@@ -182,7 +297,7 @@ public class ExosomColoc extends Pipeline {
                 double minGrayScale) {
             status = VALID;
 
-            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 !=0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)) {
+            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 != 0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)) {
                 status |= TOO_SMALL;
             }
 
@@ -210,14 +325,14 @@ public class ExosomColoc extends Pipeline {
 
             for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
                 int chNr = entry.getKey();
-                ColocRoi info = (ColocRoi)entry.getValue();
+                ColocRoi info = (ColocRoi) entry.getValue();
 
                 if (false == info.isValid()) {
                     nrOfInvalid++;
                 } else {
                     if (info.colocValue > 0) {
                         mColocNr++;
-                    }else{
+                    } else {
                         nrOfNotColoc++;
                     }
                 }
