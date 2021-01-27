@@ -242,12 +242,12 @@ public class ExosomColoc extends Pipeline {
             this.invalid = nrOfInvalid;
             this.valid = nrOfNotColoc;
 
-            this.intensityMeanoOfColocCh0 /= (double)mColocNr;
-            this.intensityMeanoOfColocCh1 /= (double)mColocNr;
+            this.intensityMeanoOfColocCh0 = intensityMean1 / (double)mColocNr;
+            this.intensityMeanoOfColocCh1 = intensityMean2 / (double)mColocNr;
         }
 
         public double[] getValues() {
-            double[] values = { mColocNr, valid, invalid };
+            double[] values = { mColocNr, valid, invalid,intensityMeanoOfColocCh0, intensityMeanoOfColocCh1};
             return values;
         }
 
