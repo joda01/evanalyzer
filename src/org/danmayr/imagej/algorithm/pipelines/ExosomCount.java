@@ -22,7 +22,7 @@ public class ExosomCount extends Pipeline {
     }
 
     @Override
-    protected TreeMap<Integer, Channel> startPipeline(File img) {
+    protected TreeMap<Integer, Channel> startPipeline(File img,AnalyseSettings.ChannelSettings ch0s, AnalyseSettings.ChannelSettings ch1s) {
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
         RoiManager rm = new RoiManager();
@@ -33,8 +33,8 @@ public class ExosomCount extends Pipeline {
 
 
         double[] in0 = new double[2];
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0, mSettings.ch0.enhanceContrast, mSettings.ch0.mThersholdMethod,
-                mSettings.ch0.minThershold, mSettings.ch0.maxThershold, in0);
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod,
+                ch0s.minThershold, ch0s.maxThershold, in0);
 
         Filter.AnalyzeParticles(img0,rm);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
@@ -46,8 +46,8 @@ public class ExosomCount extends Pipeline {
         if (null != img1) {
             double[] in1 = new double[2];
 
-            ImagePlus img1BeforeTh = preFilterSetColoc(img1, mSettings.ch1.enhanceContrast,
-                    mSettings.ch1.mThersholdMethod, mSettings.ch1.minThershold, mSettings.ch1.maxThershold, in1);
+            ImagePlus img1BeforeTh = preFilterSetColoc(img1, ch1s.enhanceContrast,
+                    ch1s.mThersholdMethod, ch1s.minThershold, ch1s.maxThershold, in1);
 
             Filter.AnalyzeParticles(img1,rm);
             measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
@@ -63,14 +63,14 @@ public class ExosomCount extends Pipeline {
 
             ImagePlus greenImg = null;
             ImagePlus redImg = null;
-            if (mSettings.ch0.type == Pipeline.ChannelType.GFP) {
+            if (ch0s.type == Pipeline.ChannelType.GFP) {
                 greenImg = img0;
                 redImg = img1;
 
                 greenChannel = measCh0;
                 redChannel = measCh1;
 
-            } else if (mSettings.ch0.type == Pipeline.ChannelType.CY3) {
+            } else if (ch0s.type == Pipeline.ChannelType.CY3) {
                 redImg = img0;
                 greenImg = img1;
 

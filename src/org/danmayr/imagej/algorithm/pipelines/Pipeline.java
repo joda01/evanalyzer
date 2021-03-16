@@ -48,15 +48,21 @@ abstract public class Pipeline {
     if(mCh1 != ChannelType.OFF){nrOfExpectedChannels++;}
     if(mCh2 != ChannelType.OFF){nrOfExpectedChannels++;}
 
+    AnalyseSettings.ChannelSettings ch0s = mSettings.ch0;
+    AnalyseSettings.ChannelSettings ch1s = mSettings.ch1;
+
     if(1==nrOfExpectedChannels)
     {
       String chToFind="C=0";
       if(mCh0 != ChannelType.OFF){
         chToFind="C=0";
+        ch0s = mSettings.ch0;
       }else if(mCh1 != ChannelType.OFF){
         chToFind="C=1";
+        ch0s = mSettings.ch1;
       }else if(mCh2 != ChannelType.OFF){
         chToFind="C=2";
+        ch0s = mSettings.ch2;
       }
       for (int i = 0; i < imageTitles.length; i++) {
         String actTitle = imageTitles[i];
@@ -69,8 +75,8 @@ abstract public class Pipeline {
       String ch0toFind = "C=0";
       String ch1toFind = "C=1";
       if(mCh0 != ChannelType.OFF && mCh1 != ChannelType.OFF){}
-      if(mCh0 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch1toFind="C=2";}
-      if(mCh1 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch0toFind="C=1";ch1toFind="C=2";}
+      if(mCh0 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch1toFind="C=2";ch1s = mSettings.ch2;}
+      if(mCh1 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch0toFind="C=1";ch1toFind="C=2";ch0s = mSettings.ch1;ch1s = mSettings.ch2;}
 
       for (int i = 0; i < imageTitles.length; i++) {
         String actTitle = imageTitles[i];
@@ -102,7 +108,7 @@ abstract public class Pipeline {
       throw new Exception("Three channel expected but just two, one or zero given.");
     }
     else {
-      return startPipeline(imageFile);
+      return startPipeline(imageFile,ch0s,ch1s);
     }
     // return new TreeMap<Integer, Channel>();
   }
@@ -145,6 +151,6 @@ abstract public class Pipeline {
     return beforeThershold;
   }
 
-  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);
+  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile,AnalyseSettings.ChannelSettings ch0s, AnalyseSettings.ChannelSettings ch1s);
 
 }
