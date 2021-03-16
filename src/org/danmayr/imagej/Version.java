@@ -2,7 +2,7 @@ package org.danmayr.imagej;
 
 public class Version {
     static String major = "2";
-    static String minor = "6";
+    static String minor = "7";
     static String fix = "0";
     static String status = "beta";
     static long build;

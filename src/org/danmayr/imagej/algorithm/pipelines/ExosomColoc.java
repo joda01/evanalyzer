@@ -17,8 +17,8 @@ public class ExosomColoc extends Pipeline {
 
     static int MAX_THERSHOLD = 255;
 
-    public ExosomColoc(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
-        super(settings, ch0, ch1);
+    public ExosomColoc(AnalyseSettings settings) {
+        super(settings);
     }
 
     @Override

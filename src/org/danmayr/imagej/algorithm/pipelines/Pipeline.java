@@ -20,35 +20,16 @@ abstract public class Pipeline {
     OFF, GFP, CY3, NEGATIVE_CONTROL
   }
 
-  protected ChannelType mCh0;
-  protected ChannelType mCh1;
   protected AnalyseSettings mSettings;
 
   private ImagePlus imgChannel0;
   private ImagePlus imgChannel1;
   private ImagePlus imgChannel2;
 
-  private int nrOfExpectedChannels = 0;
 
-  Pipeline(AnalyseSettings settings, ChannelType ch0) {
-    mCh0 = ch0;
-    mCh1 = ChannelType.OFF;
-    nrOfExpectedChannels = 1;
+
+  Pipeline(AnalyseSettings settings) {
     mSettings = settings;
-  }
-
-  Pipeline(AnalyseSettings settings, ChannelType ch0, ChannelType ch1) {
-    if (ch0 == ChannelType.OFF && ch1 == ChannelType.OFF) {
-      nrOfExpectedChannels = 0;
-    } else if (ch0 == ChannelType.OFF || ch1 == ChannelType.OFF) {
-      nrOfExpectedChannels = 1;
-    } else {
-      nrOfExpectedChannels = 2;
-    }
-    mCh0 = ch0;
-    mCh1 = ch1;
-    mSettings = settings;
-
   }
 
   ///
@@ -58,6 +39,15 @@ abstract public class Pipeline {
   public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception {
     String[] imageTitles = WindowManager.getImageTitles();
 
+    int nrOfExpectedChannels = 0;
+    Pipeline.ChannelType  mCh0 = mSettings.ch0.type;
+    Pipeline.ChannelType  mCh1 = mSettings.ch1.type;
+    Pipeline.ChannelType  mCh2 = mSettings.ch2.type;
+
+    if(mCh0 != ChannelType.OFF){nrOfExpectedChannels++;}
+    if(mCh1 != ChannelType.OFF){nrOfExpectedChannels++;}
+    if(mCh2 != ChannelType.OFF){nrOfExpectedChannels++;}
+
     if(1==nrOfExpectedChannels)
     {
       String chToFind="C=0";
@@ -65,6 +55,8 @@ abstract public class Pipeline {
         chToFind="C=0";
       }else if(mCh1 != ChannelType.OFF){
         chToFind="C=1";
+      }else if(mCh2 != ChannelType.OFF){
+        chToFind="C=2";
       }
       for (int i = 0; i < imageTitles.length; i++) {
         String actTitle = imageTitles[i];
@@ -74,6 +66,22 @@ abstract public class Pipeline {
       }
     }
     else if(2==nrOfExpectedChannels){
+      String ch0toFind = "C=0";
+      String ch1toFind = "C=1";
+      if(mCh0 != ChannelType.OFF && mCh1 != ChannelType.OFF){}
+      if(mCh0 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch1toFind="C=2";}
+      if(mCh1 != ChannelType.OFF && mCh2 != ChannelType.OFF){ch0toFind="C=1";ch1toFind="C=2";}
+
+      for (int i = 0; i < imageTitles.length; i++) {
+        String actTitle = imageTitles[i];
+        if (true == actTitle.endsWith(ch0toFind)) {
+          imgChannel0 = WindowManager.getImage(actTitle);
+        } else if (true == actTitle.endsWith(ch1toFind)) {
+          imgChannel1 = WindowManager.getImage(actTitle);
+        }
+      }
+    }
+    else if(3==nrOfExpectedChannels){
       for (int i = 0; i < imageTitles.length; i++) {
         String actTitle = imageTitles[i];
         if (true == actTitle.endsWith("C=0")) {
@@ -90,7 +98,10 @@ abstract public class Pipeline {
       throw new Exception("One channel expected, zero channels given.");
     } else if (2 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1())) {
       throw new Exception("Two channel expected but just one or zero given.");
-    } else {
+    } else if (3 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1() || null == getImageCh2())) { 
+      throw new Exception("Three channel expected but just two, one or zero given.");
+    }
+    else {
       return startPipeline(imageFile);
     }
     // return new TreeMap<Integer, Channel>();

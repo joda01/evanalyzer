@@ -74,12 +74,10 @@ public class FileProcessor extends Thread {
         Pipeline pipeline = null;
 
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
-            pipeline = new ExosomCount(mAnalyseSettings, mAnalyseSettings.ch0.type, mAnalyseSettings.ch1.type);
-
-
+            pipeline = new ExosomCount(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            pipeline = new ExosomColoc(mAnalyseSettings,  mAnalyseSettings.ch0.type, mAnalyseSettings.ch1.type);
+            pipeline = new ExosomColoc(mAnalyseSettings);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");
@@ -118,7 +116,7 @@ public class FileProcessor extends Thread {
     public static void OpenImage(File imgToOpen, String series){
         IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
         + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
-        + series + " c_begin_1=1 c_end_1=2 c_step_1=1");
+        + series + " c_begin_1=1 c_end_1=3 c_step_1=1");
     }
 
     /**

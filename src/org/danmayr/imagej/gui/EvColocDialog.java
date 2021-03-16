@@ -143,6 +143,7 @@ public class EvColocDialog extends JFrame {
         private JToggleButton thersholdPreview;
         public ChannelElements ch0;
         public ChannelElements ch1;
+        public ChannelElements ch2;
 
         public PanelChannelSettings(Container parent) {
             GridBagLayout layout = new GridBagLayout();
@@ -155,6 +156,7 @@ public class EvColocDialog extends JFrame {
 
             ch0 = new ChannelElements(this, c, 1, 0, 0);
             ch1 = new ChannelElements(this, c, 2, 0, 1);
+            ch2 = new ChannelElements(this, c, 3, 0, 2);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -821,11 +823,22 @@ public class EvColocDialog extends JFrame {
         }
         sett.ch0.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch0.channelType.getSelectedItem()).getValue();
         sett.ch1.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch1.channelType.getSelectedItem()).getValue();
+        sett.ch2.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch2.channelType.getSelectedItem()).getValue();
+
+        int nrOfExpectedChannels = 0;
+        if(sett.ch0.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
+        if(sett.ch1.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
+        if(sett.ch2.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
+        if(nrOfExpectedChannels == 0){
+            error += "Please select at least for one channel a type!\n";
+        }
+        if(nrOfExpectedChannels == 3){
+            error += "Three channel coloc is not supported yet! Please set at least one channel to OFF!\n";
+        }
+
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
 
-        if (sett.ch0.type == Pipeline.ChannelType.OFF) {
-            error += "Select channel Type for channel 0!\n";
-        }
+
 
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
             error += PLEASE_SELECT_A_FUNCTION;
@@ -834,9 +847,13 @@ public class EvColocDialog extends JFrame {
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
         sett.ch0.mThersholdMethod = chSettings.ch0.thersholdMethod.getSelectedItem().toString();
         sett.ch1.mThersholdMethod = chSettings.ch1.thersholdMethod.getSelectedItem().toString();
+        sett.ch2.mThersholdMethod = chSettings.ch2.thersholdMethod.getSelectedItem().toString();
+
 
         sett.ch0.enhanceContrast = chSettings.ch0.enchanceContrast.isSelected();
         sett.ch1.enhanceContrast = chSettings.ch1.enchanceContrast.isSelected();
+        sett.ch2.enhanceContrast = chSettings.ch2.enchanceContrast.isSelected();
+
         try {
             sett.mMinParticleSize = Integer.parseInt(filter.mMinParticleSize.getText());
         } catch (NumberFormatException ex) {
@@ -869,6 +886,11 @@ public class EvColocDialog extends JFrame {
             sett.ch1.minThershold = (Integer) (chSettings.ch1.minTheshold.getValue());
         } catch (NumberFormatException ex) {
             error += "Min Therhold CH1 wrong!\n";
+        }
+        try {
+            sett.ch2.minThershold = (Integer) (chSettings.ch2.minTheshold.getValue());
+        } catch (NumberFormatException ex) {
+            error += "Min Therhold CH2 wrong!\n";
         }
 
         if (error.length() <= 0) {

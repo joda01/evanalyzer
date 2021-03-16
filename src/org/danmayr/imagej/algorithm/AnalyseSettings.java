@@ -55,5 +55,6 @@ public class AnalyseSettings {
 
     public ChannelSettings ch0 = new ChannelSettings();
     public ChannelSettings ch1 = new ChannelSettings();
+    public ChannelSettings ch2 = new ChannelSettings();
 
 }
