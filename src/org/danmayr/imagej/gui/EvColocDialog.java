@@ -217,18 +217,17 @@ public class EvColocDialog extends JFrame {
             l3.setIcon(diamter3);
             this.add(l3, c);
 
+        
+            JPanel previewButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
             ///////////////////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.NONE;
-            c.anchor = GridBagConstraints.LINE_END;
-            c.gridx = 2;
-            c.gridy++;
-            c.weightx = 0;
-            c.gridwidth = 1;
+    
             thersholdPreview = new JToggleButton(new ImageIcon(getClass().getResource("icons8-eye-16.png")));
             thersholdPreview.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     if (thersholdPreview.isSelected()) {
+                        mPrevImgIdx = 0;
                         startPreview();
                         refreshPreview();
                     } else {
@@ -236,8 +235,44 @@ public class EvColocDialog extends JFrame {
                     }
                 }
             });
-            this.add(thersholdPreview, c);
+            previewButtons.add(thersholdPreview);
 
+          JButton prevPreviewImage = new JButton("<<");
+            prevPreviewImage.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    if (thersholdPreview.isSelected()) {
+                        endPreview();
+                        if(mPrevImgIdx>0){
+                            mPrevImgIdx--;
+                        }
+                        startPreview();
+                    }
+                }
+            });
+            previewButtons.add(prevPreviewImage);
+
+            JButton nextPreviewImage = new JButton(">>");
+            nextPreviewImage.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    if (thersholdPreview.isSelected()) {
+                        endPreview();
+                        mPrevImgIdx++;
+                        startPreview();
+                    }
+                }
+            });
+            previewButtons.add(nextPreviewImage);
+
+  
+            c.gridy++;
+            c.gridx = 3;
+            c.weightx = 0;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.LINE_END;
+            c.gridwidth = 1;
+            this.add(previewButtons, c);
         }
 
         private ImagePlus mOriginalImage0;
@@ -246,10 +281,12 @@ public class EvColocDialog extends JFrame {
         private ImagePlus mOriginalImage1;
         private ImagePlus mPreviewImage1;
 
+        private int mPrevImgIdx = 0;
+
         public void startPreview() {
             String[] imageTitles = WindowManager.getImageTitles();
             if (imageTitles.length <= 0) {
-                File OpenImage = FileProcessor.getFile(0, mInputFolder.getText());
+                File OpenImage = FileProcessor.getFile(mPrevImgIdx, mInputFolder.getText());
                 if (null != OpenImage) {
                     FileProcessor.OpenImage(OpenImage, mSeries.getSelectedItem().toString());
                 }
@@ -270,9 +307,13 @@ public class EvColocDialog extends JFrame {
                         mOriginalImage1 = Filter.duplicateImage(imageTmp);
                     }
 
+                    Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+                    int width = (int)size.getWidth();
+
                     ImageWindow win = imageTmp.getWindow();
-                    win.setSize(800, 600);
-                    win.setLocation(this.getX() + this.getWidth() + 10 + i * 800, this.getY());
+                    win.setSize(600, 400);
+                    int newPos = this.getX() + this.getWidth() + 10 + i * 30;
+                    win.setLocation(newPos, this.getY()+i*35);
                     IJ.run(imageTmp, "Scale to Fit", "");
                 }
 
