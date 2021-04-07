@@ -28,9 +28,6 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 ## Common issues
 *  Images used in the plugin cannot be in the RGB format, and must be monochromatic.
 *  Actually only VSI images can be processed.
-*  Images must contain exact two or one channels.
-
-
 
 ## Screenshot
 
