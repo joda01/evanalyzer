@@ -247,6 +247,7 @@ public class EvColocDialog extends JFrame {
                             mPrevImgIdx--;
                         }
                         startPreview();
+                        refreshPreview();
                     }
                 }
             });
@@ -260,6 +261,7 @@ public class EvColocDialog extends JFrame {
                         endPreview();
                         mPrevImgIdx++;
                         startPreview();
+                        refreshPreview();
                     }
                 }
             });
@@ -280,6 +282,9 @@ public class EvColocDialog extends JFrame {
 
         private ImagePlus mOriginalImage1;
         private ImagePlus mPreviewImage1;
+
+        private ImagePlus mOriginalImage2;
+        private ImagePlus mPreviewImage2;
 
         private int mPrevImgIdx = 0;
 
@@ -305,6 +310,9 @@ public class EvColocDialog extends JFrame {
                     } else if (true == actTitle.endsWith("C=" + Integer.toString(1))) {
                         mPreviewImage1 = imageTmp;
                         mOriginalImage1 = Filter.duplicateImage(imageTmp);
+                    }else if (true == actTitle.endsWith("C=" + Integer.toString(2))) {
+                        mPreviewImage2 = imageTmp;
+                        mOriginalImage2 = Filter.duplicateImage(imageTmp);
                     }
 
                     Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
@@ -328,6 +336,7 @@ public class EvColocDialog extends JFrame {
             if (thersholdPreview.isSelected() == true) {
                 setPreviewImage(mPreviewImage0, mOriginalImage0, ch0);
                 setPreviewImage(mPreviewImage1, mOriginalImage1, ch1);
+                setPreviewImage(mPreviewImage2, mOriginalImage2, ch2);
             }
         }
 
@@ -347,8 +356,8 @@ public class EvColocDialog extends JFrame {
                         elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535, th);
 
             } else {
-                JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
-                        JOptionPane.WARNING_MESSAGE);
+                /*JOptionPane.showMessageDialog(new JFrame(), "Open an image to apply the preview on it!", "Dialog",
+                        JOptionPane.WARNING_MESSAGE);*/
             }
         }
 
