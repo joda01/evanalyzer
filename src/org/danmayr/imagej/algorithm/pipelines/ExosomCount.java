@@ -23,13 +23,14 @@ public class ExosomCount extends Pipeline {
 
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img, AnalyseSettings.ChannelSettings ch0s,
-            AnalyseSettings.ChannelSettings ch1s) {
+            AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s) {
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
         RoiManager rm = new RoiManager();
 
         ImagePlus img0 = getImageCh0();
         ImagePlus img1 = getImageCh1();
+        ImagePlus img2 = getImageCh2();
 
         double[] in0 = new double[2];
         ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod, ch0s.minThershold,
@@ -52,6 +53,20 @@ public class ExosomCount extends Pipeline {
 
             measCh1.setThershold(in1[0], in1[1]);
             channels.put(1, measCh1);
+        }
+
+        Channel measCh2 = null;
+        if (null != img2) {
+            double[] in1 = new double[2];
+
+            ImagePlus img2BeforeTh = preFilterSetColoc(img2, ch2s.enhanceContrast, ch2s.mThersholdMethod,
+                    ch2s.minThershold, ch2s.maxThershold, in1);
+
+            Filter.AnalyzeParticles(img2, rm);
+            measCh2 = Filter.MeasureImage(1, "ch2", mSettings, img2BeforeTh, img2, rm);
+
+            measCh2.setThershold(in1[0], in1[1]);
+            channels.put(2, measCh2);
         }
 
         // Save debug images

@@ -77,7 +77,11 @@ public class FileProcessor extends Thread {
             pipeline = new ExosomCount(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            pipeline = new ExosomColoc(mAnalyseSettings);
+            if(mAnalyseSettings.nrOfEnabledChannels == 3){
+                pipeline = new ExosomeColoc3Ch(mAnalyseSettings);
+            }else{
+                pipeline = new ExosomColoc(mAnalyseSettings);
+            }
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");

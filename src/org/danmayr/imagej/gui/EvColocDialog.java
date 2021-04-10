@@ -899,11 +899,9 @@ public class EvColocDialog extends JFrame {
         if(sett.ch0.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
         if(sett.ch1.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
         if(sett.ch2.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
+        sett.nrOfEnabledChannels = nrOfExpectedChannels;
         if(nrOfExpectedChannels == 0){
             error += "Please select at least for one channel a type!\n";
-        }
-        if(nrOfExpectedChannels == 3){
-            error += "Three channel coloc is not supported yet! Please set at least one channel to OFF!\n";
         }
 
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();

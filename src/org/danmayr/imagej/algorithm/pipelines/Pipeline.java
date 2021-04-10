@@ -101,6 +101,7 @@ abstract public class Pipeline {
 
     AnalyseSettings.ChannelSettings ch0s = mSettings.ch0;
     AnalyseSettings.ChannelSettings ch1s = mSettings.ch1;
+    AnalyseSettings.ChannelSettings ch2s = mSettings.ch2;
 
     if (1 == nrOfExpectedChannels) {
       String chToFind = "C=0";
@@ -164,7 +165,7 @@ abstract public class Pipeline {
     } else if (3 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1() || null == getImageCh2())) {
       throw new Exception("Three channel expected but just two, one or zero given.");
     } else {
-      return startPipeline(imageFile, ch0s, ch1s);
+      return startPipeline(imageFile, ch0s, ch1s,ch2s);
     }
     // return new TreeMap<Integer, Channel>();
   }
@@ -208,7 +209,7 @@ abstract public class Pipeline {
   }
 
   abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile, AnalyseSettings.ChannelSettings ch0s,
-      AnalyseSettings.ChannelSettings ch1s);
+      AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s);
 
 
 protected void saveControlImages(String name, Channel measCh0, Channel measCh1, Channel measCh2, ChannelType type0,ChannelType type1,ChannelType type2, RoiManager rm, Channel measColoc)
