@@ -103,8 +103,12 @@ public class Filter {
         return ret;
     }
 
-    public static ImagePlus MergeChannels(ImagePlus red, ImagePlus green) {
-        ImagePlus ary[] = { red, green };
+    //
+    // Merge channels with clors
+    // Each index coresponds to one color
+    // {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
+    //
+    public static ImagePlus MergeChannels(ImagePlus[] ary) {
         RGBStackMerge rgb = new RGBStackMerge();
         ImagePlus mrg = rgb.mergeChannels(ary, true);
         return mrg;

@@ -22,43 +22,41 @@ public class ExosomColoc extends Pipeline {
     }
 
     @Override
-    protected TreeMap<Integer, Channel> startPipeline(File img,AnalyseSettings.ChannelSettings ch0s, AnalyseSettings.ChannelSettings ch1s) {
+    protected TreeMap<Integer, Channel> startPipeline(File img, AnalyseSettings.ChannelSettings ch0s,
+            AnalyseSettings.ChannelSettings ch1s) {
 
         RoiManager rm = new RoiManager();
 
         ImagePlus img0 = getImageCh0();
         ImagePlus img1 = getImageCh1();
+        ImagePlus img2 = getImageCh2();
 
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod,
-                ch0s.minThershold, ch0s.maxThershold, in0);
-        ImagePlus img1BeforeTh = preFilterSetColoc(img1, ch1s.enhanceContrast, ch1s.mThersholdMethod,
-                ch1s.minThershold, ch1s.maxThershold, in1);
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod, ch0s.minThershold,
+                ch0s.maxThershold, in0);
+        ImagePlus img1BeforeTh = preFilterSetColoc(img1, ch1s.enhanceContrast, ch1s.mThersholdMethod, ch1s.minThershold,
+                ch1s.maxThershold, in1);
 
-        Filter.AnalyzeParticles(img0,rm);
+        Filter.AnalyzeParticles(img0, rm);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
-        Channel measColocCh0 = calculateColoc(1,"Coloc Ch0 with Ch1",measCh0, measCh1Temp);
+        Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0, measCh1Temp);
 
-
-        Filter.AnalyzeParticles(img1,rm);
+        Filter.AnalyzeParticles(img1, rm);
         Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
-        Channel measColocCh1 = calculateColoc(2,"Coloc Ch1 with Ch0",measCh0Temp, measCh1);
-
-
-
+        Channel measColocCh1 = calculateColoc(2, "Coloc Ch1 with Ch0", measCh0Temp, measCh1);
 
         ImagePlus sumImage = Filter.AddImages(img0, img1);
 
-        Filter.AnalyzeParticles(sumImage,rm);
+        Filter.AnalyzeParticles(sumImage, rm);
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
 
         Channel colocCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         Channel colocCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
-        Channel measColoc = calculateColoc(3,"Coloc both Ch",colocCh0, colocCh1);
+        Channel measColoc = calculateColoc(3, "Coloc both Ch", colocCh0, colocCh1);
 
         measCh0.setThershold(in0[0], in0[1]);
         measCh1.setThershold(in1[0], in1[1]);
@@ -70,50 +68,15 @@ public class ExosomColoc extends Pipeline {
         channels.put(4, measColoc);
 
         // Save debug images
-        if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
-            Channel greenChannel;
-            Channel redChannel;
-
-            ImagePlus greenImg;
-            ImagePlus redImg;
-            if (ch0s.type == Pipeline.ChannelType.GFP) {
-                greenImg = img0;
-                redImg = img1;
-
-                greenChannel = measCh0;
-                redChannel = measCh1;
-
-            } else if (ch0s.type == Pipeline.ChannelType.CY3) {
-                redImg = img0;
-                greenImg = img1;
-
-                greenChannel = measCh1;
-                redChannel = measCh0;
-            } else {
-                return channels;
-            }
-
-            String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-            name = name.replaceAll("%", "");
-            name = name.replaceAll(" ", "");
-            name = name.replaceAll(":", "");
-            name = name.toLowerCase();
-
-            String path = mSettings.mOutputFolder + java.io.File.separator + name;
-            ImagePlus mergedChannel = Filter.MergeChannels(redImg, greenImg);
-            Filter.SaveImageWithOverlay(mergedChannel,rm, path + "_merged.jpg");
-            Filter.SaveImageWithOverlay(greenImg, rm, path + "_gfp.jpg");
-            Filter.SaveImageWithOverlay(redImg, rm, path + "_cy3.jpg");
-
-            greenChannel.addControlImagePath(name + "_gfp.jpg");
-            redChannel.addControlImagePath(name + "_cy3.jpg");
-            measColoc.addControlImagePath(name + "_merged.jpg");
-        }
+        String name = img.getAbsolutePath().replace(java.io.File.separator, "");
+        saveControlImages(name,measCh0,measCh1,null,ch0s.type,ch1s.type,null,rm,measColoc);  
 
         return channels;
     }
 
-    private Channel calculateColoc(int chNr, String chName,Channel ch0, Channel ch1) {
+
+
+    private Channel calculateColoc(int chNr, String chName, Channel ch0, Channel ch1) {
         Channel ch = new Channel(chNr, chName, new ColocStatistic());
 
         TreeMap<Integer, ParticleInfo> roiCh0 = ch0.getRois();
@@ -138,7 +101,8 @@ public class ExosomColoc extends Pipeline {
                 }
 
                 ColocRoi exosom = new ColocRoi(key, smallArea, areaSize0OfPixles, areaSize1OfPixles,
-                        ch0Info.areaGrayScale,ch1Info.areaGrayScale, ch0Info.areaThersholdScale, ch0Info.circularity, colocValue);
+                        ch0Info.areaGrayScale, ch1Info.areaGrayScale, ch0Info.areaThersholdScale, ch0Info.circularity,
+                        colocValue);
                 exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
                         mSettings.mMinCircularity, mSettings.minIntensity);
                 ch.addRoi(exosom);
@@ -154,7 +118,8 @@ public class ExosomColoc extends Pipeline {
     class ColocRoi extends ParticleInfo {
 
         public ColocRoi(int roiName, double smallestAreaSize, double areaSizeCh0, double areaSizeCh1,
-                double areaGrayScale,double areaGrayScale2, double areaThersholdScale, double circularity, double coloValue) {
+                double areaGrayScale, double areaGrayScale2, double areaThersholdScale, double circularity,
+                double coloValue) {
             super(roiName, smallestAreaSize, areaGrayScale, areaThersholdScale, circularity);
             this.colocValue = coloValue;
             this.areaSizeCh0 = areaSizeCh0;
@@ -177,12 +142,12 @@ public class ExosomColoc extends Pipeline {
 
         @Override
         public double[] getValues() {
-            double[] values = { areaSizeCh0, areaSizeCh1,areaGrayScale,areaGrayScale2ndChannel, colocValue };
+            double[] values = { areaSizeCh0, areaSizeCh1, areaGrayScale, areaGrayScale2ndChannel, colocValue };
             return values;
         }
 
         public String[] getTitle() {
-            String[] title = { "area size CH0", "area size CH1", "intensity CH0","intensity CH1","coloc" };
+            String[] title = { "area size CH0", "area size CH1", "intensity CH0", "intensity CH1", "coloc" };
             return title;
         }
 
@@ -194,7 +159,7 @@ public class ExosomColoc extends Pipeline {
                 double minGrayScale) {
             status = VALID;
 
-            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 !=0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)) {
+            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 != 0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)) {
                 status |= TOO_SMALL;
             }
 
@@ -224,7 +189,7 @@ public class ExosomColoc extends Pipeline {
 
             for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
                 int chNr = entry.getKey();
-                ColocRoi info = (ColocRoi)entry.getValue();
+                ColocRoi info = (ColocRoi) entry.getValue();
 
                 if (false == info.isValid()) {
                     nrOfInvalid++;
@@ -234,7 +199,7 @@ public class ExosomColoc extends Pipeline {
 
                         intensityMean1 += info.areaGrayScale;
                         intensityMean2 += info.areaGrayScale2ndChannel;
-                    }else{
+                    } else {
                         nrOfNotColoc++;
                     }
                 }
@@ -242,17 +207,17 @@ public class ExosomColoc extends Pipeline {
             this.invalid = nrOfInvalid;
             this.valid = nrOfNotColoc;
 
-            this.intensityMeanoOfColocCh0 = intensityMean1 / (double)mColocNr;
-            this.intensityMeanoOfColocCh1 = intensityMean2 / (double)mColocNr;
+            this.intensityMeanoOfColocCh0 = intensityMean1 / (double) mColocNr;
+            this.intensityMeanoOfColocCh1 = intensityMean2 / (double) mColocNr;
         }
 
         public double[] getValues() {
-            double[] values = { mColocNr, valid, invalid,intensityMeanoOfColocCh0, intensityMeanoOfColocCh1};
+            double[] values = { mColocNr, valid, invalid, intensityMeanoOfColocCh0, intensityMeanoOfColocCh1 };
             return values;
         }
 
         public String[] getTitle() {
-            String[] title = { "coloc", "Not coloc", "invalid", "intensity CH0","intensity CH1"};
+            String[] title = { "coloc", "Not coloc", "invalid", "intensity CH0", "intensity CH1" };
             return title;
         }
 

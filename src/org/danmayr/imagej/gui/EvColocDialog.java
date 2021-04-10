@@ -95,11 +95,14 @@ public class EvColocDialog extends JFrame {
                 panel.add(new JLabel("Channel " + Integer.toString(chNr)), c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[4];
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[7];
                 channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "OFF");
-                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP, "GFP");
-                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3, "CY3");
-                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
+                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.DAPI, "DAPI");
+                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP, "GFP");
+                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3, "CY3");
+                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY5, "CY5");
+                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY7, "CY7");
+                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
@@ -217,6 +220,21 @@ public class EvColocDialog extends JFrame {
             l3.setIcon(diamter3);
             this.add(l3, c);
 
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel l4 = new JLabel("Preview:");
+            l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
+            l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
+            l4.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
+            l4.setSize(new Dimension(200, l4.getSize().height));
+            ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-eye-16.png"));
+            l4.setIcon(diamter4);
+            this.add(l4, c);
+            
         
             JPanel previewButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
@@ -265,10 +283,7 @@ public class EvColocDialog extends JFrame {
                     }
                 }
             });
-            previewButtons.add(nextPreviewImage);
-
-  
-            c.gridy++;
+            previewButtons.add(nextPreviewImage);  
             c.gridx = 3;
             c.weightx = 0;
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -815,7 +830,7 @@ public class EvColocDialog extends JFrame {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
-                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 J. Danmayr",
+                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 - 2021 J. Danmayr",
                         "About", JOptionPane.INFORMATION_MESSAGE);
 
             }
@@ -874,6 +889,11 @@ public class EvColocDialog extends JFrame {
         sett.ch0.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch0.channelType.getSelectedItem()).getValue();
         sett.ch1.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch1.channelType.getSelectedItem()).getValue();
         sett.ch2.type = ((ComboItem<Pipeline.ChannelType>) chSettings.ch2.channelType.getSelectedItem()).getValue();
+
+
+        if(sett.ch0.type == sett.ch1.type || sett.ch0.type == sett.ch2.type || sett.ch1.type == sett.ch2.type){
+            error += "At least two channels have the same type! This is not allowed!\n";
+        }
 
         int nrOfExpectedChannels = 0;
         if(sett.ch0.type != Pipeline.ChannelType.OFF){nrOfExpectedChannels++;}
