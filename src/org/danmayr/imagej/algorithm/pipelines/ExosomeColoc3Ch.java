@@ -14,7 +14,6 @@ import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.statistics.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 
-
 public class ExosomeColoc3Ch extends ExosomColoc {
 
     static int MAX_THERSHOLD = 255;
@@ -74,15 +73,15 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         measCh2.setThershold(in1[0], in1[1]);
 
         channels.put(0, measCh0);
-        channels.put(1, measColocCh0);
+        // channels.put(1, measColocCh0);
 
-        channels.put(2, measCh1);
-        channels.put(3, measColocCh1);
+        channels.put(1, measCh1);
+        // channels.put(3, measColocCh1);
 
-        channels.put(4, measCh2);
+        channels.put(2, measCh2);
         // channels.put(5, measColocCh2);
 
-        channels.put(6, measColoc);
+        channels.put(3, measColoc);
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
@@ -106,22 +105,31 @@ public class ExosomeColoc3Ch extends ExosomColoc {
                 ParticleInfo ch1Info = roiCh1.get(key);
                 ParticleInfo ch2Info = roiCh2.get(key);
 
-                double colocValue = Math
+                //////////////
+                double colocValue01 = Math
                         .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch1Info.areaThersholdScale));
+                double colocValue02 = Math
+                        .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch2Info.areaThersholdScale));
+                double colocValue12 = Math
+                        .abs(MAX_THERSHOLD - Math.abs(ch1Info.areaThersholdScale - ch2Info.areaThersholdScale));
+
+                // Calculate a acg coloc. If all three channels coloc to 100% the value is 255^3
+                // Scale this down to 255 as maximu val = (x*255)/(255*255*255) = x/(255*255)
+                double colocValue = (colocValue01*colocValue02*colocValue12)/(MAX_THERSHOLD*MAX_THERSHOLD);
+                //////////////
 
                 double areaSize0OfPixles = (ch0Info.areaThersholdScale * ch0Info.areaSize) / MAX_THERSHOLD;
                 double areaSize1OfPixles = (ch1Info.areaThersholdScale * ch1Info.areaSize) / MAX_THERSHOLD;
                 double areaSize2OfPixles = (ch2Info.areaThersholdScale * ch2Info.areaSize) / MAX_THERSHOLD;
-
 
                 double smallArea = areaSize0OfPixles;
                 if (areaSize1OfPixles < smallArea) {
                     smallArea = areaSize1OfPixles;
                 }
 
-                ColocRoi exosom = new ColocRoi(key, smallArea, areaSize0OfPixles, areaSize1OfPixles,areaSize2OfPixles,
-                        ch0Info.areaGrayScale, ch1Info.areaGrayScale,ch2Info.areaGrayScale, ch0Info.areaThersholdScale, ch0Info.circularity,
-                        colocValue);
+                ColocRoi exosom = new ColocRoi(key, smallArea, areaSize0OfPixles, areaSize1OfPixles, areaSize2OfPixles,
+                        ch0Info.areaGrayScale, ch1Info.areaGrayScale, ch2Info.areaGrayScale, ch0Info.areaThersholdScale,
+                        ch0Info.circularity,colocValue01,colocValue02,colocValue12, colocValue);
                 exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
                         mSettings.mMinCircularity, mSettings.minIntensity);
                 ch.addRoi(exosom);
@@ -136,11 +144,15 @@ public class ExosomeColoc3Ch extends ExosomColoc {
 
     class ColocRoi extends ParticleInfo {
 
-        public ColocRoi(int roiName, double smallestAreaSize, double areaSizeCh0, double areaSizeCh1,double areaSizeCh2,
-                double areaGrayScale, double areaGrayScale2,double areaGrayScale3, double areaThersholdScale, double circularity,
-                double coloValue) {
+        public ColocRoi(int roiName, double smallestAreaSize, double areaSizeCh0, double areaSizeCh1,
+                double areaSizeCh2, double areaGrayScale, double areaGrayScale2, double areaGrayScale3,
+                double areaThersholdScale, double circularity, double coloValue01, double coloValue02,
+                double coloValue12, double coloValue) {
             super(roiName, smallestAreaSize, areaGrayScale, areaThersholdScale, circularity);
             this.colocValue = coloValue;
+            this.colocValue01 = coloValue01;
+            this.colocValue02 = coloValue02;
+            this.colocValue12 = coloValue12;
             this.areaSizeCh0 = areaSizeCh0;
             this.areaSizeCh1 = areaSizeCh1;
             this.areaSizeCh2 = areaSizeCh2;
@@ -153,11 +165,14 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         /// \brief Returns the name of the roi
         ///
         public String toString() {
-            return Integer.toString(roiName) + ";" + Double.toString(areaSizeCh0) + ";" + Double.toString(areaSizeCh1) + ";" + Double.toString(areaSizeCh2)
-                    + ";" + Double.toString(colocValue);
+            return Integer.toString(roiName) + ";" + Double.toString(areaSizeCh0) + ";" + Double.toString(areaSizeCh1)
+                    + ";" + Double.toString(areaSizeCh2) + ";" + Double.toString(colocValue);
         }
 
         public double colocValue;
+        public double colocValue01;
+        public double colocValue02;
+        public double colocValue12;
         public double areaSizeCh0;
         public double areaSizeCh1;
         public double areaSizeCh2;
@@ -166,12 +181,14 @@ public class ExosomeColoc3Ch extends ExosomColoc {
 
         @Override
         public double[] getValues() {
-            double[] values = { areaSizeCh0, areaSizeCh1, areaSizeCh2,areaGrayScale, areaGrayScale2ndChannel,areaGrayScale3ndChannel, colocValue };
+            double[] values = { areaSizeCh0, areaSizeCh1, areaSizeCh2, areaGrayScale, areaGrayScale2ndChannel,
+                    areaGrayScale3ndChannel, colocValue01, colocValue02, colocValue12, colocValue };
             return values;
         }
 
         public String[] getTitle() {
-            String[] title = { "area size CH0", "area size CH1", "area size CH2","intensity CH0", "intensity CH1", "intensity CH2","coloc" };
+            String[] title = { "area size CH0", "area size CH1", "area size CH2", "intensity CH0", "intensity CH1",
+                    "intensity CH2", "coloc CH01", "coloc CH02", "coloc CH12", "coloc CH012" };
             return title;
         }
 
@@ -183,7 +200,8 @@ public class ExosomeColoc3Ch extends ExosomColoc {
                 double minGrayScale) {
             status = VALID;
 
-            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 != 0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)|| ((areaSizeCh2 < minAreaSize) && areaSizeCh2 != 0)) {
+            if ((areaSizeCh0 < minAreaSize && areaSizeCh0 != 0) || ((areaSizeCh1 < minAreaSize) && areaSizeCh1 != 0)
+                    || ((areaSizeCh2 < minAreaSize) && areaSizeCh2 != 0)) {
                 status |= TOO_SMALL;
             }
 
@@ -228,6 +246,15 @@ public class ExosomeColoc3Ch extends ExosomColoc {
                     } else {
                         nrOfNotColoc++;
                     }
+                    if (info.colocValue01 > 0) {
+                        mColoc01Nr++;
+                    }
+                    if (info.colocValue02 > 0) {
+                        mColoc02Nr++;
+                    }
+                    if (info.colocValue12 > 0) {
+                        mColoc12Nr++;
+                    }
                 }
             }
             this.invalid = nrOfInvalid;
@@ -239,16 +266,22 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         }
 
         public double[] getValues() {
-            double[] values = { mColocNr, valid, invalid, intensityMeanoOfColocCh0, intensityMeanoOfColocCh1,intensityMeanoOfColocCh2 };
+            double[] values = { mColocNr, mColoc01Nr, mColoc02Nr, mColoc12Nr, valid, invalid, intensityMeanoOfColocCh0,
+                    intensityMeanoOfColocCh1, intensityMeanoOfColocCh2 };
             return values;
         }
 
         public String[] getTitle() {
-            String[] title = { "coloc", "Not coloc", "invalid", "intensity CH0", "intensity CH1", "intensity CH2" };
+            String[] title = { "coloc CH012", "coloc CH01", "coloc CH02", "coloc CH12", "Not coloc", "invalid",
+                    "intensity CH0", "intensity CH1", "intensity CH2" };
             return title;
         }
 
         public int mColocNr = 0;
+        public int mColoc01Nr = 0;
+        public int mColoc02Nr = 0;
+        public int mColoc12Nr = 0;
+
         public double intensityMeanoOfColocCh0 = 0;
         public double intensityMeanoOfColocCh1 = 0;
         public double intensityMeanoOfColocCh2 = 0;
