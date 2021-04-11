@@ -10,6 +10,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.danmayr.imagej.gui.*;
 import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 import org.danmayr.imagej.algorithm.filters.*;
@@ -20,6 +21,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.prefs.Preferences;
+ 
 
 import org.danmayr.imagej.Version;
 
@@ -48,6 +50,7 @@ public class EvColocDialog extends JFrame {
     private JComboBox mSeries;
     private FileProcessor mActAnalyzer = null;
     private JPanel mMenu;
+    private JLabel mLNewsTicker = new JLabel("Science news ...");
 
     public class ComboItem<T> {
         private T value;
@@ -804,6 +807,14 @@ public class EvColocDialog extends JFrame {
         c.gridy++;
         c.gridwidth = 3;
         this.add(mMenu, c);
+
+        c.gridx = 0;
+        c.gridy++;
+        c.gridwidth = 3;
+        int size = NewsTickerText.mNewsTicker.length-1;
+        int rand = 0 + (int)(Math.random() * ((size - 0) + 1));
+        mLNewsTicker.setText(NewsTickerText.mNewsTicker[rand]);
+        this.add(mLNewsTicker,c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
