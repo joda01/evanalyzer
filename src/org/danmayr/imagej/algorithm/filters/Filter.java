@@ -55,6 +55,12 @@ public class Filter {
         return sumImage;
     }
 
+    public static ImagePlus ANDImages(ImagePlus ch0, ImagePlus ch1) {
+        ImageCalculator ic = new ImageCalculator();
+        ImagePlus sumImage = ic.run("AND create", ch0, ch1);
+        return sumImage;
+    }
+
     public static ImagePlus duplicateImage(ImagePlus img) {
         return img.duplicate();
     }
@@ -159,6 +165,10 @@ public class Filter {
 		
     }
 
+
+    public static void InvertImage(ImagePlus image){
+        IJ.run(image, "Invert", "");
+    }
 
 
     public static void AnalyzeParticles(ImagePlus image, RoiManager rm) {
