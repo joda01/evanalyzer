@@ -233,9 +233,9 @@ protected void saveControlImages(String name, Channel measCh0, Channel measCh1, 
       //chAry[ch2s.type.getColorIdx()] = measCh2;
    
     
-    name = name.replaceAll("%", "");
-    name = name.replaceAll(" ", "");
-    name = name.replaceAll(":", "");
+    name = name.replace("%", "");
+    name = name.replace(" ", "");
+    name = name.replace(":", "");
     name = name.toLowerCase();
 
     String path = mSettings.mOutputFolder + java.io.File.separator + name;
