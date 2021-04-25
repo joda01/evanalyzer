@@ -46,7 +46,7 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         Filter.AnalyzeParticles(img0, rm);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
-        Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0, measCh1Temp);
+        //Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0, measCh1Temp);
 
         Filter.AnalyzeParticles(img1, rm);
         Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
@@ -106,17 +106,6 @@ public class ExosomeColoc3Ch extends ExosomColoc {
                 ParticleInfo ch2Info = roiCh2.get(key);
 
                 //////////////
-                double colocValue01 = Math
-                        .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch1Info.areaThersholdScale));
-                double colocValue02 = Math
-                        .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch2Info.areaThersholdScale));
-                double colocValue12 = Math
-                        .abs(MAX_THERSHOLD - Math.abs(ch1Info.areaThersholdScale - ch2Info.areaThersholdScale));
-
-                // Calculate a acg coloc. If all three channels coloc to 100% the value is 255^3
-                // Scale this down to 255 as maximu val = (x*255)/(255*255*255) = x/(255*255)
-                double colocValue = (colocValue01*colocValue02*colocValue12)/(MAX_THERSHOLD*MAX_THERSHOLD);
-                //////////////
 
                 double areaSize0OfPixles = (ch0Info.areaThersholdScale * ch0Info.areaSize) / MAX_THERSHOLD;
                 double areaSize1OfPixles = (ch1Info.areaThersholdScale * ch1Info.areaSize) / MAX_THERSHOLD;
@@ -127,9 +116,32 @@ public class ExosomeColoc3Ch extends ExosomColoc {
                     smallArea = areaSize1OfPixles;
                 }
 
+                //////////////
+                double colocValue01 = 0;
+                if (areaSize0OfPixles > 0 && areaSize1OfPixles > 0) {
+                    colocValue01 = Math
+                            .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch1Info.areaThersholdScale));
+                }
+
+                double colocValue02 = 0;
+                if (areaSize0OfPixles > 0 && areaSize2OfPixles > 0) {
+                    colocValue02 = Math
+                            .abs(MAX_THERSHOLD - Math.abs(ch0Info.areaThersholdScale - ch2Info.areaThersholdScale));
+                }
+
+                double colocValue12 = 0;
+                if (areaSize1OfPixles > 0 && areaSize2OfPixles > 0) {
+                    colocValue12 = Math
+                            .abs(MAX_THERSHOLD - Math.abs(ch1Info.areaThersholdScale - ch2Info.areaThersholdScale));
+                }
+
+                // Calculate a acg coloc. If all three channels coloc to 100% the value is 255^3
+                // Scale this down to 255 as maximu val = (x*255)/(255*255*255) = x/(255*255)
+                double colocValue = (colocValue01 * colocValue02 * colocValue12) / (MAX_THERSHOLD * MAX_THERSHOLD);
+
                 ColocRoi exosom = new ColocRoi(key, smallArea, areaSize0OfPixles, areaSize1OfPixles, areaSize2OfPixles,
                         ch0Info.areaGrayScale, ch1Info.areaGrayScale, ch2Info.areaGrayScale, ch0Info.areaThersholdScale,
-                        ch0Info.circularity,colocValue01,colocValue02,colocValue12, colocValue);
+                        ch0Info.circularity, colocValue01, colocValue02, colocValue12, colocValue);
                 exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
                         mSettings.mMinCircularity, mSettings.minIntensity);
                 ch.addRoi(exosom);
@@ -229,6 +241,9 @@ public class ExosomeColoc3Ch extends ExosomColoc {
             double intensityMean2 = 0;
             double intensityMean3 = 0;
             mColocNr = 0;
+            mColoc01Nr = 0;
+            mColoc02Nr = 0;
+            mColoc12Nr = 0;
 
             for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
                 int chNr = entry.getKey();
