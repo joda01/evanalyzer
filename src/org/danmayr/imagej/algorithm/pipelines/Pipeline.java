@@ -47,7 +47,9 @@ abstract public class Pipeline {
     GFP("gfp",ChannelColor.GREEN), 
     CY3("cy3",ChannelColor.RED), 
     CY5("cy5",ChannelColor.MAGENTA), 
-    CY7("cy7",ChannelColor.YELLOW), 
+    CY7("cy7",ChannelColor.YELLOW),
+    CELL("cell",ChannelColor.GRAY),
+    NUCLEUS("nucleus",ChannelColor.CYAN),
     NEGATIVE_CONTROL("ctrl",ChannelColor.CYAN);
 
     private ChannelType(String name, ChannelColor chColor){

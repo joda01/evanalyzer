@@ -13,7 +13,7 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("Colocalization"), countExosomes("Counting");
+        noSelection("--No selection--"), calcColoc("Colocalization"), countExosomes("Counting"), countInCellExosomes("In Cell EV counting");;
 
         private final String name;
 

@@ -97,14 +97,16 @@ public class EvColocDialog extends JFrame {
                 panel.add(new JLabel("Channel " + Integer.toString(chNr)), c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[7];
-                channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF, "OFF");
-                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.DAPI, "DAPI");
-                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP, "GFP");
-                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3, "CY3");
-                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY5, "CY5");
-                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY7, "CY7");
-                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[9];
+                channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.OFF,  "OFF");
+                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.DAPI, "EV (DAPI)");
+                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP,  "EV (GFP)");
+                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3,  "EV (CY3)");
+                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY5,  "EV (CY5)");
+                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY7,  "EV (CY7)");
+                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
+                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
+                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
@@ -678,7 +680,7 @@ public class EvColocDialog extends JFrame {
         this.add(l, c);
 
         AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes };
+                AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes,AnalyseSettings.Function.countInCellExosomes };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
