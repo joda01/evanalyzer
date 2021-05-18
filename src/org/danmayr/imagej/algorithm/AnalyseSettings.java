@@ -13,7 +13,7 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("Colocalization"), countExosomes("Counting"), countInCellExosomes("In Cell EV counting");;
+        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"), countInCellExosomes("EV Counting in Cells");;
 
         private final String name;
 
@@ -33,6 +33,7 @@ public class AnalyseSettings {
     }
 
     public class ChannelSettings {
+        public String mChannelName="C=0";
         public Pipeline.ChannelType type;
         public String mThersholdMethod;
         public boolean enhanceContrast;

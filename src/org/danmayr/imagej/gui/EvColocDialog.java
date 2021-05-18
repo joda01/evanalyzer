@@ -83,6 +83,7 @@ public class EvColocDialog extends JFrame {
                     1); // step
             private JSpinner minTheshold = new JSpinner(model);
             private JComboBox channelType;
+            private JComboBox channel;
             private JComboBox thersholdMethod;
             private JCheckBox enchanceContrast;
             private int mChNr;
@@ -94,7 +95,16 @@ public class EvColocDialog extends JFrame {
                 c.gridy = gridY;
                 c.weightx = 1;
                 c.gridwidth = 1;
-                panel.add(new JLabel("Channel " + Integer.toString(chNr)), c);
+                //panel.add(new JLabel("Layer " + Integer.toString(chNr)), c);
+                panel.add(new JLabel(""), c);
+
+                 ////////////////////////////////////////////////////
+                String[] channelSel = { "C=0","C=1","C=2","C=3","C=4","C=5" };
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.gridy++;
+                channel = new JComboBox<String>(channelSel);
+                channel.setSelectedIndex(chNr);
+                panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
                 ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[9];
@@ -113,6 +123,8 @@ public class EvColocDialog extends JFrame {
                 c.gridy++;
                 channelType = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
                 panel.add(channelType, c);
+
+               
 
                 ////////////////////////////////////////////////////
                 String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu" };
@@ -165,10 +177,26 @@ public class EvColocDialog extends JFrame {
             ch1 = new ChannelElements(this, c, 2, 0, 1);
             ch2 = new ChannelElements(this, c, 3, 0, 2);
 
+            
+
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy = 1;
+            c.weightx = 0.0;
+            JLabel lc = new JLabel("Channel:");
+            lc.setMinimumSize(new Dimension(200, lc.getMinimumSize().height));
+            lc.setMaximumSize(new Dimension(200, lc.getMaximumSize().height));
+            lc.setPreferredSize(new Dimension(200, lc.getPreferredSize().height));
+            lc.setSize(new Dimension(200, lc.getSize().height));
+            ImageIcon diamter1c = new ImageIcon(getClass().getResource("icons8-bring-forward-16.png"));
+            lc.setIcon(diamter1c);
+            this.add(lc, c);
+
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
             c.weightx = 0.0;
             JLabel l = new JLabel("Type:");
             ImageIcon diamter = new ImageIcon(getClass().getResource("icons8-protein-16.png"));
@@ -936,10 +964,22 @@ public class EvColocDialog extends JFrame {
         sett.ch0.mThersholdMethod = chSettings.ch0.thersholdMethod.getSelectedItem().toString();
         sett.ch1.mThersholdMethod = chSettings.ch1.thersholdMethod.getSelectedItem().toString();
         sett.ch2.mThersholdMethod = chSettings.ch2.thersholdMethod.getSelectedItem().toString();
-
+        
         sett.ch0.enhanceContrast = chSettings.ch0.enchanceContrast.isSelected();
         sett.ch1.enhanceContrast = chSettings.ch1.enchanceContrast.isSelected();
         sett.ch2.enhanceContrast = chSettings.ch2.enchanceContrast.isSelected();
+
+        sett.ch0.mChannelName = chSettings.ch0.channel.getSelectedItem().toString();
+        sett.ch1.mChannelName = chSettings.ch1.channel.getSelectedItem().toString();
+        sett.ch2.mChannelName = chSettings.ch2.channel.getSelectedItem().toString();
+
+        int idx1 = chSettings.ch0.channel.getSelectedIndex();
+        int idx2 = chSettings.ch1.channel.getSelectedIndex();
+        int idx3 = chSettings.ch2.channel.getSelectedIndex();
+
+        if(idx1 == idx2 || idx1 == idx3 || idx2 == idx3){
+            error += "A channel must not be used twice!\n";
+        }
 
         try {
             sett.mMinParticleSize = Integer.parseInt(filter.mMinParticleSize.getText());

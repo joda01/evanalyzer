@@ -120,7 +120,7 @@ public class FileProcessor extends Thread {
     public static void OpenImage(File imgToOpen, String series){
         IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
         + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
-        + series + " c_begin_1=1 c_end_1=3 c_step_1=1");
+        + series + " c_begin_1=1 c_end_1=6 c_step_1=1");
     }
 
     /**
