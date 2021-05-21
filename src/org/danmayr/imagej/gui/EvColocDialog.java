@@ -169,11 +169,11 @@ public class EvColocDialog extends JFrame {
 
                 ////////////////////////////////////////////////////
                 ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[8];
-                channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.DAPI, "EV (DAPI)");
-                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.GFP, "EV (GFP)");
-                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY3, "EV (CY3)");
-                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY5, "EV (CY5)");
-                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CY7, "EV (CY7)");
+                channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
+                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
+                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
+                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY5, "EV (CY5)");
+                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
                 channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
                 channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
                 channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
@@ -185,7 +185,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu" };
+                String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu","MinError" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 thersholdMethod = new JComboBox<String>(thersholdAlgo);

@@ -77,11 +77,20 @@ public class FileProcessor extends Thread {
             pipeline = new ExosomCount(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            if(mAnalyseSettings.nrOfEnabledChannels == 3){
+            int nrOfEnabledCh = 0;
+            for(ChannelSettings chSett : mAnalyseSettings.channelSettings){
+                if(chSett.mChannelName != "OFF"){
+                    nrOfEnabledCh++;
+                }
+            }
+            if(nrOfEnabledCh == 3){
                 pipeline = new ExosomeColoc3Ch(mAnalyseSettings);
             }else{
                 pipeline = new ExosomColoc(mAnalyseSettings);
             }
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");

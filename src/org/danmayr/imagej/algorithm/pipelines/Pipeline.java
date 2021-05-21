@@ -43,15 +43,14 @@ abstract public class Pipeline {
 
 
   public enum ChannelType {
-    OFF("off",ChannelColor.GRAY), 
-    DAPI("dapi",ChannelColor.BLUE), 
-    GFP("gfp",ChannelColor.GREEN), 
-    CY3("cy3",ChannelColor.RED), 
-    CY5("cy5",ChannelColor.MAGENTA), 
-    CY7("cy7",ChannelColor.YELLOW),
+    EV_DAPI("dapi",ChannelColor.BLUE), 
+    EV_GFP("gfp",ChannelColor.GREEN), 
+    EV_CY3("cy3",ChannelColor.RED), 
+    EV_CY5("cy5",ChannelColor.MAGENTA), 
+    EV_CY7("cy7",ChannelColor.YELLOW),
     CELL("cell",ChannelColor.GRAY),
     NUCLEUS("nucleus",ChannelColor.CYAN),
-    NEGATIVE_CONTROL("ctrl",ChannelColor.CYAN);
+    NEGATIVE_CONTROL("ctrl",ChannelColor.GRAY);
 
     private ChannelType(String name, ChannelColor chColor){
       mName = name;
@@ -104,15 +103,47 @@ abstract public class Pipeline {
     if(imgChannel.containsKey(type)){
       return imgChannel.get(type);
     }else{
-      return new ChannelSettings();
+      return null;
     }
   }
 
+  ///
+  ///
+  ///
+  TreeMap<ChannelType,ChannelSettings> getEvChannels(){
+    TreeMap<ChannelType,ChannelSettings> evChannel = new TreeMap<ChannelType,ChannelSettings>();
+    
+    ChannelSettings ev_dapi = getImageOfChannel(ChannelType.EV_DAPI);
+    if(ev_dapi!=null){
+      evChannel.put(ev_dapi.type, ev_dapi);
+    }
+    ChannelSettings ev_gfp = getImageOfChannel(ChannelType.EV_GFP);
+    if(ev_gfp!=null){
+      evChannel.put(ev_gfp.type, ev_gfp);
+    }
+    ChannelSettings ev_cy3 = getImageOfChannel(ChannelType.EV_CY3);
+    if(ev_cy3!=null){
+      evChannel.put(ev_cy3.type, ev_cy3);
+    }
+    ChannelSettings ev_cy5 = getImageOfChannel(ChannelType.EV_CY5);
+    if(ev_cy5!=null){
+      evChannel.put(ev_cy5.type, ev_cy5);
+    }
+    ChannelSettings ev_cy7 = getImageOfChannel(ChannelType.EV_CY7);
+    if(ev_cy7!=null){
+      evChannel.put(ev_cy7.type, ev_cy7);
+    }
+    return evChannel;
+  }
+
+  ///
+  ///
+  ///
   ChannelSettings getImageOfChannel(int idx) {
     if(imgChannel.values().toArray().length > idx){
       return (ChannelSettings)imgChannel.values().toArray()[idx];
     }else{
-      return new ChannelSettings();
+      return null;
     }
   }
 
