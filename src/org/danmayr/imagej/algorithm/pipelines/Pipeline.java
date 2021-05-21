@@ -10,6 +10,7 @@ import ij.plugin.frame.RoiManager;
 import java.util.*;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 ///
@@ -71,9 +72,8 @@ abstract public class Pipeline {
 
   protected AnalyseSettings mSettings;
 
-  private ImagePlus imgChannel0;
-  private ImagePlus imgChannel1;
-  private ImagePlus imgChannel2;
+  private TreeMap<ChannelType,ChannelSettings> imgChannel = new TreeMap<>();
+
 
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
@@ -83,106 +83,39 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception {
+  public TreeMap<Integer, Channel> ProcessImage(File imageFile) {
     String[] imageTitles = WindowManager.getImageTitles();
+    imgChannel.clear();
 
-    int nrOfExpectedChannels = 0;
-    Pipeline.ChannelType mCh0 = mSettings.ch0.type;
-    Pipeline.ChannelType mCh1 = mSettings.ch1.type;
-    Pipeline.ChannelType mCh2 = mSettings.ch2.type;
-
-    if (mCh0 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-    if (mCh1 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-    if (mCh2 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-
-    AnalyseSettings.ChannelSettings ch0s = mSettings.ch0;
-    AnalyseSettings.ChannelSettings ch1s = mSettings.ch1;
-    AnalyseSettings.ChannelSettings ch2s = mSettings.ch2;
-
-    if (1 == nrOfExpectedChannels) {
-      String chToFind = "C=0";
-      if (mCh0 != ChannelType.OFF) {
-        chToFind = "C=0";
-        ch0s = mSettings.ch0;
-      } else if (mCh1 != ChannelType.OFF) {
-        chToFind = "C=1";
-        ch0s = mSettings.ch1;
-      } else if (mCh2 != ChannelType.OFF) {
-        chToFind = "C=2";
-        ch0s = mSettings.ch2;
-      }
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith(chToFind)) {
-          imgChannel0 = WindowManager.getImage(actTitle);
+      for(int n = 0;n<mSettings.channelSettings.size();n++){
+        for (int i = 0; i < imageTitles.length; i++) {
+          String actTitle = imageTitles[i];
+          if (true == actTitle.endsWith(mSettings.channelSettings.get(n).mChannelName)) {
+            ChannelSettings chSet = mSettings.channelSettings.get(n);
+            chSet.mChannelImg = WindowManager.getImage(actTitle);
+            imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          }
         }
       }
-    } else if (2 == nrOfExpectedChannels) {
-      String ch0toFind = "C=0";
-      String ch1toFind = "C=1";
-      if (mCh0 != ChannelType.OFF && mCh1 != ChannelType.OFF) {
-      }
-      if (mCh0 != ChannelType.OFF && mCh2 != ChannelType.OFF) {
-        ch1toFind = "C=2";
-        ch1s = mSettings.ch2;
-      }
-      if (mCh1 != ChannelType.OFF && mCh2 != ChannelType.OFF) {
-        ch0toFind = "C=1";
-        ch1toFind = "C=2";
-        ch0s = mSettings.ch1;
-        ch1s = mSettings.ch2;
-      }
+      return startPipeline(imageFile);
+  }
 
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith(ch0toFind)) {
-          imgChannel0 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith(ch1toFind)) {
-          imgChannel1 = WindowManager.getImage(actTitle);
-        }
-      }
-    } else if (3 == nrOfExpectedChannels) {
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith("C=0")) {
-          imgChannel0 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith("C=1")) {
-          imgChannel1 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith("C=2")) {
-          imgChannel2 = WindowManager.getImage(actTitle);
-        }
-      }
+  ChannelSettings getImageOfChannel(ChannelType type) {
+    if(imgChannel.containsKey(type)){
+      return imgChannel.get(type);
+    }else{
+      return new ChannelSettings();
     }
+  }
 
-    if (1 == nrOfExpectedChannels && null == getImageCh0()) {
-      throw new Exception("One channel expected, zero channels given.");
-    } else if (2 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1())) {
-      throw new Exception("Two channel expected but just one or zero given.");
-    } else if (3 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1() || null == getImageCh2())) {
-      throw new Exception("Three channel expected but just two, one or zero given.");
-    } else {
-      return startPipeline(imageFile, ch0s, ch1s,ch2s);
+  ChannelSettings getImageOfChannel(int idx) {
+    if(imgChannel.values().toArray().length > idx){
+      return (ChannelSettings)imgChannel.values().toArray()[idx];
+    }else{
+      return new ChannelSettings();
     }
-    // return new TreeMap<Integer, Channel>();
   }
 
-  ImagePlus getImageCh0() {
-    return imgChannel0;
-  }
-
-  ImagePlus getImageCh1() {
-    return imgChannel1;
-  }
-
-  ImagePlus getImageCh2() {
-    return imgChannel2;
-  }
 
   public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
       int thMax, double[] thershold) {
@@ -210,8 +143,7 @@ abstract public class Pipeline {
     return beforeThershold;
   }
 
-  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile, AnalyseSettings.ChannelSettings ch0s,
-      AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s);
+  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);
 
 
 protected void saveControlImages(String name, Channel measCh0, Channel measCh1, Channel measCh2, ChannelType type0,ChannelType type1,ChannelType type2, RoiManager rm, Channel measColoc)
@@ -222,12 +154,12 @@ protected void saveControlImages(String name, Channel measCh0, Channel measCh1, 
       Channel[] chAry = {null, null, null,null, null, null, null};
       String[] chNames = {null, null, null,null, null, null, null};
       
-      imgAry[type0.getColorIdx()] = getImageCh0();
+      imgAry[type0.getColorIdx()] = getImageOfChannel(0).mChannelImg;
       chAry[type0.getColorIdx()] = measCh0;
       chNames[type0.getColorIdx()] = type0.getName();
 
       
-      imgAry[type1.getColorIdx()] = getImageCh1();
+      imgAry[type1.getColorIdx()] = getImageOfChannel(1).mChannelImg;
       chAry[type1.getColorIdx()] = measCh1;
       chNames[type1.getColorIdx()] = type1.getName();
 

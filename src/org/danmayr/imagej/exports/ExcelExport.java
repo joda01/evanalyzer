@@ -1,38 +1,28 @@
 package org.danmayr.imagej.exports;
 
-import ij.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.TreeMap;
 
-import org.apache.commons.lang3.math.*;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Cell;
-
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.*;
-
-import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.common.usermodel.HyperlinkType;
-
-//import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-//import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.*;
-
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
-
-import com.opencsv.CSVReader;
-import java.util.*;
-
-import org.danmayr.imagej.algorithm.structs.*;
-import org.danmayr.imagej.algorithm.structs.Pair;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
-
+import org.danmayr.imagej.algorithm.ChannelSettings;
+import org.danmayr.imagej.algorithm.structs.Channel;
+import org.danmayr.imagej.algorithm.structs.Folder;
+import org.danmayr.imagej.algorithm.structs.FolderResults;
+import org.danmayr.imagej.algorithm.structs.Image;
+import org.danmayr.imagej.algorithm.structs.Pair;
+import org.danmayr.imagej.algorithm.structs.ParticleInfo;
 import org.danmayr.imagej.gui.EvColocDialog;
 
 public class ExcelExport {
@@ -154,13 +144,14 @@ public class ExcelExport {
 
         row = WriteRow(summarySheet,row,"Report filename",String.valueOf(settings.mOutputFileName));
 
-        row = WriteChannelSettingToSummarySheet(summarySheet, row,"CH0",settings.ch0);
-        row = WriteChannelSettingToSummarySheet(summarySheet, row,"CH1",settings.ch1);
+        for(int n = 0; n<settings.channelSettings.size();n++){
+            row = WriteChannelSettingToSummarySheet(summarySheet, row,settings.channelSettings.get(n).mChannelName,settings.channelSettings.get(n));
+        }
         return row;
     }
 
 
-    private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName, AnalyseSettings.ChannelSettings ch )
+    private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName, ChannelSettings ch )
     {
         row = WriteRow(summarySheet,row,chName+" type",            String.valueOf(ch.type));
         row = WriteRow(summarySheet,row,chName+" therhsolding",    String.valueOf(ch.mThersholdMethod));

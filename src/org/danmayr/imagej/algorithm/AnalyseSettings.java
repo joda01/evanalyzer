@@ -1,5 +1,7 @@
 package org.danmayr.imagej.algorithm;
 
+import java.util.Vector;
+
 import org.danmayr.imagej.algorithm.pipelines.*;
 
 public class AnalyseSettings {
@@ -32,14 +34,6 @@ public class AnalyseSettings {
         }
     }
 
-    public class ChannelSettings {
-        public String mChannelName="C=0";
-        public Pipeline.ChannelType type;
-        public String mThersholdMethod;
-        public boolean enhanceContrast;
-        public int minThershold = -1;
-        public int maxThershold = 65535;
-    }
 
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
     public ReportType reportType = ReportType.FullReport;
@@ -54,9 +48,7 @@ public class AnalyseSettings {
 
     public String mOutputFileName="";
 
-    public ChannelSettings ch0 = new ChannelSettings();
-    public ChannelSettings ch1 = new ChannelSettings();
-    public ChannelSettings ch2 = new ChannelSettings();
+    public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
     public int nrOfEnabledChannels = 0;
 
 }

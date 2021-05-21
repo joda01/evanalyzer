@@ -23,14 +23,13 @@ public class ExosomeCountInCells extends ExosomColoc {
     }
 
     @Override
-    protected TreeMap<Integer, Channel> startPipeline(File img, AnalyseSettings.ChannelSettings ch0s,
-            AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s) {
+    protected TreeMap<Integer, Channel> startPipeline(File img) {
 
         RoiManager rm = new RoiManager();
-
-        ImagePlus img0 = getImageCh0();
-        ImagePlus img1 = getImageCh1();
-        ImagePlus img2 = getImageCh2();
+/*
+        ImagePlus img0 = getImageOfChannel();
+        ImagePlus img1 = getImageOfChannel();
+        ImagePlus img2 = getImageOfChannel();
 
         double[] in0 = new double[2];
         double[] in1 = new double[2];
@@ -83,9 +82,10 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name, measCh0, measCh1, measCh2, ch0s.type, ch1s.type, ch2s.type, rm, coloc012);
+        saveControlImages(name, measCh0, measCh1, measCh2, ch0s.type, ch1s.type, ch2s.type, rm, coloc012);*/
 
-        return channels;
+       // return channels;
+       return new TreeMap<Integer, Channel>();
     }
 
     Channel CalcColoc(String name, int idx,RoiManager rm, ImagePlus img0, ImagePlus img1, ImagePlus img2, ImagePlus img0Origial,
