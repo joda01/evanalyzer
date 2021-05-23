@@ -29,6 +29,8 @@ import ij.measure.*;
 import ij.plugin.OverlayCommands;
 
 import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JWindow;
 
 import ij.plugin.*;
@@ -89,6 +91,10 @@ public class Filter {
 
     public static void Make16BitImage(ImagePlus img) {
         IJ.run(img, "16-bit", "");
+    }
+
+    public static void Smooth(ImagePlus img) {
+        IJ.run(img, "Smooth", "");
     }
 
     public static void EnhanceContrast(ImagePlus img) {
@@ -154,7 +160,13 @@ public class Filter {
         return mrg;
     }
 
-    public static void SaveImage(ImagePlus image, String imageName) {
+    public static void showNoRoi(ImagePlus image, RoiManager rm) {
+        rm.runCommand(image, "Show All without labels");
+        rm.runCommand(image, "Show None");
+        IJ.run(image, "Select None", "");
+    }
+
+    public static void SaveImage(ImagePlus image, String imageName, RoiManager rm) {
         IJ.saveAs(image, "Jpeg", imageName);
     }
 
@@ -207,19 +219,34 @@ public class Filter {
     }
 
     public static void ClearRois(ImagePlus image, RoiManager rm) {
+        rm.runCommand(image, "Show None");
         image.setRoi(new OvalRoi(1, 1, 1, 1));
         rm.addRoi(image.getRoi());
         rm.runCommand(image, "Delete");
         IJ.run(image, "Select None", "");
     }
 
-    public static void AnalyzeParticles(ImagePlus image, RoiManager rm) {
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity) {
         ClearRois(image, rm);
         IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
+
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/ParticleAnalyzer.html
         // ParticleAnalyzer analyzer
         // Analyzer
-        IJ.run(image, "Analyze Particles...", "clear add");
+        String maxSizeString = "Infinity";
+        if(maxSize >= 0 ){
+            maxSizeString = Float.toString((float)maxSize);
+        }
+
+        String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks clear add";
+        IJ.run(image, "Analyze Particles...", arguments);
+        String title = "Mask of "+image.getTitle();
+        JOptionPane.showMessageDialog(new JFrame(), "", "Dialog", JOptionPane.WARNING_MESSAGE);
+        ImagePlus mask = Filter.duplicateImage(WindowManager.getImage(title));
+        WindowManager.setCurrentWindow((ImageWindow)WindowManager.getWindow(title));
+        WindowManager.getCurrentWindow().close();
+        return mask;
+
     }
 
     public static ImagePlus paintOval(ImagePlus image) {

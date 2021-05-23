@@ -36,14 +36,14 @@ public class ExosomColoc extends Pipeline {
         img1.maxThershold, in1);
 
 
-        Filter.AnalyzeParticles(img0.mChannelImg, rm);
+        Filter.AnalyzeParticles(img0.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
         // Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh,
         // img1, rm);
         // Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0,
         // measCh1Temp);
 
-        Filter.AnalyzeParticles(img1.mChannelImg, rm);
+        Filter.AnalyzeParticles(img1.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
         // Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh,
         // img0, rm);
@@ -76,7 +76,7 @@ public class ExosomColoc extends Pipeline {
             ImagePlus img1Original) {
         ImagePlus sumImageOriginal = Filter.ANDImages(img0Origial, img1Original);
         ImagePlus sumImage = Filter.ANDImages(img0, img1);
-        Filter.AnalyzeParticles(sumImage, rm);
+        Filter.AnalyzeParticles(sumImage, rm,0,-1,mSettings.mMinCircularity);
         Channel measColoc01 = Filter.MeasureImage(idx, name, mSettings, sumImageOriginal, sumImage, rm);
         return measColoc01;
     }

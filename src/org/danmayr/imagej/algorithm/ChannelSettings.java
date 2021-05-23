@@ -5,7 +5,7 @@ import org.danmayr.imagej.algorithm.pipelines.*;
 import ij.ImagePlus;
 
 
-public class ChannelSettings {
+public class ChannelSettings implements Cloneable{
     public ImagePlus mChannelImg;
     public String mChannelName="C=0";
     public Pipeline.ChannelType type;
@@ -13,4 +13,9 @@ public class ChannelSettings {
     public boolean enhanceContrast;
     public int minThershold = -1;
     public int maxThershold = 65535;
+
+    public Object clone() throws CloneNotSupportedException
+    {
+        return super.clone();
+    }
 }

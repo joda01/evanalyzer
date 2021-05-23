@@ -43,21 +43,21 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg, img2.enhanceContrast, img2.mThersholdMethod, img2.minThershold,
         img2.maxThershold, in2);
 
-        Filter.AnalyzeParticles(img0.mChannelImg, rm);
+        Filter.AnalyzeParticles(img0.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
         // Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh,
         // img1, rm);
         // Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0,
         // measCh1Temp);
 
-        Filter.AnalyzeParticles(img1.mChannelImg, rm);
+        Filter.AnalyzeParticles(img1.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
         Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
         // Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh,
         // img0, rm);
         // Channel measColocCh1 = calculateColoc(2, "Coloc Ch1 with Ch0", measCh0Temp,
         // measCh1);
 
-        Filter.AnalyzeParticles(img2.mChannelImg, rm);
+        Filter.AnalyzeParticles(img2.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
         Channel measCh2 = Filter.MeasureImage(2, "ch2", mSettings, img2BeforeTh, img2.mChannelImg, rm);
 
         // Coloc 01
@@ -96,7 +96,7 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         ImagePlus sumImage = Filter.ANDImages(img0, img1);
         sumImage = Filter.ANDImages(sumImage, img2);
 
-        Filter.AnalyzeParticles(sumImage, rm);
+        Filter.AnalyzeParticles(sumImage, rm,0,-1,mSettings.mMinCircularity);
         Channel measColoc01 = Filter.MeasureImage(idx, name, mSettings, sumImageOriginal, sumImage, rm);
         return measColoc01;
     }
