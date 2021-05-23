@@ -163,7 +163,7 @@ abstract public class Pipeline {
 
   abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);
 
-  protected void saveControlImages(String name, Channel measCh0, Channel measCh1, Channel measCh2, ChannelType type0,
+  protected void saveControlImages(String name,ImagePlus img0, ImagePlus img1, ImagePlus img2, Channel measCh0, Channel measCh1, Channel measCh2, ChannelType type0,
       ChannelType type1, ChannelType type2, RoiManager rm, Channel measColoc) {
     if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
       // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
@@ -171,11 +171,11 @@ abstract public class Pipeline {
       Channel[] chAry = { null, null, null, null, null, null, null };
       String[] chNames = { null, null, null, null, null, null, null };
 
-      imgAry[type0.getColorIdx()] = getImageOfChannel(0).mChannelImg;
+      imgAry[type0.getColorIdx()] = img0;
       chAry[type0.getColorIdx()] = measCh0;
       chNames[type0.getColorIdx()] = type0.getName();
 
-      imgAry[type1.getColorIdx()] = getImageOfChannel(1).mChannelImg;
+      imgAry[type1.getColorIdx()] = img1;
       chAry[type1.getColorIdx()] = measCh1;
       chNames[type1.getColorIdx()] = type1.getName();
 
