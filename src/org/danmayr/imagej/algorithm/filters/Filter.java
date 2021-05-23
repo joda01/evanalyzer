@@ -63,6 +63,12 @@ public class Filter {
         return sumImage;
     }
 
+    public static ImagePlus XORImages(ImagePlus ch0, ImagePlus ch1) {
+        ImageCalculator ic = new ImageCalculator();
+        ImagePlus sumImage = ic.run("XOR create", ch0, ch1);
+        return sumImage;
+    }
+
     public static ImagePlus SubtractImages(ImagePlus ch0, ImagePlus ch1) {
         ImageCalculator ic = new ImageCalculator();
         ImagePlus sumImage = ic.run("Subtract create", ch0, ch1);
@@ -75,6 +81,10 @@ public class Filter {
 
     public static void Watershed(ImagePlus img) {
         IJ.run(img, "Watershed", "");
+    }
+
+    public static void FillHoles(ImagePlus img) {
+        IJ.run(img,"Fill Holes", "");
     }
 
     public static void Voronoi(ImagePlus img) {
@@ -241,7 +251,6 @@ public class Filter {
         String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks clear add";
         IJ.run(image, "Analyze Particles...", arguments);
         String title = "Mask of "+image.getTitle();
-        JOptionPane.showMessageDialog(new JFrame(), "", "Dialog", JOptionPane.WARNING_MESSAGE);
         ImagePlus mask = Filter.duplicateImage(WindowManager.getImage(title));
         WindowManager.setCurrentWindow((ImageWindow)WindowManager.getWindow(title));
         WindowManager.getCurrentWindow().close();

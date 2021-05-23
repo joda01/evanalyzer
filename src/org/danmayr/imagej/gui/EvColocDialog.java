@@ -54,7 +54,6 @@ public class EvColocDialog extends JFrame {
     private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
     private static final int NUMBEROFCHANNELSETTINGS = 4;
 
-
     private static final long serialVersionUID = 1L;
 
     private String mNameOfLastGeneratedReportFile = new String("");
@@ -126,7 +125,8 @@ public class EvColocDialog extends JFrame {
                 try {
                     chSet.minThershold = (Integer) (minTheshold.getValue());
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(new JFrame(), "Min thershold wrong!", "Dialog", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(new JFrame(), "Min thershold wrong!", "Dialog",
+                            JOptionPane.WARNING_MESSAGE);
                 }
 
                 return chSet;
@@ -182,10 +182,25 @@ public class EvColocDialog extends JFrame {
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 channelType = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
+                channelType.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent e) {
+                        Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
+                                .getValue();
+                        if (Pipeline.ChannelType.CELL == type) {
+                            thersholdMethod.setSelectedItem("MinError");
+                        } else if (Pipeline.ChannelType.NUCLEUS == type) {
+                            thersholdMethod.setSelectedItem("Triangle");
+                        } else {
+                            thersholdMethod.setSelectedItem("Li");
+                        }
+                    }
+                });
+
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu","MinError" };
+                String[] thersholdAlgo = { "Default", "Li", "MaxEntropy", "Moments", "Otsu", "MinError","Triangle" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 thersholdMethod = new JComboBox<String>(thersholdAlgo);
@@ -232,13 +247,11 @@ public class EvColocDialog extends JFrame {
             GridBagConstraints c = new GridBagConstraints();
             c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
-            
-            for(int n = 0;n<NUMBEROFCHANNELSETTINGS;n++){
-                ChannelElements ch = new ChannelElements(this, c, n+1, 0, n);
+
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                ChannelElements ch = new ChannelElements(this, c, n + 1, 0, n);
                 channelSettings.add(ch);
             }
-            
-
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -387,8 +400,6 @@ public class EvColocDialog extends JFrame {
         private ImagePlus[] mOriginalImage0 = new ImagePlus[NUMBEROFCHANNELSETTINGS];
         private ImagePlus[] mPreviewImage0 = new ImagePlus[NUMBEROFCHANNELSETTINGS];
 
-
-
         private int mPrevImgIdx = 0;
 
         public void startPreview() {
@@ -404,16 +415,15 @@ public class EvColocDialog extends JFrame {
 
             if (imageTitles.length > 0) {
 
-                for(int n = 0;n<channelSettings.size();n++){
+                for (int n = 0; n < channelSettings.size(); n++) {
                     for (int i = 0; i < imageTitles.length; i++) {
                         String actTitle = imageTitles[i];
                         ImagePlus imageTmp = WindowManager.getImage(actTitle);
-                        
-                    
+
                         if (true == actTitle.endsWith(channelSettings.get(n).channel.getSelectedItem().toString())) {
                             mPreviewImage0[n] = imageTmp;
                             mOriginalImage0[n] = Filter.duplicateImage(imageTmp);
-                        } 
+                        }
 
                         Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
                         int width = (int) size.getWidth();
@@ -435,10 +445,10 @@ public class EvColocDialog extends JFrame {
 
         public void refreshPreview() {
             if (thersholdPreview.isSelected() == true) {
-                for(int n = 0;n<channelSettings.size();n++){
+                for (int n = 0; n < channelSettings.size(); n++) {
                     setPreviewImage(mPreviewImage0[n], mOriginalImage0[n], channelSettings.get(n));
                 }
-                
+
             }
         }
 
@@ -989,10 +999,9 @@ public class EvColocDialog extends JFrame {
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
 
         sett.channelSettings.clear();
-        for(int n = 0;n<NUMBEROFCHANNELSETTINGS;n++){
+        for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
             sett.channelSettings.add(chSettings.channelSettings.get(n).getChannelSettings());
         }
-
 
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {

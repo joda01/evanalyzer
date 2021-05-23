@@ -34,8 +34,10 @@ public class ExosomeCountInCells extends ExosomColoc {
         protected TreeMap<Integer, Channel> startPipeline(File img) {
                 mImage = img;
                 RoiManager rm = new RoiManager();
+                
                 EvSeparation(rm);
-                CellShapeDetection(rm);
+                ImagePlus cellArea = CellShapeDetection(rm);
+                NucleusSeparation(rm,cellArea);
 
                 return mReturnChannels;
         }
@@ -56,9 +58,9 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.ApplyGaus(evSubtracted);
                         Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod);
                         Filter.Watershed(evSubtracted);
-                        ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm,0,-1,mSettings.mMinCircularity);
+                        ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1, mSettings.mMinCircularity);
                         Filter.InvertImage(mask);
-                        Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()+"_mask", rm);
+                        Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask", rm);
                         Channel evCh = Filter.MeasureImage(0, val.getValue().type.toString(), mSettings,
                                         evSubtractedOriginal, evSubtracted, rm);
                         addReturnChannel(evCh);
@@ -76,7 +78,7 @@ public class ExosomeCountInCells extends ExosomColoc {
         ///
         /// Detect cells
         ///
-        void CellShapeDetection(RoiManager rm) {
+        ImagePlus CellShapeDetection(RoiManager rm) {
                 //
                 // Detect Cell Area
                 //
@@ -102,20 +104,45 @@ public class ExosomeCountInCells extends ExosomColoc {
                 //
                 for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                         ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, val.getValue().mChannelImg);
-                        ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rm,0,-1,mSettings.mMinCircularity);
+                        ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rm, 0, -1, mSettings.mMinCircularity);
                         Filter.InvertImage(mask);
-                        Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()+"_ev_in_cell_mask", rm);
+                        Filter.SaveImage(mask,
+                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask",
+                                        rm);
                         Channel evsInCells = Filter.MeasureImage(0, val.getValue().type.toString() + " in Cell",
                                         mSettings, cellsInEv, cellsInEv, rm);
                         addReturnChannel(evsInCells);
                 }
+
+                return cellsEdited;
         }
 
         ///
         ///
         ///
-        void NucleusSeparation() {
+        void NucleusSeparation(RoiManager rm, ImagePlus cells) {
+                ChannelSettings nuclues = getImageOfChannel(ChannelType.NUCLEUS);
+                ImagePlus nucluesOriginal = nuclues.mChannelImg;
+                ImagePlus nucluesEdited = Filter.duplicateImage(nucluesOriginal);
 
+                Filter.Smooth(nucluesEdited);
+                Filter.Smooth(nucluesEdited);
+                Filter.ApplyThershold(nucluesEdited, nuclues.mThersholdMethod);
+                Filter.FillHoles(nucluesEdited);
+                ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, rm, 1000, -1, 0);
+                Filter.InvertImage(nucleusMask);
+                Filter.FillHoles(nucleusMask);
+                Filter.SaveImage(nucleusMask, getPath(mImage) +"_nucleus", rm);
+                Filter.Voronoi(nucleusMask);
+                Filter.InvertImage(nucleusMask);
+                Filter.SaveImage(nucleusMask, getPath(mImage) +"_voronoi_original", rm);
+                Filter.ApplyThershold(nucleusMask, "Yen");
+                Filter.SaveImage(nucleusMask, getPath(mImage) +"_voronoi_grid", rm);
+                ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
+                ImagePlus separatedCells = Filter.XORImages(andImg, cells);
+                ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, rm, 20, -1, 0);
+                Filter.InvertImage(analyzedCells);
+                Filter.SaveImage(analyzedCells, getPath(mImage) +"_separeted_cells", rm);
         }
 
         void addReturnChannel(Channel ch) {
