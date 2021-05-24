@@ -103,6 +103,10 @@ public class Filter {
         IJ.run(img, "16-bit", "");
     }
 
+    public static void Make8BitImage(ImagePlus img) {
+        IJ.run(img, "8-bit", "");
+    }
+    
     public static void Smooth(ImagePlus img) {
         IJ.run(img, "Smooth", "");
     }
@@ -165,8 +169,8 @@ public class Filter {
     // {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
     //
     public static ImagePlus MergeChannels(ImagePlus[] ary) {
-        RGBStackMerge rgb = new RGBStackMerge();
-        ImagePlus mrg = rgb.mergeChannels(ary, true);
+        //RGBStackMerge rgb = new RGBStackMerge();
+        ImagePlus mrg = RGBStackMerge.mergeChannels(ary, true);
         return mrg;
     }
 
@@ -182,7 +186,7 @@ public class Filter {
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
         rm.runCommand(image, "Show All without labels");
-        PaintRoiLabels(image, rm);
+        //aintRoiLabels(image, rm);
         // IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none
         // label_1=right");
         ImagePlus overlayimage = image.flatten();
@@ -237,6 +241,10 @@ public class Filter {
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity) {
+        return AnalyzeParticles(image,rm,minSize,maxSize,minCircularity,true);
+    }
+
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity, boolean addToRoi) {
         ClearRois(image, rm);
         IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
@@ -248,10 +256,18 @@ public class Filter {
             maxSizeString = Float.toString((float)maxSize);
         }
 
-        String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks clear add";
+        String addToRoiArg = "";
+        if(true == addToRoi){
+            addToRoiArg = " clear add";
+        }
+        String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks"+addToRoiArg;
         IJ.run(image, "Analyze Particles...", arguments);
+        rm.runCommand(image, "Show None");
         String title = "Mask of "+image.getTitle();
         ImagePlus mask = Filter.duplicateImage(WindowManager.getImage(title));
+        Filter.InvertImage(mask);
+        Filter.ApplyThershold(mask,"Default");
+        rm.runCommand(mask, "Show None");
         WindowManager.setCurrentWindow((ImageWindow)WindowManager.getWindow(title));
         WindowManager.getCurrentWindow().close();
         return mask;
@@ -266,6 +282,15 @@ public class Filter {
         ip.setColor(java.awt.Color.WHITE);
         ip.fillOval(20, 20, 10, 10);
         return cpy;
+    }
+
+    public static void RoiSave(ImagePlus image,RoiManager rm){
+        rm.runCommand("save", "roiset.zip");
+    }
+
+    public static void RoiOpen(ImagePlus image,RoiManager rm){
+        ClearRois(image,rm);
+        rm.runCommand("open", "roiset.zip");
     }
 
     ///

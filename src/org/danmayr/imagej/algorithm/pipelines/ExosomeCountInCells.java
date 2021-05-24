@@ -34,10 +34,10 @@ public class ExosomeCountInCells extends ExosomColoc {
         protected TreeMap<Integer, Channel> startPipeline(File img) {
                 mImage = img;
                 RoiManager rm = new RoiManager();
-                
+
                 EvSeparation(rm);
                 ImagePlus cellArea = CellShapeDetection(rm);
-                NucleusSeparation(rm,cellArea);
+                //NucleusSeparation(rm,cellArea);
 
                 return mReturnChannels;
         }
@@ -59,7 +59,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod);
                         Filter.Watershed(evSubtracted);
                         ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1, mSettings.mMinCircularity);
-                        Filter.InvertImage(mask);
                         Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask", rm);
                         Channel evCh = Filter.MeasureImage(0, val.getValue().type.toString(), mSettings,
                                         evSubtractedOriginal, evSubtracted, rm);
@@ -105,7 +104,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                 for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                         ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, val.getValue().mChannelImg);
                         ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rm, 0, -1, mSettings.mMinCircularity);
-                        Filter.InvertImage(mask);
                         Filter.SaveImage(mask,
                                         getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask",
                                         rm);
@@ -124,13 +122,12 @@ public class ExosomeCountInCells extends ExosomColoc {
                 ChannelSettings nuclues = getImageOfChannel(ChannelType.NUCLEUS);
                 ImagePlus nucluesOriginal = nuclues.mChannelImg;
                 ImagePlus nucluesEdited = Filter.duplicateImage(nucluesOriginal);
-
                 Filter.Smooth(nucluesEdited);
                 Filter.Smooth(nucluesEdited);
+                Filter.SubtractBackground(nucluesEdited);
                 Filter.ApplyThershold(nucluesEdited, nuclues.mThersholdMethod);
                 Filter.FillHoles(nucluesEdited);
                 ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, rm, 1000, -1, 0);
-                Filter.InvertImage(nucleusMask);
                 Filter.FillHoles(nucleusMask);
                 Filter.SaveImage(nucleusMask, getPath(mImage) +"_nucleus", rm);
                 Filter.Voronoi(nucleusMask);
@@ -141,8 +138,21 @@ public class ExosomeCountInCells extends ExosomColoc {
                 ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
                 ImagePlus separatedCells = Filter.XORImages(andImg, cells);
                 ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, rm, 20, -1, 0);
-                Filter.InvertImage(analyzedCells);
-                Filter.SaveImage(analyzedCells, getPath(mImage) +"_separeted_cells", rm);
+                Filter.SaveImage(analyzedCells, getPath(mImage) +"_separated_cells", rm);
+
+                //
+                // Now analyze cell by cell
+                //
+                Filter.RoiSave(analyzedCells,rm);
+                for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
+                        ImagePlus evImg = val.getValue().mChannelImg;
+                        for(int n = 0;n<rm.getCount();n++){
+                                Filter.RoiOpen(evImg,rm);
+                                rm.select(n);
+                                ImagePlus analzedEvs = Filter.AnalyzeParticles(evImg, rm, 0, -1, 0);
+                                Filter.SaveImage(analzedEvs, getPath(mImage) +"_evs_in_cell_"+Integer.toString(n), rm);
+                        }
+                }
         }
 
         void addReturnChannel(Channel ch) {

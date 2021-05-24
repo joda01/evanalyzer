@@ -79,7 +79,7 @@ public class FileProcessor extends Thread {
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
             int nrOfEnabledCh = 0;
             for(ChannelSettings chSett : mAnalyseSettings.channelSettings){
-                if(chSett.mChannelName != "OFF"){
+                if(chSett.mChannelName != "OFF" && true == chSett.type.isEvChannel()){
                     nrOfEnabledCh++;
                 }
             }

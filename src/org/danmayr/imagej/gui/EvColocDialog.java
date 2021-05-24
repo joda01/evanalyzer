@@ -168,7 +168,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[8];
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[9];
                 channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
                 channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
@@ -178,6 +178,7 @@ public class EvColocDialog extends JFrame {
                 channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
                 channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
+                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
@@ -194,13 +195,21 @@ public class EvColocDialog extends JFrame {
                         } else {
                             thersholdMethod.setSelectedItem("Li");
                         }
+
+                        if (Pipeline.ChannelType.BACKGROUND == type) {
+                            thersholdMethod.setVisible(false);
+                            minTheshold.setVisible(false);
+                        } else {
+                            thersholdMethod.setVisible(true);
+                            minTheshold.setVisible(true);
+                        }
                     }
                 });
 
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                String[] thersholdAlgo = { "Default", "Li", "MaxEntropy", "Moments", "Otsu", "MinError","Triangle" };
+                String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu", "MinError", "Triangle" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 thersholdMethod = new JComboBox<String>(thersholdAlgo);
@@ -311,20 +320,16 @@ public class EvColocDialog extends JFrame {
             l2.setIcon(diamter2);
             this.add(l2, c);
 
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy++;
-            c.weightx = 1;
-            c.weightx = 0.0;
-            c.gridwidth = 1;
-            JLabel l3 = new JLabel("Contrast:");
-            l3.setMinimumSize(new Dimension(200, l3.getMinimumSize().height));
-            l3.setMaximumSize(new Dimension(200, l3.getMaximumSize().height));
-            l3.setPreferredSize(new Dimension(200, l3.getPreferredSize().height));
-            l3.setSize(new Dimension(200, l3.getSize().height));
-            ImageIcon diamter3 = new ImageIcon(getClass().getResource("icons8-plus-slash-minus-16.png"));
-            l3.setIcon(diamter3);
-            this.add(l3, c);
+            /*
+             * c.fill = GridBagConstraints.HORIZONTAL; c.gridx = 0; c.gridy++; c.weightx =
+             * 1; c.weightx = 0.0; c.gridwidth = 1; JLabel l3 = new JLabel("Contrast:");
+             * l3.setMinimumSize(new Dimension(200, l3.getMinimumSize().height));
+             * l3.setMaximumSize(new Dimension(200, l3.getMaximumSize().height));
+             * l3.setPreferredSize(new Dimension(200, l3.getPreferredSize().height));
+             * l3.setSize(new Dimension(200, l3.getSize().height)); ImageIcon diamter3 = new
+             * ImageIcon(getClass().getResource("icons8-plus-slash-minus-16.png"));
+             * l3.setIcon(diamter3); this.add(l3, c);
+             */
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
@@ -389,7 +394,7 @@ public class EvColocDialog extends JFrame {
                 }
             });
             previewButtons.add(nextPreviewImage);
-            c.gridx = 3;
+            c.gridx = 4;
             c.weightx = 0;
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.LINE_END;
@@ -403,6 +408,11 @@ public class EvColocDialog extends JFrame {
         private int mPrevImgIdx = 0;
 
         public void startPreview() {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                mOriginalImage0[n] = null;
+                mPreviewImage0[n] = null;
+            }
+
             String[] imageTitles = WindowManager.getImageTitles();
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(mPrevImgIdx, mInputFolder.getText());
@@ -415,7 +425,7 @@ public class EvColocDialog extends JFrame {
 
             if (imageTitles.length > 0) {
 
-                for (int n = 0; n < channelSettings.size(); n++) {
+                for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                     for (int i = 0; i < imageTitles.length; i++) {
                         String actTitle = imageTitles[i];
                         ImagePlus imageTmp = WindowManager.getImage(actTitle);
@@ -445,7 +455,7 @@ public class EvColocDialog extends JFrame {
 
         public void refreshPreview() {
             if (thersholdPreview.isSelected() == true) {
-                for (int n = 0; n < channelSettings.size(); n++) {
+                for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                     setPreviewImage(mPreviewImage0[n], mOriginalImage0[n], channelSettings.get(n));
                 }
 
@@ -453,7 +463,7 @@ public class EvColocDialog extends JFrame {
         }
 
         private void setPreviewImage(ImagePlus imgPrev, ImagePlus imgOri, ChannelElements elem) {
-            if (imgPrev != null) {
+            if (imgPrev != null && imgOri != null) {
 
                 int lowThershold = -1;
                 try {
@@ -464,8 +474,9 @@ public class EvColocDialog extends JFrame {
                 ImagePlus newImg = Filter.duplicateImage(imgOri);
                 imgPrev.setImage(newImg);
 
-                Pipeline.preFilterSetColocPreview(imgPrev, elem.enchanceContrast.isSelected(),
-                        elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535, th);
+                Filter.SubtractBackground(newImg);
+                Filter.ApplyGaus(newImg);
+                Filter.ApplyThershold(newImg, elem.thersholdMethod.getSelectedItem().toString(), lowThershold,65535, th, false);
 
             } else {
                 /*
@@ -998,11 +1009,40 @@ public class EvColocDialog extends JFrame {
         }
         sett.mSelectedSeries = mSeries.getSelectedItem().toString();
 
+        //
+        // Assign channel settings
+        //
         sett.channelSettings.clear();
         for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
             sett.channelSettings.add(chSettings.channelSettings.get(n).getChannelSettings());
         }
 
+        //
+        // Check channel settings
+        //
+        // It is not allowed to have two equal channel types
+        for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+            for (int m = 0; m < NUMBEROFCHANNELSETTINGS; m++) {
+                if (sett.channelSettings.get(n).mChannelName != "OFF"
+                        && sett.channelSettings.get(m).mChannelName != "OFF") {
+                    if (n != m) {
+                        if (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
+
+                            // Only check two different channel
+                            error += "There are two equal channel types!\n";
+                        }
+                        if (sett.channelSettings.get(n).mChannelName == sett.channelSettings.get(m).mChannelName) {
+                            // Only check two different channel
+                            error += "There are two equal channel numbers!\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        //
+        //
+        //
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
             error += PLEASE_SELECT_A_FUNCTION;
@@ -1020,15 +1060,15 @@ public class EvColocDialog extends JFrame {
         }
 
         try {
-            sett.mMinCircularity = Integer.parseInt(filter.mMinCircularity.getText());
+            sett.mMinCircularity = Double.parseDouble(filter.mMinCircularity.getText());
         } catch (NumberFormatException ex) {
-            error += "Max particle size wrong!\n";
+            error += "Circularity is wrong!\n";
         }
 
         try {
             sett.minIntensity = Integer.parseInt(filter.mMinIntensity.getText());
         } catch (NumberFormatException ex) {
-            error += "Max particle size wrong!\n";
+            error += "Intensity wrong!\n";
         }
 
         if (error.length() <= 0) {

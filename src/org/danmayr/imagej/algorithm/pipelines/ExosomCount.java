@@ -28,12 +28,12 @@ public class ExosomCount extends Pipeline {
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
         RoiManager rm = new RoiManager();
 
-        ChannelSettings img0 = getImageOfChannel(0);
-        ChannelSettings img1 = getImageOfChannel(1);
-        ChannelSettings img2 = getImageOfChannel(2);
+        ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
+        ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
+        ChannelSettings img2 = (ChannelSettings)getEvChannels().values().toArray()[2];
 
         double[] in0 = new double[2];
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg,getBackground().mChannelImg, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
         img0.maxThershold, in0);
 
         Filter.AnalyzeParticles(img0.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
@@ -48,7 +48,7 @@ public class ExosomCount extends Pipeline {
         if (null != img1) {
             double[] in1 = new double[2];
 
-            ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg, img1.enhanceContrast, img1.mThersholdMethod,
+            ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg,getBackground().mChannelImg, img1.enhanceContrast, img1.mThersholdMethod,
             img1.minThershold, img1.maxThershold, in1);
 
             analzeImg0 = Filter.AnalyzeParticles(img1.mChannelImg, rm,0,-1,mSettings.mMinCircularity);
@@ -62,7 +62,7 @@ public class ExosomCount extends Pipeline {
         if (null != img2) {
             double[] in1 = new double[2];
 
-            ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg, img2.enhanceContrast, img2.mThersholdMethod,
+            ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg,getBackground().mChannelImg, img2.enhanceContrast, img2.mThersholdMethod,
             img2.minThershold, img2.maxThershold, in1);
 
             analzeImg1 = Filter.AnalyzeParticles(img2.mChannelImg, rm,0,-1,mSettings.mMinCircularity);

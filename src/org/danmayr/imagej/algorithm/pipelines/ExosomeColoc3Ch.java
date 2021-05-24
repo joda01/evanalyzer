@@ -28,23 +28,25 @@ public class ExosomeColoc3Ch extends ExosomColoc {
 
         RoiManager rm = new RoiManager();
 
-        ChannelSettings img0 = getImageOfChannel(0);
-        ChannelSettings img1 = getImageOfChannel(1);
-        ChannelSettings img2 = getImageOfChannel(2);
+        ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
+        ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
+        ChannelSettings img2 = (ChannelSettings)getEvChannels().values().toArray()[2];
+
 
         double[] in0 = new double[2];
         double[] in1 = new double[2];
         double[] in2 = new double[2];
 
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg, img0.enhanceContrast, img0.mThersholdMethod,
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg,getBackground().mChannelImg, img0.enhanceContrast, img0.mThersholdMethod,
                 img0.minThershold, img0.maxThershold, in0);
-        ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg, img1.enhanceContrast, img1.mThersholdMethod,
+        ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg,getBackground().mChannelImg, img1.enhanceContrast, img1.mThersholdMethod,
                 img1.minThershold, img1.maxThershold, in1);
-        ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg, img2.enhanceContrast, img2.mThersholdMethod,
+        ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg,getBackground().mChannelImg, img2.enhanceContrast, img2.mThersholdMethod,
                 img2.minThershold, img2.maxThershold, in2);
 
         ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
         Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
+
         // Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh,
         // img1, rm);
         // Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0,
