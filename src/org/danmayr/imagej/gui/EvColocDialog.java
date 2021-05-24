@@ -1,5 +1,6 @@
 package org.danmayr.imagej.gui;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -677,7 +678,19 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 0;
+        c.gridwidth = 3;
+        JLabel titl = new JLabel("ALPHA Version (preview button not working)");
+        titl.setHorizontalTextPosition(SwingConstants.CENTER);
+        titl.setOpaque(true);
+        titl.setBackground(Color.RED);
+        this.add(titl, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
         c.weightx = 0;
+        c.gridwidth = 1;
         JLabel l1 = new JLabel("Input folder:");
         l1.setMinimumSize(new Dimension(200, l1.getMinimumSize().height));
         l1.setMaximumSize(new Dimension(200, l1.getMaximumSize().height));
@@ -966,7 +979,7 @@ public class EvColocDialog extends JFrame {
 
         // this.setAlwaysOnTop(true);
         this.setResizable(false);
-        setTitle("Exosome analyzer");
+        setTitle("Exosome analyzer " + Version.getVersion());
     }
 
     public void setProgressBarMaxSize(int value, String lable) {
