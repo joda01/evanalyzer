@@ -278,11 +278,17 @@ public class ExcelExport {
             TreeMap<Integer,double[]> valVec = entry3.getValue();
 
             for (Map.Entry<Integer,double[]> valVecEntry : valVec.entrySet()) {
-                double[] valVecVal = valVecEntry.getValue();
-                int columnCnt = channelColumnSize.get(valVecEntry.getKey());
-                for (int c = 0; c < valVecVal.length; c++) {
-                    currentRow.createCell(columnCnt).setCellValue(valVecVal[c]);
-                    columnCnt++;
+                Object key = valVecEntry.getKey();
+                if(null != key && null != channelColumnSize && true == channelColumnSize.containsKey(key)){ // channelColumnSize.containsKey(key) was false
+                    int columnCnt = channelColumnSize.get(key);
+                    double[] valVecVal = valVecEntry.getValue();
+
+                    if(null != valVecVal){
+                        for (int c = 0; c < valVecVal.length; c++) {
+                            currentRow.createCell(columnCnt).setCellValue(valVecVal[c]);
+                            columnCnt++;
+                        }
+                    }
                 }
             }
             row++;

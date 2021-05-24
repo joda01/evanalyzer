@@ -22,7 +22,6 @@ public class Statistics {
         double circularitySum = 0;
 
         for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
-            int chNr = entry.getKey();
             ParticleInfo info = entry.getValue();
 
             if (false == info.isValid()) {

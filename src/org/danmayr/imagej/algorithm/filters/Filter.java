@@ -76,7 +76,7 @@ public class Filter {
     }
 
     public static void Median(ImagePlus img) {
-        IJ.run(img, "Median...", "radius=5");
+        IJ.run(img, "Median...", "radius=3");
     }
 
     public static void Watershed(ImagePlus img) {
@@ -246,6 +246,10 @@ public class Filter {
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity, boolean addToRoi) {
         ClearRois(image, rm);
+        return AnalyzeParticlesNoClear(image,rm,minSize,maxSize,minCircularity,true);
+    }
+
+    public static ImagePlus AnalyzeParticlesNoClear(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity, boolean addToRoi) {
         IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/ParticleAnalyzer.html
@@ -260,6 +264,7 @@ public class Filter {
         if(true == addToRoi){
             addToRoiArg = " clear add";
         }
+        // IJ.run(imp, "Analyze Particles...", "  show=Outlines display");
         String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks"+addToRoiArg;
         IJ.run(image, "Analyze Particles...", arguments);
         rm.runCommand(image, "Show None");
@@ -285,6 +290,8 @@ public class Filter {
     }
 
     public static void RoiSave(ImagePlus image,RoiManager rm){
+        File roizip = new File("roiset.zip");
+        roizip.delete();
         rm.runCommand("save", "roiset.zip");
     }
 
@@ -296,7 +303,7 @@ public class Filter {
     ///
     /// Execute analyze particles before
     ///
-    public static Channel MeasureImage(int chNr, String channelName, AnalyseSettings settings, ImagePlus imageOrigial,
+    public static Channel MeasureImage(String channelName, AnalyseSettings settings, ImagePlus imageOrigial,
             ImagePlus imageThershold, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
@@ -313,7 +320,7 @@ public class Filter {
         measure(imageOrigial, original, rm);
         measure(imageThershold, thershold, rm);
 
-        Channel ch = createChannelFromMeasurement(chNr, channelName, settings, original, thershold);
+        Channel ch = createChannelFromMeasurement(channelName, settings, original, thershold);
 
         original.delete();
         thershold.delete();
@@ -328,10 +335,10 @@ public class Filter {
         IJ.run("Clear Results", "");
     }
 
-    private static Channel createChannelFromMeasurement(int chNr, String channelName, AnalyseSettings settings,
+    private static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
             File originalFile, File thesholdFile) {
 
-        Channel ch = new Channel(chNr, channelName, new Statistics());
+        Channel ch = new Channel(channelName, new Statistics());
         try {
             String[] readLinesThershold = new String(
                     Files.readAllBytes(Paths.get(thesholdFile.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
