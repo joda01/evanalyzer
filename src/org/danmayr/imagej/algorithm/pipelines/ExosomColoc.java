@@ -29,13 +29,17 @@ public class ExosomColoc extends Pipeline {
 
         ImagePlus img0Th = Filter.duplicateImage(img0.mChannelImg); 
         ImagePlus img1Th = Filter.duplicateImage(img1.mChannelImg);
+        ImagePlus background = null;
+        if(null != getBackground()){
+            background = getBackground().mChannelImg;
+        }
 
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0Th,getBackground().mChannelImg, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0Th,background, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
         img0.maxThershold, in0);
-        ImagePlus img1BeforeTh = preFilterSetColoc(img1Th,getBackground().mChannelImg, img1.enhanceContrast, img1.mThersholdMethod, img1.minThershold,
+        ImagePlus img1BeforeTh = preFilterSetColoc(img1Th,background, img1.enhanceContrast, img1.mThersholdMethod, img1.minThershold,
         img1.maxThershold, in1);
 
         ImagePlus analzeImg0  = Filter.AnalyzeParticles(img0Th, rm,0,-1,mSettings.mMinCircularity);

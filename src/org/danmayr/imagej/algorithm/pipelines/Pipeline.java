@@ -70,6 +70,8 @@ abstract public class Pipeline {
   protected AnalyseSettings mSettings;
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
+  TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
+
 
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
@@ -90,9 +92,15 @@ abstract public class Pipeline {
           ChannelSettings chSet = mSettings.channelSettings.get(n);
           chSet.mChannelImg = WindowManager.getImage(actTitle);
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          if(true == mSettings.channelSettings.get(n).type.isEvChannel()){
+            evChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          }
         }
       }
     }
+
+
+
     return startPipeline(imageFile);
   }
 
@@ -108,13 +116,6 @@ abstract public class Pipeline {
   ///
   ///
   TreeMap<ChannelType, ChannelSettings> getEvChannels() {
-    TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
-
-    for(Map.Entry<ChannelType, ChannelSettings> entr : imgChannel.entrySet()){
-      if(true == entr.getValue().type.isEvChannel()){
-        evChannel.put(entr.getValue().type, entr.getValue());
-      }
-    }
     return evChannel;
   }
 

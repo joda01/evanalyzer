@@ -679,10 +679,10 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 3;
-        JLabel titl = new JLabel("ALPHA Version (preview button not working)");
+        JLabel titl = new JLabel("Version " +Version.getVersion()+" | preview button not working | world ENVIRONMENT day 5. June 2021");
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
-        titl.setBackground(Color.RED);
+        titl.setBackground(Color.CYAN);
         this.add(titl, c);
 
         ////////////////////////////////////////////////////
@@ -804,6 +804,38 @@ public class EvColocDialog extends JFrame {
         c.gridx = 1;
         c.weightx = 1;
         mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
+        mFunctionSelection.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                AnalyseSettings.Function type = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
+                // Calc coloc
+                if (AnalyseSettings.Function.calcColoc == type) {
+                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
+                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
+                    for(int n = 2;n<chSettings.channelSettings.size();n++){
+                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                    }
+                } 
+                else if(AnalyseSettings.Function.countInCellExosomes == type){
+                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
+                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
+                    chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
+                    chSettings.channelSettings.get(3).channel.setSelectedItem("C=4");
+
+                
+                    chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
+                    chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
+                    chSettings.channelSettings.get(2).channelType.setSelectedIndex(6);
+                    chSettings.channelSettings.get(3).channelType.setSelectedIndex(5);
+                    
+                }
+                else if(AnalyseSettings.Function.noSelection == type){
+                    for(int n = 0;n<chSettings.channelSettings.size();n++){
+                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                    }
+                }
+            }
+        });
         this.add(mFunctionSelection, c);
 
         ////////////////////////////////////////////////////

@@ -33,6 +33,8 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         @Override
         protected TreeMap<Integer, Channel> startPipeline(File img) {
+                mReturnChannels.clear();
+                mEditedEvs.clear();
                 mImage = img;
                 RoiManager rm = new RoiManager();
 
@@ -59,7 +61,9 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 // Filter.SubtractBackground(evSubtracted);
                                 // Filter.ApplyGaus(evSubtracted);
                                 Filter.Smooth(evSubtracted);
-                                Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod);
+                                double[] in = new double[2];
+                                Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod,
+                                                val.getValue().minThershold, val.getValue().maxThershold, in, true);
                                 Filter.Watershed(evSubtracted);
                                 ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
                                                 mSettings.mMinCircularity);
@@ -67,6 +71,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 rm);
                                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
                                                 evSubtractedOriginal, evSubtracted, rm);
+                                                evCh.setThershold(in[0], in[1]);
                                 addReturnChannel(evCh);
                                 try {
                                         ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
@@ -100,26 +105,34 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
+                        double[] in = new double[2];
+                        Filter.ApplyThershold(cellsEdited, set.mThersholdMethod,
+                                        set.minThershold, set.maxThershold, in, true);
                         Filter.AddThersholdToROI(cellsEdited, rm);
                         Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString(), rm);
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellsOriginal, cellsEdited, rm);
+                        chCell.setThershold(in[0], in[1]);
                         addReturnChannel(chCell);
 
                         //
                         // Count EVS in Cells
                         //
-                        Filter.RoiSave(cellsEdited,rm);
+                        Filter.RoiSave(cellsEdited, rm);
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                                 ImagePlus evChannelImg = val.getValue().mChannelImg;
-                                Filter.RoiOpen(evChannelImg, rm);
+                                ImagePlus evChannelImgOriginal = getEvChannels().get(val.getKey()).mChannelImg;
+                                Filter.RoiOpen(evChannelImgOriginal, rm);
+                                evChannelImgOriginal.setRoi(rm.getRoi(0));
                                 evChannelImg.setRoi(rm.getRoi(0));
 
                                 //
+                                // Calculate cell original thershold
                                 //
                                 Channel cellArea = Filter.MeasureImage("cell area in" + val.getValue().type.toString(),
-                                                null, evChannelImg, evChannelImg, rm);
+                                                null, evChannelImgOriginal, evChannelImg, rm);
                                 addReturnChannel(cellArea);
 
+                                //
                                 //
                                 //
                                 ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
@@ -128,8 +141,11 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
                                                 + "_ev_in_cell_mask", rm);
                                 Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell",
-                                                mSettings, evChannelImg, cellsInEv, rm);
+                                                mSettings, evChannelImgOriginal, mask, rm);
                                 addReturnChannel(evsInCells);
+
+                                evChannelImgOriginal.deleteRoi();
+                                evChannelImg.deleteRoi();
                         }
                         return cellsEdited;
                 }
