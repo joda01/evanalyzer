@@ -72,7 +72,6 @@ abstract public class Pipeline {
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
 
-
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
   }
@@ -92,14 +91,12 @@ abstract public class Pipeline {
           ChannelSettings chSet = mSettings.channelSettings.get(n);
           chSet.mChannelImg = WindowManager.getImage(actTitle);
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
-          if(true == mSettings.channelSettings.get(n).type.isEvChannel()){
+          if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
             evChannel.put(mSettings.channelSettings.get(n).type, chSet);
           }
         }
       }
     }
-
-
 
     return startPipeline(imageFile);
   }
@@ -184,10 +181,17 @@ abstract public class Pipeline {
       chAry[type0.getColorIdx()] = measCh0;
       chNames[type0.getColorIdx()] = type0.getName();
 
-      imgAry[type1.getColorIdx()] = img1;
-      chAry[type1.getColorIdx()] = measCh1;
-      chNames[type1.getColorIdx()] = type1.getName();
+      if (type1 != null) {
+        imgAry[type1.getColorIdx()] = img1;
+        chAry[type1.getColorIdx()] = measCh1;
+        chNames[type1.getColorIdx()] = type1.getName();
+      }
 
+      if (type2 != null) {
+        imgAry[type2.getColorIdx()] = img2;
+        chAry[type2.getColorIdx()] = measCh2;
+        chNames[type2.getColorIdx()] = type2.getName();
+      }
       // imgAry[ch2s.type.getColorIdx()] = img2;
       // chAry[ch2s.type.getColorIdx()] = measCh2;
 
@@ -200,14 +204,14 @@ abstract public class Pipeline {
 
       if (null != measColoc) {
         ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-        Filter.SaveImage(mergedChannel, path + "_merged.jpg",rm);
+        Filter.SaveImage(mergedChannel, path + "_merged.jpg", rm);
         measColoc.addControlImagePath(name + "_merged.jpg");
       }
 
       for (int n = 0; n < imgAry.length; n++) {
         if (imgAry[n] != null && chAry[n] != null) {
           String fileName = "_" + chNames[n] + ".jpg";
-          Filter.SaveImage(imgAry[n], path + fileName,rm);
+          Filter.SaveImage(imgAry[n], path + fileName, rm);
           chAry[n].addControlImagePath(name + fileName);
 
         }
