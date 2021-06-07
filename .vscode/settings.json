@@ -2,7 +2,11 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "/home/joachim/Documents/programme/Fiji.app/jars/**/*.jar",
-        "/workspaces/test_plugin/**/*.jar"
+        "/workspaces/test_plugin/**/*.jar",
+        "fijii/jars/fiji-2.1.0.jar",
+        "libs/poi-4.1.2/poi-4.1.2.jar",
+        "libs/poi-4.1.2/poi-excelant-4.1.2.jar",
+        "libs/poi-4.1.2/poi-ooxml-4.1.2.jar"
     ],
     "java.dependency.packagePresentation": "flat"
 }

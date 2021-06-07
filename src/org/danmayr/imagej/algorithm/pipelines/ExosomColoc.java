@@ -1,18 +1,15 @@
 package org.danmayr.imagej.algorithm.pipelines;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import ij.plugin.frame.RoiManager;
-
 import java.io.File;
-import java.util.*;
-import org.danmayr.imagej.algorithm.structs.*;
-import org.danmayr.imagej.algorithm.filters.Filter;
+import java.util.TreeMap;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
-import org.danmayr.imagej.algorithm.statistics.*;
-import org.danmayr.imagej.algorithm.pipelines.*;
+import org.danmayr.imagej.algorithm.ChannelSettings;
+import org.danmayr.imagej.algorithm.filters.Filter;
+import org.danmayr.imagej.algorithm.structs.Channel;
+
+import ij.ImagePlus;
+import ij.plugin.frame.RoiManager;
 
 public class ExosomColoc extends Pipeline {
 
@@ -23,32 +20,40 @@ public class ExosomColoc extends Pipeline {
     }
 
     @Override
-    protected TreeMap<Integer, Channel> startPipeline(File img, AnalyseSettings.ChannelSettings ch0s,
-            AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s) {
+    protected TreeMap<Integer, Channel> startPipeline(File img) {
 
         RoiManager rm = new RoiManager();
 
-        ImagePlus img0 = getImageCh0();
-        ImagePlus img1 = getImageCh1();
+        ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
+        ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
+
+        ImagePlus img0Th = Filter.duplicateImage(img0.mChannelImg); 
+        ImagePlus img1Th = Filter.duplicateImage(img1.mChannelImg);
+        ImagePlus background = null;
+        if(null != getBackground()){
+            background = getBackground().mChannelImg;
+        }
 
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod, ch0s.minThershold,
-                ch0s.maxThershold, in0);
-        ImagePlus img1BeforeTh = preFilterSetColoc(img1, ch1s.enhanceContrast, ch1s.mThersholdMethod, ch1s.minThershold,
-                ch1s.maxThershold, in1);
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0Th,background, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
+        img0.maxThershold, in0);
+        ImagePlus img1BeforeTh = preFilterSetColoc(img1Th,background, img1.enhanceContrast, img1.mThersholdMethod, img1.minThershold,
+        img1.maxThershold, in1);
+
+        ImagePlus analzeImg0  = Filter.AnalyzeParticles(img0Th, rm,0,-1,mSettings.mMinCircularity);
+        Channel measCh0 = Filter.MeasureImage( "ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
 
 
-        Filter.AnalyzeParticles(img0, rm);
-        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
         // Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh,
         // img1, rm);
         // Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0,
         // measCh1Temp);
 
-        Filter.AnalyzeParticles(img1, rm);
-        Channel measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
+        ImagePlus analzeImg1 = Filter.AnalyzeParticles(img1Th, rm,0,-1,mSettings.mMinCircularity);
+        Channel measCh1 = Filter.MeasureImage( "ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
+
         // Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh,
         // img0, rm);
         // Channel measColocCh1 = calculateColoc(2, "Coloc Ch1 with Ch0", measCh0Temp,
@@ -57,7 +62,7 @@ public class ExosomColoc extends Pipeline {
 
 
         // Coloc 01
-        Channel coloc01 = CalcColoc("Coloc 01", 3, rm, img0, img1, img0BeforeTh, img1BeforeTh);
+        Channel coloc01 = CalcColoc("Coloc 01", 3, rm, img0Th, img1Th, img0BeforeTh, img1BeforeTh);
 
         measCh0.setThershold(in0[0], in0[1]);
         measCh1.setThershold(in1[0], in1[1]);
@@ -71,7 +76,7 @@ public class ExosomColoc extends Pipeline {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name, measCh0, measCh1, null, ch0s.type, ch1s.type, ch2s.type, rm, coloc01);
+        saveControlImages(name,analzeImg0,analzeImg1,null, measCh0, measCh1, null, img0.type, img1.type, null, rm, coloc01);
 
         return channels;
     }
@@ -80,8 +85,8 @@ public class ExosomColoc extends Pipeline {
             ImagePlus img1Original) {
         ImagePlus sumImageOriginal = Filter.ANDImages(img0Origial, img1Original);
         ImagePlus sumImage = Filter.ANDImages(img0, img1);
-        Filter.AnalyzeParticles(sumImage, rm);
-        Channel measColoc01 = Filter.MeasureImage(idx, name, mSettings, sumImageOriginal, sumImage, rm);
+        Filter.AnalyzeParticles(sumImage, rm,0,-1,mSettings.mMinCircularity);
+        Channel measColoc01 = Filter.MeasureImage( name, mSettings, sumImageOriginal, sumImage, rm);
         return measColoc01;
     }
 

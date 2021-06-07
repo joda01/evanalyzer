@@ -11,6 +11,7 @@ import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.statistics.*;
 
 public class ExosomCount extends Pipeline {
@@ -22,48 +23,64 @@ public class ExosomCount extends Pipeline {
     }
 
     @Override
-    protected TreeMap<Integer, Channel> startPipeline(File img, AnalyseSettings.ChannelSettings ch0s,
-            AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s) {
+    protected TreeMap<Integer, Channel> startPipeline(File img) {
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
         RoiManager rm = new RoiManager();
+        int nrOfPics =getEvChannels().values().toArray().length;
 
-        ImagePlus img0 = getImageCh0();
-        ImagePlus img1 = getImageCh1();
-        ImagePlus img2 = getImageCh2();
+        ChannelSettings img0 = (ChannelSettings) getEvChannels().values().toArray()[0];
+        ImagePlus background = null;
+        if (null != getBackground()) {
+            background = getBackground().mChannelImg;
+        }
+
+        ImagePlus analzeImg0 = null;
+        ImagePlus analzeImg1 = null;
+        ImagePlus analzeImg2 = null;
+
+        Pipeline.ChannelType type0 = img0.type;
+        Pipeline.ChannelType type1 = null;
+        Pipeline.ChannelType type2 = null;
 
         double[] in0 = new double[2];
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0, ch0s.enhanceContrast, ch0s.mThersholdMethod, ch0s.minThershold,
-                ch0s.maxThershold, in0);
+        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg, background, img0.enhanceContrast,
+                img0.mThersholdMethod, img0.minThershold, img0.maxThershold, in0);
 
-        Filter.AnalyzeParticles(img0, rm);
-        Channel measCh0 = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh, img0, rm);
+        analzeImg0 = Filter.AnalyzeParticles(img0.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
+        Channel measCh0 = Filter.MeasureImage("ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
         measCh0.setThershold(in0[0], in0[1]);
         channels.put(0, measCh0);
 
         Channel measCh1 = null;
-        if (null != img1) {
+        if (2 == nrOfPics) {
+            ChannelSettings img1 = (ChannelSettings) getEvChannels().values().toArray()[1];
+
             double[] in1 = new double[2];
+            type1 = img1.type;
 
-            ImagePlus img1BeforeTh = preFilterSetColoc(img1, ch1s.enhanceContrast, ch1s.mThersholdMethod,
-                    ch1s.minThershold, ch1s.maxThershold, in1);
+            ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg, background, img1.enhanceContrast,
+                    img1.mThersholdMethod, img1.minThershold, img1.maxThershold, in1);
 
-            Filter.AnalyzeParticles(img1, rm);
-            measCh1 = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh, img1, rm);
+            analzeImg1 = Filter.AnalyzeParticles(img1.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
+            measCh1 = Filter.MeasureImage("ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
 
             measCh1.setThershold(in1[0], in1[1]);
             channels.put(1, measCh1);
         }
 
         Channel measCh2 = null;
-        if (null != img2) {
+        if (3 == nrOfPics) {
+            ChannelSettings img2 = (ChannelSettings) getEvChannels().values().toArray()[2];
+
             double[] in1 = new double[2];
+            type2 = img2.type;
 
-            ImagePlus img2BeforeTh = preFilterSetColoc(img2, ch2s.enhanceContrast, ch2s.mThersholdMethod,
-                    ch2s.minThershold, ch2s.maxThershold, in1);
+            ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg, background, img2.enhanceContrast,
+                    img2.mThersholdMethod, img2.minThershold, img2.maxThershold, in1);
 
-            Filter.AnalyzeParticles(img2, rm);
-            measCh2 = Filter.MeasureImage(1, "ch2", mSettings, img2BeforeTh, img2, rm);
+            analzeImg2 = Filter.AnalyzeParticles(img2.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
+            measCh2 = Filter.MeasureImage("ch2", mSettings, img2BeforeTh, img2.mChannelImg, rm);
 
             measCh2.setThershold(in1[0], in1[1]);
             channels.put(2, measCh2);
@@ -71,7 +88,8 @@ public class ExosomCount extends Pipeline {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name,measCh0,measCh1,null,ch0s.type,ch1s.type,null, rm, null);  
+        saveControlImages(name, analzeImg0, analzeImg1, analzeImg2, measCh0, measCh1, measCh2, type0, type1,
+                type2, rm, null);
 
         return channels;
     }

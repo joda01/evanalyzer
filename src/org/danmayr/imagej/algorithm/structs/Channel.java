@@ -9,7 +9,6 @@ import org.danmayr.imagej.algorithm.statistics.*;
 ///
 public class Channel {
 
-    int mChannelNr = 0;
     String mName;
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
@@ -18,8 +17,7 @@ public class Channel {
     ///
     /// \brief Constructor
     ///
-    public Channel(int channelNr, String name, Statistics statistics) {
-        mChannelNr = channelNr;
+    public Channel(String name, Statistics statistics) {
         mName = name;
         mStatistics = statistics;
     }
@@ -44,10 +42,6 @@ public class Channel {
     ///
     public String toString() {
         return mName;
-    }
-
-    public Integer getChannelNumber() {
-        return mChannelNr;
     }
 
     public void calcStatistics(){

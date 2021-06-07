@@ -1,5 +1,7 @@
 package org.danmayr.imagej.algorithm;
 
+import java.util.Vector;
+
 import org.danmayr.imagej.algorithm.pipelines.*;
 
 public class AnalyseSettings {
@@ -13,7 +15,7 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("Colocalization"), countExosomes("Counting");
+        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"), countInCellExosomes("EV Counting in Cells");;
 
         private final String name;
 
@@ -32,13 +34,6 @@ public class AnalyseSettings {
         }
     }
 
-    public class ChannelSettings {
-        public Pipeline.ChannelType type;
-        public String mThersholdMethod;
-        public boolean enhanceContrast;
-        public int minThershold = -1;
-        public int maxThershold = 65535;
-    }
 
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
     public ReportType reportType = ReportType.FullReport;
@@ -50,12 +45,7 @@ public class AnalyseSettings {
     public double mMaxParticleSize = 999999999;
     public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
-
     public String mOutputFileName="";
-
-    public ChannelSettings ch0 = new ChannelSettings();
-    public ChannelSettings ch1 = new ChannelSettings();
-    public ChannelSettings ch2 = new ChannelSettings();
-    public int nrOfEnabledChannels = 0;
+    public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
 
 }

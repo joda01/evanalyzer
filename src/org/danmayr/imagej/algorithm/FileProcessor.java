@@ -27,7 +27,6 @@ import java.awt.*;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.exports.*;
 
-
 import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.filters.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
@@ -58,17 +57,16 @@ public class FileProcessor extends Thread {
         // Prepare results folder
         prepareOutputFolder();
 
-        mDialog.setProgressBarMaxSize(0,"look for images ...");
-        mDialog.setProgressBarValue(0,"look for images ...");
+        mDialog.setProgressBarMaxSize(0, "look for images ...");
+        mDialog.setProgressBarValue(0, "look for images ...");
 
         //
         // List all files in folders and subfolders
         //
         ArrayList<File> mFoundFiles = new ArrayList<>();
         findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
-        mDialog.setProgressBarMaxSize(mFoundFiles.size(),"analyzing ...");
-        mDialog.setProgressBarValue(0,"analyzing ...");
-
+        mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
+        mDialog.setProgressBarValue(0, "analyzing ...");
 
         // Analyse images
         Pipeline pipeline = null;
@@ -77,11 +75,20 @@ public class FileProcessor extends Thread {
             pipeline = new ExosomCount(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            if(mAnalyseSettings.nrOfEnabledChannels == 3){
+            int nrOfEnabledCh = 0;
+            for (ChannelSettings chSett : mAnalyseSettings.channelSettings) {
+                if (chSett.mChannelName != "OFF" && true == chSett.type.isEvChannel()) {
+                    nrOfEnabledCh++;
+                }
+            }
+            if (nrOfEnabledCh == 3) {
                 pipeline = new ExosomeColoc3Ch(mAnalyseSettings);
-            }else{
+            } else {
                 pipeline = new ExosomColoc(mAnalyseSettings);
             }
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");
@@ -89,7 +96,8 @@ public class FileProcessor extends Thread {
         }
         walkThroughFiles(pipeline, mFoundFiles);
 
-        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName, mResuls, mAnalyseSettings.reportType,mAnalyseSettings, mDialog);
+        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName,
+                mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
 
         // Write statistics to file
         /*
@@ -102,25 +110,27 @@ public class FileProcessor extends Thread {
         mDialog.finishedAnalyse(reportFileName);
     }
 
-
     ///
-    /// \brief  Get file from selected folder
+    /// \brief Get file from selected folder
     ///
-    public static File getFile(int idx, String inputFolder){
+    public static File getFile(int idx, String inputFolder) {
         ArrayList<File> mFoundFiles = new ArrayList<>();
         findFiles(new File(inputFolder).listFiles(), mFoundFiles);
 
-        if(idx < mFoundFiles.size()){
+        if (idx < mFoundFiles.size()) {
             return mFoundFiles.get(idx);
-        }else{
+        } else {
             return null;
         }
     }
 
-    public static void OpenImage(File imgToOpen, String series){
+    public static void OpenImage(File imgToOpen, String series) {
         IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
-        + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
-        + series + " c_begin_1=1 c_end_1=3 c_step_1=1");
+                + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
+                + series);
+
+        IJ.run("Tile", "");
+        IJ.run("Tile", "");
     }
 
     /**
@@ -140,7 +150,6 @@ public class FileProcessor extends Thread {
 
             OpenImage(file, mAnalyseSettings.mSelectedSeries);
 
-
             // String[] imageTitles = WindowManager.getImageTitles();
             // if (imageTitles.length > 1) {
 
@@ -153,7 +162,7 @@ public class FileProcessor extends Thread {
 
             try {
                 TreeMap<Integer, Channel> images = algorithm.ProcessImage(file);
-                mResuls.addImage(file.getParent(),file.getName(), images);
+                mResuls.addImage(file.getParent(), file.getName(), images);
             } catch (Exception ey) {
                 ey.printStackTrace();
             }

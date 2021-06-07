@@ -5,11 +5,14 @@ import ij.process.*;
 import ij.gui.*;
 
 import java.io.File;
+
+import ij.plugin.ZProjector;
 import ij.plugin.frame.RoiManager;
 
 import java.util.*;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 ///
@@ -19,59 +22,57 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 abstract public class Pipeline {
 
   // Enum which contains the color indexes for a RGBStackMerge
-  // see: https://imagej.nih.gov/ij/developer/source/ij/plugin/RGBStackMerge.java.html
-  private enum ChannelColor{
-    RED(0),
-    GREEN(1),
-    BLUE(2),
-    GRAY(3),
-    CYAN(4),
-    MAGENTA(5),
-    YELLOW(7);
+  // see:
+  // https://imagej.nih.gov/ij/developer/source/ij/plugin/RGBStackMerge.java.html
+  private enum ChannelColor {
+    RED(0), GREEN(1), BLUE(2), GRAY(3), CYAN(4), MAGENTA(5), YELLOW(6);
 
-    private ChannelColor(int idx){
+    private ChannelColor(int idx) {
       mIdx = idx;
     }
 
-    public int getIdx(){
+    public int getIdx() {
       return mIdx;
     }
 
     int mIdx;
   }
 
-
   public enum ChannelType {
-    OFF("off",ChannelColor.GRAY), 
-    DAPI("dapi",ChannelColor.BLUE), 
-    GFP("gfp",ChannelColor.GREEN), 
-    CY3("cy3",ChannelColor.RED), 
-    CY5("cy5",ChannelColor.MAGENTA), 
-    CY7("cy7",ChannelColor.YELLOW), 
-    NEGATIVE_CONTROL("ctrl",ChannelColor.CYAN);
+    EV_DAPI("dapi", ChannelColor.BLUE, true), EV_GFP("gfp", ChannelColor.GREEN, true),
+    EV_CY3("cy3", ChannelColor.RED, true), EV_CY5("cy5", ChannelColor.MAGENTA, true),
+    EV_CY7("cy7", ChannelColor.YELLOW, true), CELL("cell", ChannelColor.GRAY, false),
+    NUCLEUS("nucleus", ChannelColor.CYAN, false), NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false),
+    BACKGROUND("background", ChannelColor.GRAY, false);
+    ;
 
-    private ChannelType(String name, ChannelColor chColor){
+    private ChannelType(String name, ChannelColor chColor, boolean evChannel) {
       mName = name;
       mChColor = chColor;
+      mIsEvChannel = evChannel;
     }
 
-    public String getName(){
+    public String getName() {
       return mName;
     }
 
-    public int getColorIdx(){
+    public int getColorIdx() {
       return mChColor.getIdx();
+    }
+
+    public boolean isEvChannel() {
+      return mIsEvChannel;
     }
 
     private final String mName;
     private final ChannelColor mChColor;
+    private final boolean mIsEvChannel;
   }
 
   protected AnalyseSettings mSettings;
 
-  private ImagePlus imgChannel0;
-  private ImagePlus imgChannel1;
-  private ImagePlus imgChannel2;
+  private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
+  TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
 
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
@@ -81,181 +82,166 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile) throws Exception {
+  public TreeMap<Integer, Channel> ProcessImage(File imageFile) {
     String[] imageTitles = WindowManager.getImageTitles();
+    imgChannel.clear();
 
-    int nrOfExpectedChannels = 0;
-    Pipeline.ChannelType mCh0 = mSettings.ch0.type;
-    Pipeline.ChannelType mCh1 = mSettings.ch1.type;
-    Pipeline.ChannelType mCh2 = mSettings.ch2.type;
-
-    if (mCh0 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-    if (mCh1 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-    if (mCh2 != ChannelType.OFF) {
-      nrOfExpectedChannels++;
-    }
-
-    AnalyseSettings.ChannelSettings ch0s = mSettings.ch0;
-    AnalyseSettings.ChannelSettings ch1s = mSettings.ch1;
-    AnalyseSettings.ChannelSettings ch2s = mSettings.ch2;
-
-    if (1 == nrOfExpectedChannels) {
-      String chToFind = "C=0";
-      if (mCh0 != ChannelType.OFF) {
-        chToFind = "C=0";
-        ch0s = mSettings.ch0;
-      } else if (mCh1 != ChannelType.OFF) {
-        chToFind = "C=1";
-        ch0s = mSettings.ch1;
-      } else if (mCh2 != ChannelType.OFF) {
-        chToFind = "C=2";
-        ch0s = mSettings.ch2;
-      }
+    for (int n = 0; n < mSettings.channelSettings.size(); n++) {
       for (int i = 0; i < imageTitles.length; i++) {
         String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith(chToFind)) {
-          imgChannel0 = WindowManager.getImage(actTitle);
-        }
-      }
-    } else if (2 == nrOfExpectedChannels) {
-      String ch0toFind = "C=0";
-      String ch1toFind = "C=1";
-      if (mCh0 != ChannelType.OFF && mCh1 != ChannelType.OFF) {
-      }
-      if (mCh0 != ChannelType.OFF && mCh2 != ChannelType.OFF) {
-        ch1toFind = "C=2";
-        ch1s = mSettings.ch2;
-      }
-      if (mCh1 != ChannelType.OFF && mCh2 != ChannelType.OFF) {
-        ch0toFind = "C=1";
-        ch1toFind = "C=2";
-        ch0s = mSettings.ch1;
-        ch1s = mSettings.ch2;
-      }
-
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith(ch0toFind)) {
-          imgChannel0 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith(ch1toFind)) {
-          imgChannel1 = WindowManager.getImage(actTitle);
-        }
-      }
-    } else if (3 == nrOfExpectedChannels) {
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith("C=0")) {
-          imgChannel0 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith("C=1")) {
-          imgChannel1 = WindowManager.getImage(actTitle);
-        } else if (true == actTitle.endsWith("C=2")) {
-          imgChannel2 = WindowManager.getImage(actTitle);
+        if (true == actTitle.endsWith(mSettings.channelSettings.get(n).mChannelName)) {
+          ChannelSettings chSet = mSettings.channelSettings.get(n);
+          chSet.mChannelImg = preProcessingSteps(WindowManager.getImage(actTitle),chSet);
+          imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
+            evChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          }
         }
       }
     }
 
-    if (1 == nrOfExpectedChannels && null == getImageCh0()) {
-      throw new Exception("One channel expected, zero channels given.");
-    } else if (2 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1())) {
-      throw new Exception("Two channel expected but just one or zero given.");
-    } else if (3 == nrOfExpectedChannels && (null == getImageCh0() || null == getImageCh1() || null == getImageCh2())) {
-      throw new Exception("Three channel expected but just two, one or zero given.");
+    return startPipeline(imageFile);
+  }
+
+
+  ///
+  /// Do some preprocessing
+  ///
+  private ImagePlus preProcessingSteps(ImagePlus imgIn,ChannelSettings chSettings){
+    if(chSettings.ZProjector != "OFF"){
+      return ZProjector.run(imgIn, chSettings.ZProjector);
+    }else{
+      return imgIn;
+    }
+  }
+
+  ChannelSettings getImageOfChannel(ChannelType type) {
+    if (imgChannel.containsKey(type)) {
+      return imgChannel.get(type);
     } else {
-      return startPipeline(imageFile, ch0s, ch1s,ch2s);
+      return null;
     }
-    // return new TreeMap<Integer, Channel>();
   }
 
-  ImagePlus getImageCh0() {
-    return imgChannel0;
+  ///
+  ///
+  ///
+  TreeMap<ChannelType, ChannelSettings> getEvChannels() {
+    return evChannel;
   }
 
-  ImagePlus getImageCh1() {
-    return imgChannel1;
+  ///
+  ///
+  ///
+  ChannelSettings getBackground() {
+    return getImageOfChannel(ChannelType.BACKGROUND);
   }
 
-  ImagePlus getImageCh2() {
-    return imgChannel2;
+  ///
+  ///
+  ///
+  ChannelSettings getImageOfChannel(int idx) {
+    if (imgChannel.values().toArray().length > idx) {
+      return (ChannelSettings) imgChannel.values().toArray()[idx];
+    } else {
+      return null;
+    }
   }
 
-  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
-      int thMax, double[] thershold) {
-    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold, true);
+  public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+      String thMethod, int thMin, int thMax, double[] thershold) {
+    return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, true);
   }
 
-  public static ImagePlus preFilterSetColocPreview(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
-      int thMax, double[] thershold) {
-    return preFilterSetColoc(img, enhanceContrast, thMethod, thMin, thMax, thershold, false);
+  public static ImagePlus preFilterSetColocPreview(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+      String thMethod, int thMin, int thMax, double[] thershold) {
+    return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
-  public static ImagePlus preFilterSetColoc(ImagePlus img, boolean enhanceContrast, String thMethod, int thMin,
-      int thMax, double[] thershold, boolean convertToMask) {
-    Filter.Make16BitImage(img);
+  public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+      String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+
+    ImagePlus th = img;
+    if (null != background) {
+      th = Filter.SubtractImages(th, background);
+    }
+
     if (true == enhanceContrast) {
-      Filter.EnhanceContrast(img);
+      Filter.EnhanceContrast(th);
     }
 
-    Filter.SubtractBackground(img);
-    Filter.ApplyGaus(img);
+    Filter.SubtractBackground(th);
+    Filter.ApplyGaus(th);
 
-    ImagePlus beforeThershold = Filter.duplicateImage(img);
+    ImagePlus beforeThershold = Filter.duplicateImage(th);
 
-    Filter.ApplyThershold(img, thMethod, thMin, thMax, thershold, convertToMask);
+    Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
+    img.setImage(th);
     return beforeThershold;
   }
 
-  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile, AnalyseSettings.ChannelSettings ch0s,
-      AnalyseSettings.ChannelSettings ch1s, AnalyseSettings.ChannelSettings ch2s);
+  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);
 
+  protected void saveControlImages(String name, ImagePlus img0, ImagePlus img1, ImagePlus img2, Channel measCh0,
+      Channel measCh1, Channel measCh2, ChannelType type0, ChannelType type1, ChannelType type2, RoiManager rm,
+      Channel measColoc) {
+    if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
+      // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
+      ImagePlus[] imgAry = { null, null, null, null, null, null, null };
+      Channel[] chAry = { null, null, null, null, null, null, null };
+      String[] chNames = { null, null, null, null, null, null, null };
 
-protected void saveControlImages(String name, Channel measCh0, Channel measCh1, Channel measCh2, ChannelType type0,ChannelType type1,ChannelType type2, RoiManager rm, Channel measColoc)
-{
-  if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
-    //ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
-      ImagePlus[] imgAry = {null, null, null,null, null, null, null};
-      Channel[] chAry = {null, null, null,null, null, null, null};
-      String[] chNames = {null, null, null,null, null, null, null};
-      
-      imgAry[type0.getColorIdx()] = getImageCh0();
+      imgAry[type0.getColorIdx()] = img0;
       chAry[type0.getColorIdx()] = measCh0;
       chNames[type0.getColorIdx()] = type0.getName();
 
-      
-      imgAry[type1.getColorIdx()] = getImageCh1();
-      chAry[type1.getColorIdx()] = measCh1;
-      chNames[type1.getColorIdx()] = type1.getName();
+      if (type1 != null) {
+        imgAry[type1.getColorIdx()] = img1;
+        chAry[type1.getColorIdx()] = measCh1;
+        chNames[type1.getColorIdx()] = type1.getName();
+      }
 
-      //imgAry[ch2s.type.getColorIdx()] = img2;
-      //chAry[ch2s.type.getColorIdx()] = measCh2;
-   
-    
+      if (type2 != null) {
+        imgAry[type2.getColorIdx()] = img2;
+        chAry[type2.getColorIdx()] = measCh2;
+        chNames[type2.getColorIdx()] = type2.getName();
+      }
+      // imgAry[ch2s.type.getColorIdx()] = img2;
+      // chAry[ch2s.type.getColorIdx()] = measCh2;
+
+      name = name.replace("%", "");
+      name = name.replace(" ", "");
+      name = name.replace(":", "");
+      name = name.toLowerCase();
+
+      String path = mSettings.mOutputFolder + java.io.File.separator + name;
+
+      if (null != measColoc) {
+        ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
+        Filter.SaveImage(mergedChannel, path + "_merged.jpg", rm);
+        measColoc.addControlImagePath(name + "_merged.jpg");
+      }
+
+      for (int n = 0; n < imgAry.length; n++) {
+        if (imgAry[n] != null && chAry[n] != null) {
+          String fileName = "_" + chNames[n] + ".jpg";
+          Filter.SaveImage(imgAry[n], path + fileName, rm);
+          chAry[n].addControlImagePath(name + fileName);
+
+        }
+      }
+
+    }
+  }
+
+  protected String getPath(File file) {
+    String name = file.getName();
     name = name.replace("%", "");
     name = name.replace(" ", "");
     name = name.replace(":", "");
     name = name.toLowerCase();
 
-    String path = mSettings.mOutputFolder + java.io.File.separator + name;
-
-    if(null != measColoc){
-      ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-      Filter.SaveImageWithOverlay(mergedChannel, rm, path + "_merged.jpg");
-      measColoc.addControlImagePath(name + "_merged.jpg");
-    }
-
-    for(int n=0;n<imgAry.length;n++){
-        if(imgAry[n] != null && chAry[n]!=null){
-            String fileName = "_"+chNames[n]+".jpg";
-            Filter.SaveImageWithOverlay(imgAry[n], rm, path + fileName);
-            chAry[n].addControlImagePath(name + fileName);
-
-        }
-    }
-    
-}
-}
+    return mSettings.mOutputFolder + java.io.File.separator + name;
+  }
 
 }

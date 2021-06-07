@@ -22,7 +22,6 @@ public class Statistics {
         double circularitySum = 0;
 
         for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
-            int chNr = entry.getKey();
             ParticleInfo info = entry.getValue();
 
             if (false == info.isValid()) {
@@ -56,6 +55,6 @@ public class Statistics {
     public double avgAreaSize;
     public double avgGrayScale;
     public double avgCircularity;
-    public double minTH;
-    public double maxTH;
+    public double minTH = -1;
+    public double maxTH = -1;
 }
