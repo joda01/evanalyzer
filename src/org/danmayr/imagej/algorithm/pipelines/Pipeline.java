@@ -25,7 +25,7 @@ abstract public class Pipeline {
   // see:
   // https://imagej.nih.gov/ij/developer/source/ij/plugin/RGBStackMerge.java.html
   private enum ChannelColor {
-    RED(0), GREEN(1), BLUE(2), GRAY(3), CYAN(4), MAGENTA(5), YELLOW(7);
+    RED(0), GREEN(1), BLUE(2), GRAY(3), CYAN(4), MAGENTA(5), YELLOW(6);
 
     private ChannelColor(int idx) {
       mIdx = idx;
