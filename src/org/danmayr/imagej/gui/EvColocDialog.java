@@ -709,7 +709,7 @@ public class EvColocDialog extends JFrame {
         c.gridy = 0;
         c.gridwidth = 3;
         JLabel titl = new JLabel(
-                "Version " + Version.getVersion() + " | preview button not working | MAX INTENSITY PROJECTION ACTIVE");
+                "Version " + Version.getVersion() + " | pre release | created for testing");
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
         titl.setBackground(Color.CYAN);
