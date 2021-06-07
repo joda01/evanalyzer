@@ -464,9 +464,7 @@ public class EvColocDialog extends JFrame {
                             mOriginalImage0[n] = Filter.duplicateImage(imageTmp);
                         }
 
-                        Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                        int width = (int) size.getWidth();
-
+                        //Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
                         ImageWindow win = imageTmp.getWindow();
                         win.setSize(600, 400);
                         int newPos = this.getX() + this.getWidth() + 10 + i * 30;
@@ -485,7 +483,9 @@ public class EvColocDialog extends JFrame {
         public void refreshPreview() {
             if (thersholdPreview.isSelected() == true) {
                 for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-                    setPreviewImage(mPreviewImage0[n], mOriginalImage0[n], channelSettings.get(n));
+                    if(null != mPreviewImage0[n]){
+                        setPreviewImage(mPreviewImage0[n], mOriginalImage0[n], channelSettings.get(n));
+                    }
                 }
 
             }
@@ -503,9 +503,9 @@ public class EvColocDialog extends JFrame {
                 ImagePlus newImg = Filter.duplicateImage(imgOri);
                 imgPrev.setImage(newImg);
 
-                Filter.SubtractBackground(newImg);
-                Filter.ApplyGaus(newImg);
-                Filter.ApplyThershold(newImg, elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535,
+                Filter.SubtractBackground(imgPrev);
+                Filter.ApplyGaus(imgPrev);
+                Filter.ApplyThershold(imgPrev, elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535,
                         th, false);
 
             } else {
