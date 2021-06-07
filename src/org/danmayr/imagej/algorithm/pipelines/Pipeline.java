@@ -5,6 +5,8 @@ import ij.process.*;
 import ij.gui.*;
 
 import java.io.File;
+
+import ij.plugin.ZProjector;
 import ij.plugin.frame.RoiManager;
 
 import java.util.*;
@@ -89,7 +91,7 @@ abstract public class Pipeline {
         String actTitle = imageTitles[i];
         if (true == actTitle.endsWith(mSettings.channelSettings.get(n).mChannelName)) {
           ChannelSettings chSet = mSettings.channelSettings.get(n);
-          chSet.mChannelImg = WindowManager.getImage(actTitle);
+          chSet.mChannelImg = preProcessingSteps(WindowManager.getImage(actTitle),chSet);
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
           if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
             evChannel.put(mSettings.channelSettings.get(n).type, chSet);
@@ -99,6 +101,18 @@ abstract public class Pipeline {
     }
 
     return startPipeline(imageFile);
+  }
+
+
+  ///
+  /// Do some preprocessing
+  ///
+  private ImagePlus preProcessingSteps(ImagePlus imgIn,ChannelSettings chSettings){
+    if(chSettings.ZProjector != "OFF"){
+      return ZProjector.run(imgIn, chSettings.ZProjector);
+    }else{
+      return imgIn;
+    }
   }
 
   ChannelSettings getImageOfChannel(ChannelType type) {

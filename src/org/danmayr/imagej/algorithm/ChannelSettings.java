@@ -13,6 +13,7 @@ public class ChannelSettings implements Cloneable{
     public boolean enhanceContrast;
     public int minThershold = -1;
     public int maxThershold = 65535;
+    public String ZProjector = "OFF";
 
     public Object clone() throws CloneNotSupportedException
     {

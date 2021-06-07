@@ -110,6 +110,7 @@ public class EvColocDialog extends JFrame {
             private JComboBox channel;
             private JComboBox thersholdMethod;
             private JCheckBox enchanceContrast;
+            private JComboBox mZProjection;
 
             ///
             ///
@@ -122,6 +123,7 @@ public class EvColocDialog extends JFrame {
                 chSet.mThersholdMethod = thersholdMethod.getSelectedItem().toString();
                 chSet.enhanceContrast = false;
                 chSet.maxThershold = 65535;
+                chSet.ZProjector = mZProjection.getSelectedItem().toString();
 
                 try {
                     chSet.minThershold = (Integer) (minTheshold.getValue());
@@ -158,10 +160,13 @@ public class EvColocDialog extends JFrame {
                             thersholdMethod.setEnabled(false);
                             minTheshold.setEnabled(false);
                             channelType.setEnabled(false);
+                            mZProjection.setEnabled(false);
+
                         } else {
                             thersholdMethod.setEnabled(true);
                             minTheshold.setEnabled(true);
                             channelType.setEnabled(true);
+                            mZProjection.setEnabled(true);
                         }
                     }
                 });
@@ -234,6 +239,13 @@ public class EvColocDialog extends JFrame {
                 panel.add(minTheshold, c);
 
                 ////////////////////////////////////////////////////
+                String[] zProjection = { "OFF", "max","min","avg" };
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.gridy++;
+                mZProjection = new JComboBox<String>(zProjection);
+                panel.add(mZProjection, c);
+
+                ////////////////////////////////////////////////////
                 /*
                  * c.fill = GridBagConstraints.HORIZONTAL; c.gridy++; enchanceContrast = new
                  * JCheckBox("Enhance contrast"); enchanceContrast.setContentAreaFilled(false);
@@ -243,6 +255,7 @@ public class EvColocDialog extends JFrame {
                 thersholdMethod.setEnabled(false);
                 minTheshold.setEnabled(false);
                 channelType.setEnabled(false);
+                mZProjection.setEnabled(false);
             }
         }
 
@@ -320,6 +333,21 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-plus-slash-minus-16.png"));
             l2.setIcon(diamter2);
             this.add(l2, c);
+
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel l3 = new JLabel("Z-Projection:");
+            l3.setMinimumSize(new Dimension(200, l3.getMinimumSize().height));
+            l3.setMaximumSize(new Dimension(200, l3.getMaximumSize().height));
+            l3.setPreferredSize(new Dimension(200, l3.getPreferredSize().height));
+            l3.setSize(new Dimension(200, l3.getSize().height));
+            ImageIcon diamter3 = new ImageIcon(getClass().getResource("icons8-normal-distribution-histogram-16.png"));
+            l3.setIcon(diamter3);
+            this.add(l3, c);
 
             /*
              * c.fill = GridBagConstraints.HORIZONTAL; c.gridx = 0; c.gridy++; c.weightx =
@@ -477,7 +505,8 @@ public class EvColocDialog extends JFrame {
 
                 Filter.SubtractBackground(newImg);
                 Filter.ApplyGaus(newImg);
-                Filter.ApplyThershold(newImg, elem.thersholdMethod.getSelectedItem().toString(), lowThershold,65535, th, false);
+                Filter.ApplyThershold(newImg, elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535,
+                        th, false);
 
             } else {
                 /*
@@ -679,7 +708,8 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 3;
-        JLabel titl = new JLabel("Version " +Version.getVersion()+" | preview button not working | world ENVIRONMENT day 5. June 2021");
+        JLabel titl = new JLabel(
+                "Version " + Version.getVersion() + " | preview button not working | MAX INTENSITY PROJECTION ACTIVE");
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
         titl.setBackground(Color.CYAN);
@@ -812,25 +842,22 @@ public class EvColocDialog extends JFrame {
                 if (AnalyseSettings.Function.calcColoc == type) {
                     chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
                     chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
-                    for(int n = 2;n<chSettings.channelSettings.size();n++){
+                    for (int n = 2; n < chSettings.channelSettings.size(); n++) {
                         chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
                     }
-                } 
-                else if(AnalyseSettings.Function.countInCellExosomes == type){
+                } else if (AnalyseSettings.Function.countInCellExosomes == type) {
                     chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
                     chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
                     chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
                     chSettings.channelSettings.get(3).channel.setSelectedItem("C=4");
 
-                
                     chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
                     chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
                     chSettings.channelSettings.get(2).channelType.setSelectedIndex(6);
                     chSettings.channelSettings.get(3).channelType.setSelectedIndex(5);
-                    
-                }
-                else if(AnalyseSettings.Function.noSelection == type){
-                    for(int n = 0;n<chSettings.channelSettings.size();n++){
+
+                } else if (AnalyseSettings.Function.noSelection == type) {
+                    for (int n = 0; n < chSettings.channelSettings.size(); n++) {
                         chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
                     }
                 }
