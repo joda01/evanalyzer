@@ -89,7 +89,7 @@ public class ExosomeColoc3Ch extends ExosomColoc {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name, analzeImg0, analzeImg1, analzeImg2, measCh0, measCh1, measCh2, img0.type, img1.type,
+        saveControlImages(name, img0BeforeTh, img1BeforeTh, img2BeforeTh, measCh0, measCh1, measCh2, img0.type, img1.type,
                 img2.type, rm, coloc012);
 
         return channels;

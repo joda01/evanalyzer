@@ -225,9 +225,9 @@ abstract public class Pipeline {
       for (int n = 0; n < imgAry.length; n++) {
         if (imgAry[n] != null && chAry[n] != null) {
           String fileName = "_" + chNames[n] + ".jpg";
-          Filter.SaveImage(imgAry[n], path + fileName, rm);
+          ImagePlus newImg = Filter.duplicateImage(imgAry[n]);
+          Filter.SaveImageWithOverlay(newImg,rm,path + fileName);
           chAry[n].addControlImagePath(name + fileName);
-
         }
       }
 

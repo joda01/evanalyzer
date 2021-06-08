@@ -53,13 +53,14 @@ public class ExosomCount extends Pipeline {
         channels.put(0, measCh0);
 
         Channel measCh1 = null;
+        ImagePlus img1BeforeTh = null;
         if (2 == nrOfPics) {
             ChannelSettings img1 = (ChannelSettings) getEvChannels().values().toArray()[1];
 
             double[] in1 = new double[2];
             type1 = img1.type;
 
-            ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg, background, img1.enhanceContrast,
+            img1BeforeTh = preFilterSetColoc(img1.mChannelImg, background, img1.enhanceContrast,
                     img1.mThersholdMethod, img1.minThershold, img1.maxThershold, in1);
 
             analzeImg1 = Filter.AnalyzeParticles(img1.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
@@ -70,13 +71,14 @@ public class ExosomCount extends Pipeline {
         }
 
         Channel measCh2 = null;
+        ImagePlus img2BeforeTh = null;
         if (3 == nrOfPics) {
             ChannelSettings img2 = (ChannelSettings) getEvChannels().values().toArray()[2];
 
             double[] in1 = new double[2];
             type2 = img2.type;
 
-            ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg, background, img2.enhanceContrast,
+            img2BeforeTh = preFilterSetColoc(img2.mChannelImg, background, img2.enhanceContrast,
                     img2.mThersholdMethod, img2.minThershold, img2.maxThershold, in1);
 
             analzeImg2 = Filter.AnalyzeParticles(img2.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
@@ -88,7 +90,7 @@ public class ExosomCount extends Pipeline {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name, analzeImg0, analzeImg1, analzeImg2, measCh0, measCh1, measCh2, type0, type1,
+        saveControlImages(name, img0BeforeTh, img1BeforeTh, img2BeforeTh, measCh0, measCh1, measCh2, type0, type1,
                 type2, rm, null);
 
         return channels;

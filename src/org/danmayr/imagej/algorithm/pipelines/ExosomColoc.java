@@ -76,7 +76,7 @@ public class ExosomColoc extends Pipeline {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        saveControlImages(name,analzeImg0,analzeImg1,null, measCh0, measCh1, null, img0.type, img1.type, null, rm, coloc01);
+        saveControlImages(name,img0BeforeTh,img1BeforeTh,null, measCh0, measCh1, null, img0.type, img1.type, null, rm, coloc01);
 
         return channels;
     }

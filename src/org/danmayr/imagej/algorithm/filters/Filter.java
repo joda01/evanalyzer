@@ -186,6 +186,7 @@ public class Filter {
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
         rm.runCommand(image, "Show All without labels");
+        //rm.runCommand("Set Color", "red");
         //aintRoiLabels(image, rm);
         // IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none
         // label_1=right");
