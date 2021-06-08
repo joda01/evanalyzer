@@ -13,6 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.prefs.Preferences;
 
@@ -161,13 +162,13 @@ public class EvColocDialog extends JFrame {
                             minTheshold.setEnabled(false);
                             channelType.setEnabled(false);
                             mZProjection.setEnabled(false);
-
                         } else {
                             thersholdMethod.setEnabled(true);
                             minTheshold.setEnabled(true);
                             channelType.setEnabled(true);
                             mZProjection.setEnabled(true);
                         }
+                        refreshPreview();
                     }
                 });
                 channel.setSelectedIndex(0);
@@ -239,7 +240,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(minTheshold, c);
 
                 ////////////////////////////////////////////////////
-                String[] zProjection = { "OFF", "max","min","avg" };
+                String[] zProjection = { "OFF", "max", "min", "avg" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 mZProjection = new JComboBox<String>(zProjection);
@@ -431,6 +432,9 @@ public class EvColocDialog extends JFrame {
             this.add(previewButtons, c);
         }
 
+        //
+        // Preview option
+        //
         private ImagePlus[] mOriginalImage0 = new ImagePlus[NUMBEROFCHANNELSETTINGS];
         private ImagePlus[] mPreviewImage0 = new ImagePlus[NUMBEROFCHANNELSETTINGS];
 
@@ -454,24 +458,7 @@ public class EvColocDialog extends JFrame {
 
             if (imageTitles.length > 0) {
 
-                for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-                    for (int i = 0; i < imageTitles.length; i++) {
-                        String actTitle = imageTitles[i];
-                        ImagePlus imageTmp = WindowManager.getImage(actTitle);
-
-                        if (true == actTitle.endsWith(channelSettings.get(n).channel.getSelectedItem().toString())) {
-                            mPreviewImage0[n] = imageTmp;
-                            mOriginalImage0[n] = Filter.duplicateImage(imageTmp);
-                        }
-
-                        //Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                        ImageWindow win = imageTmp.getWindow();
-                        win.setSize(600, 400);
-                        int newPos = this.getX() + this.getWidth() + 10 + i * 30;
-                        win.setLocation(newPos, this.getY() + i * 35);
-                        IJ.run(imageTmp, "Scale to Fit", "");
-                    }
-                }
+                assignImagesForPreview();
 
             } else {
                 thersholdPreview.setSelected(false);
@@ -480,10 +467,75 @@ public class EvColocDialog extends JFrame {
             }
         }
 
+        public void assignImagesForPreview() {
+            String[] imageTitles = WindowManager.getImageTitles();
+
+            imageTitles = WindowManager.getImageTitles();
+
+            // List images
+            TreeMap<String, ImagePlus> imagesPerChannel = new TreeMap<String, ImagePlus>();
+            for (int i = 0; i < imageTitles.length; i++) {
+                String actTitle = imageTitles[i];
+                ImagePlus imageTmp = WindowManager.getImage(actTitle);
+
+                for (int c = 0; c < imageTitles.length; c++) {
+                    String ch = "C=" + Integer.toString(c);
+                    if (true == actTitle.endsWith(ch)) {
+                        imagesPerChannel.put(ch, imageTmp);
+                        break;
+                    }
+                }
+
+                // Align images
+                /*Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+                ImageWindow win = imageTmp.getWindow();
+                win.setSize(600, 400);
+                int newPos = this.getX() + this.getWidth() + 10 + i * 30;
+                win.setLocation(newPos, this.getY() + i * 35);
+                IJ.run(imageTmp, "Scale to Fit", "");*/
+            }
+
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                String channelNr = channelSettings.get(n).channel.getSelectedItem().toString();
+
+                // Remove image
+                if (channelNr == "OFF") {
+                    if (null != mPreviewImage0[n]) {
+                        mPreviewImage0[n].setImage(mOriginalImage0[n]);
+                        mPreviewImage0[n] = null;
+                        mOriginalImage0[n] = null;
+                    }
+                } else {
+                    if (null == mPreviewImage0[n]) {
+                        // Assign image
+                        mPreviewImage0[n] = imagesPerChannel.get(channelNr);
+                        mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
+
+                        Filter.SubtractBackground(mPreviewImage0[n]);
+                        Filter.ApplyGaus(mPreviewImage0[n]);
+                    } else {
+                        // Swap image
+                        if (mPreviewImage0[n].getTitle() != imagesPerChannel.get(channelNr).getTitle()) {
+                            mPreviewImage0[n].setImage(mOriginalImage0[n]);
+                            mPreviewImage0[n] = null;
+                            mOriginalImage0[n] = null;
+
+                            mPreviewImage0[n] = imagesPerChannel.get(channelNr);
+                            mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
+
+                            Filter.SubtractBackground(mPreviewImage0[n]);
+                            Filter.ApplyGaus(mPreviewImage0[n]);
+                        }
+                    }
+                }
+            }
+        }
+
         public void refreshPreview() {
             if (thersholdPreview.isSelected() == true) {
+                assignImagesForPreview();
                 for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-                    if(null != mPreviewImage0[n]){
+                    if (null != mPreviewImage0[n]) {
                         setPreviewImage(mPreviewImage0[n], mOriginalImage0[n], channelSettings.get(n));
                     }
                 }
@@ -500,11 +552,6 @@ public class EvColocDialog extends JFrame {
                 } catch (NumberFormatException ex) {
                 }
                 double[] th = new double[2];
-                ImagePlus newImg = Filter.duplicateImage(imgOri);
-                imgPrev.setImage(newImg);
-
-                Filter.SubtractBackground(imgPrev);
-                Filter.ApplyGaus(imgPrev);
                 Filter.ApplyThershold(imgPrev, elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535,
                         th, false);
 
@@ -708,8 +755,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 3;
-        JLabel titl = new JLabel(
-                "Version " + Version.getVersion() + " | pre release | created for testing");
+        JLabel titl = new JLabel("Version " + Version.getVersion() + " | pre release | created for testing");
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
         titl.setBackground(Color.CYAN);
