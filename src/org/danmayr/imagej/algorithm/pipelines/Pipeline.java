@@ -212,6 +212,10 @@ abstract public class Pipeline {
       name = name.replace("%", "");
       name = name.replace(" ", "");
       name = name.replace(":", "");
+      name = name.replace("^", "");
+      name = name.replace("+", "");
+      name = name.replace("*", "");
+      name = name.replace("~", "");
       name = name.toLowerCase();
 
       String path = mSettings.mOutputFolder + java.io.File.separator + name;
