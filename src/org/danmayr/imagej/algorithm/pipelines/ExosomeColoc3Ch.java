@@ -26,8 +26,6 @@ public class ExosomeColoc3Ch extends ExosomColoc {
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
 
-        RoiManager rm = new RoiManager();
-
         ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
         ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
         ChannelSettings img2 = (ChannelSettings)getEvChannels().values().toArray()[2];

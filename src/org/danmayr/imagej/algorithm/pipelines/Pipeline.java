@@ -20,6 +20,8 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
+  protected RoiManager rm = new RoiManager();
+
 
   // Enum which contains the color indexes for a RGBStackMerge
   // see:

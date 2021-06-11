@@ -26,7 +26,6 @@ public class ExosomCount extends Pipeline {
     protected TreeMap<Integer, Channel> startPipeline(File img) {
 
         TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
-        RoiManager rm = new RoiManager();
         int nrOfPics =getEvChannels().values().toArray().length;
 
         ChannelSettings img0 = (ChannelSettings) getEvChannels().values().toArray()[0];

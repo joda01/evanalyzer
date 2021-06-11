@@ -168,7 +168,7 @@ public class FileProcessor extends Thread {
             }
 
             closeAllWindow();
-            WindowManager.closeAllWindows();
+            //WindowManager.closeAllWindows();
             mDialog.incrementProgressBarValue("analyzing ...");
             if (true == mStopping) {
                 break;

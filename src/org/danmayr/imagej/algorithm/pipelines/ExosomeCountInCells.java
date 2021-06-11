@@ -3,6 +3,7 @@ package org.danmayr.imagej.algorithm.pipelines;
 import ij.*;
 import ij.process.*;
 import ij.gui.*;
+import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
 
 import java.io.File;
@@ -36,7 +37,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mReturnChannels.clear();
                 mEditedEvs.clear();
                 mImage = img;
-                RoiManager rm = new RoiManager();
 
                 EvSeparation(rm);
                 ImagePlus cellArea = CellShapeDetection(rm);
@@ -71,7 +71,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 rm);
                                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
                                                 evSubtractedOriginal, evSubtracted, rm);
-                                                evCh.setThershold(in[0], in[1]);
+                                evCh.setThershold(in[0], in[1]);
                                 addReturnChannel(evCh);
                                 try {
                                         ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
@@ -106,8 +106,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.Smooth(cellsEdited);
                         Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
                         double[] in = new double[2];
-                        Filter.ApplyThershold(cellsEdited, set.mThersholdMethod,
-                                        set.minThershold, set.maxThershold, in, true);
+                        Filter.ApplyThershold(cellsEdited, set.mThersholdMethod, set.minThershold, set.maxThershold, in,
+                                        true);
                         Filter.AddThersholdToROI(cellsEdited, rm);
                         Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString(), rm);
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellsOriginal, cellsEdited, rm);
@@ -182,19 +182,26 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Now analyze cell by cell
                         //
-                        /*
-                         * for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                         * ImagePlus evImg = val.getValue().mChannelImg; for (int n = 0; n <
-                         * rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
-                         * evImg.setRoi(rm.getRoi(n)); ImagePlus analzedEvs =
-                         * Filter.AnalyzeParticlesNoClear(evImg, rm, 0, -1, 0, false);
-                         * Filter.SaveImage(analzedEvs, getPath(mImage) + "_evs_in_cell_" +
-                         * Integer.toString(n), rm); Channel cell = Filter.MeasureImage(n,
-                         * "evs_in_cell_" + Integer.toString(n), mSettings, analzedEvs, analzedEvs, rm);
-                         * addReturnChannel(cell); evImg.deleteRoi();
-                         * 
-                         * } }
-                         */
+                        ResultsTable rt = new ResultsTable();
+                        Filter.RoiSave(analyzedCells, rm);
+
+                        for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
+                                ImagePlus evImg = val.getValue().mChannelImg;
+                                for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
+                                       Filter.RoiOpen(analyzedCells, rm); 
+                                        evImg.setRoi(rm.getRoi(n));
+                                        rt.reset();
+                                        ImagePlus analzedEvs = Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
+                                        Filter.SaveImage(analzedEvs,
+                                                        getPath(mImage) + "_evs_in_cell_" + Integer.toString(n), rm);
+                                        Channel cell = Filter.createChannelFromMeasurement(
+                                                        "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
+                                        addReturnChannel(cell);
+                                        evImg.deleteRoi();
+
+                                }
+                        }
+
                 }
         }
 

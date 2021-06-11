@@ -334,6 +334,7 @@ public class Filter {
 
     private static ResultsTable measure(ImagePlus image, RoiManager rm) {
         IJ.run("Clear Results", "");
+        IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
         IJ.run("Set Measurements...", "area mean min shape redirect=None decimal=3");
         rm.runCommand(image, "Measure");
         ResultsTable tb= (ResultsTable) ResultsTable.getResultsTable().clone();
@@ -341,7 +342,7 @@ public class Filter {
         return tb;
     }
 
-    private static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
+    public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
             ResultsTable imgOriginal, ResultsTable imgThershold) {
 
         int area = imgThershold.getColumnIndex("Area");
