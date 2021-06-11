@@ -150,7 +150,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(new JLabel(""), c);
 
                 ////////////////////////////////////////////////////
-                String[] channelSel = { "OFF", "C=0", "C=1", "C=2", "C=3", "C=4", "C=5" };
+                String[] channelSel = { "OFF", "C=0", "C=1", "C=2", "C=3", "C=4", "C=5", "C=6", "C=7", "C=8", "C=9" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 channel = new JComboBox<String>(channelSel);
