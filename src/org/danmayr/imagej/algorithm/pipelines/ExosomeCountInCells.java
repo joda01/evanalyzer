@@ -188,7 +188,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                                 ImagePlus evImg = val.getValue().mChannelImg;
                                 for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
-                                       Filter.RoiOpen(analyzedCells, rm); 
                                         evImg.setRoi(rm.getRoi(n));
                                         rt.reset();
                                         ImagePlus analzedEvs = Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
@@ -198,7 +197,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                         "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
                                         addReturnChannel(cell);
                                         evImg.deleteRoi();
-
+                                        Filter.RoiOpen(analyzedCells, rm);
                                 }
                         }
 
