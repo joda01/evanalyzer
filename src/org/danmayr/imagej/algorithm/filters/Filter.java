@@ -84,7 +84,7 @@ public class Filter {
     }
 
     public static void FillHoles(ImagePlus img) {
-        IJ.run(img,"Fill Holes", "");
+        IJ.run(img, "Fill Holes", "");
     }
 
     public static void Voronoi(ImagePlus img) {
@@ -106,7 +106,7 @@ public class Filter {
     public static void Make8BitImage(ImagePlus img) {
         IJ.run(img, "8-bit", "");
     }
-    
+
     public static void Smooth(ImagePlus img) {
         IJ.run(img, "Smooth", "");
     }
@@ -169,7 +169,7 @@ public class Filter {
     // {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
     //
     public static ImagePlus MergeChannels(ImagePlus[] ary) {
-        //RGBStackMerge rgb = new RGBStackMerge();
+        // RGBStackMerge rgb = new RGBStackMerge();
         ImagePlus mrg = RGBStackMerge.mergeChannels(ary, true);
         return mrg;
     }
@@ -186,8 +186,8 @@ public class Filter {
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
         rm.runCommand(image, "Show All without labels");
-        //rm.runCommand("Set Color", "red");
-        //aintRoiLabels(image, rm);
+        // rm.runCommand("Set Color", "red");
+        // aintRoiLabels(image, rm);
         // IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none
         // label_1=right");
         ImagePlus overlayimage = image.flatten();
@@ -241,63 +241,75 @@ public class Filter {
         IJ.run(image, "Select None", "");
     }
 
-    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity) {
-        return AnalyzeParticles(image,rm,minSize,maxSize,minCircularity,true);
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
+            double minCircularity) {
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null);
     }
 
-    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity, boolean addToRoi) {
-        ClearRois(image, rm);
-        return AnalyzeParticlesNoClear(image,rm,minSize,maxSize,minCircularity,true);
+    public static ImagePlus AnalyzeParticlesDoNotAdd(ImagePlus image, RoiManager rm, double minSize, double maxSize,
+            double minCircularity, ResultsTable rt) {
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt);
     }
 
-    public static ImagePlus AnalyzeParticlesNoClear(ImagePlus image, RoiManager rm, double minSize, double maxSize, double minCircularity, boolean addToRoi) {
-        IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
+            double minCircularity, boolean addToRoi) {
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null);
+    }
+
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
+            double minCircularity, boolean addToRoi, ResultsTable rt) {
 
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/ParticleAnalyzer.html
         // ParticleAnalyzer analyzer
         // Analyzer
-        String maxSizeString = "Infinity";
-        if(maxSize >= 0 ){
-            maxSizeString = Float.toString((float)maxSize);
+        // int options, int measurements, ResultsTable rt, double minSize, double
+        // maxSize, double minCirc, double maxCirc
+        int option = ParticleAnalyzer.SHOW_MASKS;
+        if (true == addToRoi) {
+            Filter.ClearRois(image, rm);
+            option |= ParticleAnalyzer.ADD_TO_MANAGER;
+        }
+        if (maxSize < 0) {
+            maxSize = 999999;
         }
 
-        String addToRoiArg = "";
-        if(true == addToRoi){
-            addToRoiArg = " clear add";
-        }
-        // IJ.run(imp, "Analyze Particles...", "  show=Outlines display");
-        String arguments = "size="+Float.toString((float)minSize)+"-"+maxSizeString+" circularity="+Float.toString((float)minCircularity)+"-1.00 show=Masks"+addToRoiArg;
-        IJ.run(image, "Analyze Particles...", arguments);
-        rm.runCommand(image, "Show None");
-        String title = "Mask of "+image.getTitle();
-        ImagePlus mask = Filter.duplicateImage(WindowManager.getImage(title));
+        /*
+         * public static final int AREA=1,MEAN=2,STD_DEV=4,MODE=8,MIN_MAX=16,
+         * CENTROID=32,CENTER_OF_MASS=64,PERIMETER=128, LIMIT=256, RECT=512,
+         * LABELS=1024,ELLIPSE=2048,INVERT_Y=4096,CIRCULARITY=8192,
+         * SHAPE_DESCRIPTORS=8192,FERET=16384,INTEGRATED_DENSITY=0x8000, MEDIAN=0x10000,
+         * SKEWNESS=0x20000, KURTOSIS=0x40000, AREA_FRACTION=0x80000, SLICE=0x100000,
+         * STACK_POSITION=0x100000, SCIENTIFIC_NOTATION=0x200000,
+         * ADD_TO_OVERLAY=0x400000, NaN_EMPTY_CELLS=0x800000;
+         * 
+         * public static final int ALL_STATS = AREA+MEAN+STD_DEV+MODE+MIN_MAX+
+         * CENTROID+CENTER_OF_MASS+PERIMETER+RECT+
+         * ELLIPSE+SHAPE_DESCRIPTORS+FERET+INTEGRATED_DENSITY+
+         * MEDIAN+SKEWNESS+KURTOSIS+AREA_FRACTION;
+         */
+
+        int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
+                | Measurements.SHAPE_DESCRIPTORS;
+        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,
+                1.0);
+        ParticleAnalyzer.setRoiManager(rm);
+        analyzer.setHideOutputImage(true);
+        analyzer.analyze(image);
+        ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
-        Filter.ApplyThershold(mask,"Default");
-        rm.runCommand(mask, "Show None");
-        WindowManager.setCurrentWindow((ImageWindow)WindowManager.getWindow(title));
-        WindowManager.getCurrentWindow().close();
+        Filter.ApplyThershold(mask, "Default");
         return mask;
 
     }
 
-    public static ImagePlus paintOval(ImagePlus image) {
-        ImagePlus cpy = image.duplicate();
-        ImageProcessor ip = cpy.getProcessor();
-        IJ.setForegroundColor(255, 255, 0);
-        IJ.setBackgroundColor(255, 255, 0);
-        ip.setColor(java.awt.Color.WHITE);
-        ip.fillOval(20, 20, 10, 10);
-        return cpy;
-    }
-
-    public static void RoiSave(ImagePlus image,RoiManager rm){
+    public static void RoiSave(ImagePlus image, RoiManager rm) {
         File roizip = new File("roiset.zip");
         roizip.delete();
         rm.runCommand("save", "roiset.zip");
     }
 
-    public static void RoiOpen(ImagePlus image,RoiManager rm){
-        ClearRois(image,rm);
+    public static void RoiOpen(ImagePlus image, RoiManager rm) {
+        ClearRois(image, rm);
         rm.runCommand("open", "roiset.zip");
     }
 
@@ -312,98 +324,50 @@ public class Filter {
         // https://imagej.nih.gov/ij/developer/api/ij/measure/ResultsTable.html
         // ij.measure.ResultsTable
 
-        File original = new File("tempfileOriginal.csv");
-        File thershold = new File("tempfileThershold.csv");
+        ResultsTable r1=measure(imageOrigial, rm);
+        ResultsTable r2=measure(imageThershold, rm);
 
-        original.delete();
-        thershold.delete();
+        Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2);
 
-        measure(imageOrigial, original, rm);
-        measure(imageThershold, thershold, rm);
-
-        Channel ch = createChannelFromMeasurement(channelName, settings, original, thershold);
-
-        original.delete();
-        thershold.delete();
         return ch;
     }
 
-    private static void measure(ImagePlus image, File resultFileName, RoiManager rm) {
+    private static ResultsTable measure(ImagePlus image, RoiManager rm) {
         IJ.run("Clear Results", "");
         IJ.run("Set Measurements...", "area mean min shape redirect=None decimal=3");
         rm.runCommand(image, "Measure");
-        IJ.saveAs("Results", resultFileName.getAbsolutePath());
+        ResultsTable tb= (ResultsTable) ResultsTable.getResultsTable().clone();
         IJ.run("Clear Results", "");
+        return tb;
     }
 
     private static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
-            File originalFile, File thesholdFile) {
+            ResultsTable imgOriginal, ResultsTable imgThershold) {
+
+        int area = imgThershold.getColumnIndex("Area");
+        int mean = imgThershold.getColumnIndex("Mean");
+        int circ = imgThershold.getColumnIndex("Circ.");
 
         Channel ch = new Channel(channelName, new Statistics());
-        try {
-            String[] readLinesThershold = new String(
-                    Files.readAllBytes(Paths.get(thesholdFile.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
-                            .split("\n");
 
-            String[] readLinesOriginal = new String(
-                    Files.readAllBytes(Paths.get(originalFile.getAbsoluteFile().toString())), StandardCharsets.UTF_8)
-                            .split("\n");
+        // First line is header therefore start with 1
+        for (int i = 0; i < imgOriginal.size(); i++) {
 
-            // First line is header therefore start with 1
-            for (int i = 1; i < readLinesThershold.length; i++) {
+            double areaSize = imgOriginal.getValueAsDouble(area, i);
+            double grayScale = imgOriginal.getValueAsDouble(mean, i);
+            double thersholdScale = imgThershold.getValueAsDouble(mean, i);
+            double circularity = imgOriginal.getValueAsDouble(circ, i);
+            int roiNr = i;
 
-                String[] lineThershold = readLinesThershold[i].split(",");
-                String[] lineOriginal = readLinesOriginal[i].split(",");
-
-                double areaSize = 0.0;
-
-                try {
-                    areaSize = Double.parseDouble(lineOriginal[RESULT_FILE_IDX_AREA_SIZE]);
-                } catch (NumberFormatException ex) {
-                }
-
-                double grayScale = 0.0;
-                try {
-                    grayScale = Double.parseDouble(lineOriginal[RESULT_FILE_IDX_MEAN_GRAYSCALE]);
-                } catch (NumberFormatException ex) {
-                }
-
-                double thersholdScale = 0.0;
-                try {
-                    thersholdScale = Double.parseDouble(lineThershold[RESULT_FILE_IDX_MEAN_GRAYSCALE]);
-                } catch (NumberFormatException ex) {
-                }
-
-                double circularity = 0.0;
-                try {
-                    circularity = Double.parseDouble(lineOriginal[RESULT_FILE_IDX_CIRCULARITY]);
-                } catch (NumberFormatException ex) {
-                }
-
-                int roiNr = 0;
-                try {
-                    roiNr = Integer.parseInt(lineOriginal[RESULT_FILE_ROI_IDX]);
-                } catch (NumberFormatException ex) {
-                }
-
-                ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity);
-                if (null != settings) {
-                    exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize,
-                            settings.mMinCircularity, settings.minIntensity);
-                }
-                ch.addRoi(exosom);
+            ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity);
+            if (null != settings) {
+                exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
+                        settings.minIntensity);
             }
-
-            ch.calcStatistics();
-
-        } catch (IOException ex) {
-            IJ.log("No File: " + ex.getMessage());
-
-            ParticleInfo exosom = new ParticleInfo(0, 1, 0, 0, 0);
-            exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
-                    settings.minIntensity);
             ch.addRoi(exosom);
         }
+
+        ch.calcStatistics();
 
         return ch;
     }
