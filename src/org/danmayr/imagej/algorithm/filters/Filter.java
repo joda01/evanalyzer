@@ -268,6 +268,8 @@ public class Filter {
         if (true == addToRoi) {
             Filter.ClearRois(image, rm);
             option |= ParticleAnalyzer.ADD_TO_MANAGER;
+        }else{
+            option &= ~ParticleAnalyzer.ADD_TO_MANAGER;
         }
         if (maxSize < 0) {
             maxSize = 999999;
@@ -290,11 +292,14 @@ public class Filter {
 
         int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
                 | Measurements.SHAPE_DESCRIPTORS;
-        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,
-                1.0);
-        ParticleAnalyzer.setRoiManager(rm);
+        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,1.0);
+        if (true == addToRoi) {
+            ParticleAnalyzer.setRoiManager(rm);
+        }else{
+            ParticleAnalyzer.setRoiManager(null);
+        }
         analyzer.setHideOutputImage(true);
-        analyzer.analyze(image);
+        analyzer.analyze(image,image.getProcessor());
         ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
         Filter.ApplyThershold(mask, "Default");
@@ -324,8 +329,8 @@ public class Filter {
         // https://imagej.nih.gov/ij/developer/api/ij/measure/ResultsTable.html
         // ij.measure.ResultsTable
 
-        ResultsTable r1=measure(imageOrigial, rm);
-        ResultsTable r2=measure(imageThershold, rm);
+        ResultsTable r1 = measure(imageOrigial, rm);
+        ResultsTable r2 = measure(imageThershold, rm);
 
         Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2);
 
@@ -334,10 +339,9 @@ public class Filter {
 
     private static ResultsTable measure(ImagePlus image, RoiManager rm) {
         IJ.run("Clear Results", "");
-        IJ.run(image, "Set Scale...", "distance=0 known=0 unit=pixel global");
         IJ.run("Set Measurements...", "area mean min shape redirect=None decimal=3");
         rm.runCommand(image, "Measure");
-        ResultsTable tb= (ResultsTable) ResultsTable.getResultsTable().clone();
+        ResultsTable tb = (ResultsTable) ResultsTable.getResultsTable().clone();
         IJ.run("Clear Results", "");
         return tb;
     }

@@ -110,6 +110,9 @@ abstract public class Pipeline {
   /// Do some preprocessing
   ///
   private ImagePlus preProcessingSteps(ImagePlus imgIn,ChannelSettings chSettings){
+    IJ.run(imgIn, "Set Scale...", "distance=0 known=0 unit=pixel global");
+
+    
     if(chSettings.ZProjector != "OFF"){
       return ZProjector.run(imgIn, chSettings.ZProjector);
     }else{
