@@ -21,7 +21,7 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
-  protected RoiManager rm = new RoiManager();
+  //protected RoiManager rm = new RoiManager();
 
   // Enum which contains the color indexes for a RGBStackMerge
   // see:
@@ -87,15 +87,12 @@ abstract public class Pipeline {
   public TreeMap<Integer, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
     // String[] imageTitles = WindowManager.getImageTitles();
     imgChannel.clear();
+    PerformanceAnalyzer.start("Preprocessing");
     if (null != imagesLoaded) {
       for (int n = 0; n < mSettings.channelSettings.size(); n++) {
         ChannelSettings chSet = mSettings.channelSettings.get(n);
         if (chSet.mChannelNr >= 0 && imagesLoaded.length > chSet.mChannelNr) {
-          PerformanceAnalyzer.start("Preprocessing");
-
           chSet.mChannelImg = preProcessingSteps(imagesLoaded[chSet.mChannelNr], chSet);
-          PerformanceAnalyzer.stop();
-
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
           if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
             evChannel.put(mSettings.channelSettings.get(n).type, chSet);
@@ -103,8 +100,13 @@ abstract public class Pipeline {
         }
       }
     }
+    PerformanceAnalyzer.stop("Preprocessing");
 
-    return startPipeline(imageFile);
+    PerformanceAnalyzer.start("Pipeline");
+    TreeMap<Integer, Channel> result = startPipeline(imageFile);
+    PerformanceAnalyzer.stop("Pipeline");
+
+    return result;
   }
 
   ///

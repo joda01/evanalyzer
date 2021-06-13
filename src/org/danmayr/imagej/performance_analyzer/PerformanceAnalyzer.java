@@ -1,28 +1,22 @@
 package org.danmayr.imagej.performance_analyzer;
 
+import java.util.TreeMap;
+
 import ij.IJ;
 
 public class PerformanceAnalyzer {
-    static long mStartTime = 0;
-    static String mComment = "";
 
-    public static void start(String comment)
-    {
-        if(mStartTime!=0){
-            stop();
-        }
-        mComment = comment;
-        mStartTime = System.nanoTime();
-        //IJ.log("Start " + comment);
+    static TreeMap<String, Entry> mEntry = new TreeMap<>();
+
+    public static void start(String comment) {
+        Entry ent = new Entry(comment, System.nanoTime());
+        mEntry.put(comment, ent);
+
     }
 
-    public static void stop()
-    {
-        if(mStartTime > 0){
-            long diff = System.nanoTime() - mStartTime;
-            IJ.log("Stop " + mComment + "; " + Long.toString(diff));
-            mStartTime = 0;
-            mComment = "";
-        }
+    public static void stop(String comment) {
+        long diff = System.nanoTime() - mEntry.get(comment).mStartTime;
+        IJ.log("Stop " + comment + "; " + Double.toString((double)diff/(double)1000000000));
+
     }
 }

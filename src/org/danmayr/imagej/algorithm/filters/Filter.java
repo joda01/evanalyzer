@@ -341,18 +341,9 @@ public class Filter {
         // https://imagej.nih.gov/ij/developer/api/ij/measure/ResultsTable.html
         // ij.measure.ResultsTable
 
-        PerformanceAnalyzer.start("MeasureImage 1");
         ResultsTable r1 = measure(imageOrigial, rm);
-        PerformanceAnalyzer.stop();
-
-        PerformanceAnalyzer.start("MeasureImage 2");
         ResultsTable r2 = measure(imageThershold, rm);
-        PerformanceAnalyzer.stop();
-
-        PerformanceAnalyzer.start("createChannelFromMeasurement");
         Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2);
-        PerformanceAnalyzer.stop();
-
         return ch;
     }
 

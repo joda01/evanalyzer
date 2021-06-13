@@ -7,6 +7,7 @@ import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.structs.Channel;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 import ij.ImagePlus;
 import ij.plugin.frame.RoiManager;
@@ -22,6 +23,8 @@ public class ExosomColoc extends Pipeline {
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
 
+        RoiManager rm = new RoiManager(false);
+
         ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
         ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
 
@@ -35,8 +38,11 @@ public class ExosomColoc extends Pipeline {
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
+        PerformanceAnalyzer.start("filter_coloc");
         ImagePlus img0BeforeTh = preFilterSetColoc(img0Th,background, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
         img0.maxThershold, in0);
+        PerformanceAnalyzer.stop("filter_coloc");
+
         ImagePlus img1BeforeTh = preFilterSetColoc(img1Th,background, img1.enhanceContrast, img1.mThersholdMethod, img1.minThershold,
         img1.maxThershold, in1);
 
@@ -74,7 +80,10 @@ public class ExosomColoc extends Pipeline {
 
         // Save debug images
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
+        PerformanceAnalyzer.start("save_ctrl");
         saveControlImages(name,img0BeforeTh,img1BeforeTh,null, measCh0, measCh1, null, img0.type, img1.type, null, rm, coloc01);
+        PerformanceAnalyzer.stop("save_ctrl");
+
 
         return channels;
     }

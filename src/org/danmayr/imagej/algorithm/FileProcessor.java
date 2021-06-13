@@ -83,7 +83,7 @@ public class FileProcessor extends Thread {
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
             int nrOfEnabledCh = 0;
             for (ChannelSettings chSett : mAnalyseSettings.channelSettings) {
-                if (chSett.mChannelNr >=0 && true == chSett.type.isEvChannel()) {
+                if (chSett.mChannelNr >= 0 && true == chSett.type.isEvChannel()) {
                     nrOfEnabledCh++;
                 }
             }
@@ -131,10 +131,13 @@ public class FileProcessor extends Thread {
     }
 
     public static ImagePlus[] OpenImage(File imgToOpen, int series) {
-       
+
+        int n = Runtime.getRuntime().availableProcessors();
+        IJ.log("Available Processors: " + n);
+
         ImagePlus[] imps = null;
         try {
-            PerformanceAnalyzer.start("Open image " + imgToOpen.getName());
+            PerformanceAnalyzer.start("open_image");
             String fileName = imgToOpen.getAbsoluteFile().toString();
             IJ.log(imgToOpen.getAbsoluteFile().toString());
             ImporterOptions opt = new ImporterOptions();
@@ -145,26 +148,26 @@ public class FileProcessor extends Thread {
             opt.setSpecifyRanges(false);
             opt.setId(fileName);
             imps = BF.openImagePlus(opt);
-            IJ.log(""+imps.length);
 
-            /*PerformanceAnalyzer.start("Show image " + imgToOpen.getName());
-            for (ImagePlus imp : imps) imp.show();
-            PerformanceAnalyzer.stop();*/
+            /*
+             * PerformanceAnalyzer.start("Show image " + imgToOpen.getName()); for
+             * (ImagePlus imp : imps) imp.show();
+             */
+            PerformanceAnalyzer.stop("open_image");
         } catch (Exception exc) {
             IJ.error("Sorry, an error occurred: " + exc.getMessage());
             IJ.log("ERROR " + exc.getMessage());
         }
-        
+
         return imps;
 
-        /*IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
-                + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
-                + series);
-        PerformanceAnalyzer.stop();
-        PerformanceAnalyzer.start("Tile");
-        IJ.run("Tile", "");
-        IJ.run("Tile", "");
-        PerformanceAnalyzer.stop();*/
+        /*
+         * IJ.run("Bio-Formats Importer", "open=[" +
+         * imgToOpen.getAbsoluteFile().toString() +
+         * "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
+         * + series); PerformanceAnalyzer.stop(); PerformanceAnalyzer.start("Tile");
+         * IJ.run("Tile", ""); IJ.run("Tile", ""); PerformanceAnalyzer.stop();
+         */
     }
 
     /**
@@ -177,37 +180,52 @@ public class FileProcessor extends Thread {
     /**
      * Walk through all found files and analyse each image after the other
      */
+    Vector<Pair<File, ImagePlus[]>> mLoadedImages = new Vector<>();
+    boolean mAllLoaded = false;
+
     private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
-        int value = 0;
-        for (final File file : fileList) {
-            value++;
-
-            ImagePlus[] imagesLoaded = OpenImage(file, mAnalyseSettings.mSelectedSeries);
-
-            // String[] imageTitles = WindowManager.getImageTitles();
-            // if (imageTitles.length > 1) {
-
-            // File has:
-            // * red channel and green channel
-            // * red channel
-            // * green channel
-            // * red channel | negative control
-            // * green channel negative control
-
-            try {
-                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file,imagesLoaded);
-                mResuls.addImage(file.getParent(), file.getName(), images);
-            } catch (Exception ey) {
-                ey.printStackTrace();
+        PerformanceAnalyzer.start("walk_through_files");
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(mLoadedImages.size() > 3){
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                for (final File file : fileList) {
+                    ImagePlus[] imagesLoaded = OpenImage(file, mAnalyseSettings.mSelectedSeries);
+                    mLoadedImages.add(new Pair(file, imagesLoaded));
+                }
+                mAllLoaded = true;
             }
+        });
+        t1.start();
+        while (false == mAllLoaded) {
+            while (mLoadedImages.size() > 0) {
 
-            closeAllWindow();
-            // WindowManager.closeAllWindows();
-            mDialog.incrementProgressBarValue("analyzing ...");
-            if (true == mStopping) {
-                break;
+                File file = mLoadedImages.elementAt(0).getFirst();
+                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
+                mResuls.addImage(file.getParent(), file.getName(), images);
+                mLoadedImages.removeElementAt(0);
+
+                closeAllWindow();
+                mDialog.incrementProgressBarValue("analyzing ...");
+                if (true == mStopping) {
+                    break;
+                }
             }
         }
+        try {
+            t1.join();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        PerformanceAnalyzer.stop("walk_through_files");
     }
 
     /**
