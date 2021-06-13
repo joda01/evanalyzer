@@ -33,9 +33,16 @@ public class Statistics {
                 circularitySum += info.circularity;
             }
         }
-        avgAreaSize = areaSizeSum / nrOfValid;
-        avgGrayScale = grayScaleSum / nrOfValid;
-        avgCircularity = circularitySum / nrOfValid;
+        if(nrOfValid > 0){
+            avgAreaSize = areaSizeSum / nrOfValid;
+            avgGrayScale = grayScaleSum / nrOfValid;
+            avgCircularity = circularitySum / nrOfValid;
+
+        }else{
+            avgAreaSize = 0;
+            avgGrayScale = 0;
+            avgCircularity = 0;
+        }
         this.invalid = nrOfInvalid;
         this.valid = nrOfValid;
     }

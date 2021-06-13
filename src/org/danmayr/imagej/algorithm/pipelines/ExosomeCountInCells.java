@@ -48,7 +48,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                 PerformanceAnalyzer.stop("ExosomeCountInCells:CellShapeDetection");
 
                 PerformanceAnalyzer.start("ExosomeCountInCells:NucleusSeparation");
-                //NucleusSeparation(cellArea);
+                // NucleusSeparation(cellArea);
                 PerformanceAnalyzer.stop("ExosomeCountInCells:NucleusSeparation");
 
                 return mReturnChannels;
@@ -60,7 +60,7 @@ public class ExosomeCountInCells extends ExosomColoc {
         void EvSeparation() {
                 TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
                 for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
-                //evs.entrySet().parallelStream().forEach((val) -> {
+                        // evs.entrySet().parallelStream().forEach((val) -> {
                         RoiManager rm = new RoiManager(false);
 
                         ImagePlus evOriginal = val.getValue().mChannelImg;
@@ -95,7 +95,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 }
                         }
 
-                }//);
+                } // );
         }
 
         ///
@@ -113,7 +113,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         ImagePlus cellsEdited = Filter.duplicateImage(cellsOriginal);
 
                         Filter.FindEdges(cellsEdited);
-
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
@@ -121,7 +120,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
-
 
                         // Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
                         // Filter.FillHoles(cellsEdited);
@@ -138,7 +136,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Count EVS in Cells
                         //
-                        //mEditedEvs.entrySet().parallelStream().forEach((val) -> {
+                        // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                                 RoiManager rmEvs = new RoiManager(false);
 
@@ -170,7 +168,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 Filter.ClearRoiInImage(evChannelImgOriginal);
                                 Filter.ClearRoiInImage(evChannelImg);
 
-                        }//);
+                        } // );
                         return cellsEdited;
                 }
                 return null;
@@ -209,8 +207,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Filter.RoiSave(analyzedCells, rm);
 
-                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                        //mEditedEvs.entrySet().parallelStream().forEach((val) -> {
+                        for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
+                                // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                                 ImagePlus evImg = val.getValue().mChannelImg;
                                 // ImagePlus evImgOri =getEvChannels().get(val.getKey());
                                 evImg.show();
@@ -236,7 +234,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         addReturnChannel(cell);
                                 }
                                 evImg.hide();
-                        }//);
+                        } // );
 
                 }
         }

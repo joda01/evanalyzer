@@ -13,6 +13,7 @@ import ij.plugin.frame.*;
 
 import java.awt.*;
 import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 
 public class EvColoc implements PlugIn {
@@ -22,6 +23,8 @@ public class EvColoc implements PlugIn {
 
 	@Override
 	public void run(String arg) {
+		PerformanceAnalyzer.setGui(dialog);
+		dialog.setAlwaysOnTop(true);
 		dialog.setVisible(true);
 	/*	ImagePlus imp = IJ.getImage();
 		

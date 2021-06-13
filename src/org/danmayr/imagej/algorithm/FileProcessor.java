@@ -185,47 +185,52 @@ public class FileProcessor extends Thread {
 
     private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
         PerformanceAnalyzer.start("walk_through_files");
-        Thread t1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(mLoadedImages.size() > 3){
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                for (final File file : fileList) {
-                    ImagePlus[] imagesLoaded = OpenImage(file, mAnalyseSettings.mSelectedSeries);
-                    mLoadedImages.add(new Pair(file, imagesLoaded));
-                }
-                mAllLoaded = true;
-            }
-        });
-        t1.start();
-        while (false == mAllLoaded) {
+        loadNextFile(fileList);
+        loadNextFile(fileList);
+
+        while (false == mAllLoaded && false == mStopping) {
             while (mLoadedImages.size() > 0) {
-
-                File file = mLoadedImages.elementAt(0).getFirst();
-                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
-                mResuls.addImage(file.getParent(), file.getName(), images);
-                mLoadedImages.removeElementAt(0);
-
-                closeAllWindow();
-                mDialog.incrementProgressBarValue("analyzing ...");
                 if (true == mStopping) {
                     break;
                 }
+                File file = mLoadedImages.elementAt(0).getFirst();
+                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
+                mResuls.addImage(file.getParent(), file.getName(), images);
+
+                for (int n = 0; n < mLoadedImages.elementAt(0).getSecond().length; n++) {
+                    mLoadedImages.elementAt(0).getSecond()[n].close();
+                }
+
+                mLoadedImages.removeElementAt(0);
+                closeAllWindow();
+                loadNextFile(fileList);
+                mDialog.incrementProgressBarValue("analyzing ...");
+
             }
         }
-        try {
-            t1.join();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
         PerformanceAnalyzer.stop("walk_through_files");
+    }
+
+    //
+    // Load the next file
+    //
+    int mLoadFileCnt = 0;
+    void loadNextFile(ArrayList<File> fileList) {
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(mLoadFileCnt < fileList.size()) {
+                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(mLoadFileCnt), mAnalyseSettings.mSelectedSeries);
+                    mLoadedImages.add(new Pair(fileList.get(mLoadFileCnt), imagesLoaded));
+                    mLoadFileCnt++;
+                }
+                if(mLoadFileCnt >= fileList.size()){
+                    mAllLoaded = true;
+                }
+            }
+        });
+        t1.start();
     }
 
     /**

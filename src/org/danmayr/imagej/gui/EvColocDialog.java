@@ -13,9 +13,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.prefs.Preferences;
+import java.awt.BorderLayout;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -27,8 +30,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerModel;
@@ -119,7 +125,7 @@ public class EvColocDialog extends JFrame {
             public ChannelSettings getChannelSettings() {
 
                 ChannelSettings chSet = new ChannelSettings();
-                chSet.mChannelNr = channel.getSelectedIndex()-1;
+                chSet.mChannelNr = channel.getSelectedIndex() - 1;
                 chSet.type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem()).getValue();
                 chSet.mThersholdMethod = thersholdMethod.getSelectedItem().toString();
                 chSet.enhanceContrast = false;
@@ -487,12 +493,12 @@ public class EvColocDialog extends JFrame {
                 }
 
                 // Align images
-                /*Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                ImageWindow win = imageTmp.getWindow();
-                win.setSize(600, 400);
-                int newPos = this.getX() + this.getWidth() + 10 + i * 30;
-                win.setLocation(newPos, this.getY() + i * 35);
-                IJ.run(imageTmp, "Scale to Fit", "");*/
+                /*
+                 * Dimension size = Toolkit.getDefaultToolkit().getScreenSize(); ImageWindow win
+                 * = imageTmp.getWindow(); win.setSize(600, 400); int newPos = this.getX() +
+                 * this.getWidth() + 10 + i * 30; win.setLocation(newPos, this.getY() + i * 35);
+                 * IJ.run(imageTmp, "Scale to Fit", "");
+                 */
             }
 
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
@@ -742,10 +748,39 @@ public class EvColocDialog extends JFrame {
     ///
     /// Constructor
     ///
+    JTabbedPane tabbedPane = new JTabbedPane();
     public EvColocDialog() {
 
+        BorderLayout boorderL = new BorderLayout();
+        this.setLayout(boorderL);
+
+
+        tabbedPane.addTab("main", CreateMainTab());
+        tabbedPane.addTab("log", createLogPanel());
+
+        this.add(tabbedPane, BorderLayout.CENTER);
+        this.add(createFooter(),BorderLayout.SOUTH);
+
+        // Pack it
+        // setBackground(Color.WHITE);
+        // getContentPane().setBackground(Color.WHITE);
+        pack();
+
+        // this.setAlwaysOnTop(true);
+        this.setResizable(false);
+        setTitle("Exosome analyzer " + Version.getVersion());
+    }
+
+    ///
+    ///
+    ///
+    ///
+    public JPanel CreateMainTab(){
+        ////////////////////////////////////////////////////////////////////
+        JPanel mainTab = new JPanel();
+
         GridBagLayout layout = new GridBagLayout();
-        setLayout(layout);
+        mainTab.setLayout(layout);
 
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
@@ -759,7 +794,7 @@ public class EvColocDialog extends JFrame {
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
         titl.setBackground(Color.CYAN);
-        this.add(titl, c);
+        mainTab.add(titl, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -774,12 +809,12 @@ public class EvColocDialog extends JFrame {
         l1.setSize(new Dimension(200, l1.getSize().height));
         ImageIcon li1 = new ImageIcon(getClass().getResource("icons8-open-folder-in-new-tab-16.png"));
         l1.setIcon(li1);
-        this.add(l1, c);
+        mainTab.add(l1, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
-        this.add(mInputFolder, c);
+        mainTab.add(mInputFolder, c);
 
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.LINE_END;
@@ -797,7 +832,7 @@ public class EvColocDialog extends JFrame {
                 reportSettings.mReportFileName.setText(outFolder);
             }
         });
-        this.add(mbInputFolder, c);
+        mainTab.add(mbInputFolder, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -811,12 +846,12 @@ public class EvColocDialog extends JFrame {
         l2.setSize(new Dimension(200, l2.getSize().height));
         ImageIcon li2 = new ImageIcon(getClass().getResource("icons8-open-folder-in-new-tab-16.png"));
         l2.setIcon(li2);
-        this.add(l2, c);
+        mainTab.add(l2, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
-        this.add(mOutputFolder, c);
+        mainTab.add(mOutputFolder, c);
 
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.LINE_END;
@@ -829,7 +864,7 @@ public class EvColocDialog extends JFrame {
                 OpenDirectoryChooser(mOutputFolder, null);
             }
         });
-        this.add(mbOutputFolder, c);
+        mainTab.add(mbOutputFolder, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -843,21 +878,21 @@ public class EvColocDialog extends JFrame {
         l3.setSize(new Dimension(200, l3.getSize().height));
         ImageIcon li3 = new ImageIcon(getClass().getResource("icons8-sheets-16.png"));
         l3.setIcon(li3);
-        this.add(l3, c);
+        mainTab.add(l3, c);
 
         String[] series = { "series_1", "series_2", "series_3", "series_4", "series_5" };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
         mSeries = new JComboBox<String>(series);
-        this.add(mSeries, c);
+        mainTab.add(mSeries, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -871,7 +906,7 @@ public class EvColocDialog extends JFrame {
         l.setSize(new Dimension(200, l.getSize().height));
         ImageIcon li = new ImageIcon(getClass().getResource("icons8-lambda-16.png"));
         l.setIcon(li);
-        this.add(l, c);
+        mainTab.add(l, c);
 
         AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
                 AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes,
@@ -909,14 +944,14 @@ public class EvColocDialog extends JFrame {
                 }
             }
         });
-        this.add(mFunctionSelection, c);
+        mainTab.add(mFunctionSelection, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -924,59 +959,74 @@ public class EvColocDialog extends JFrame {
         c.gridy++;
         c.weightx = 0;
         c.gridwidth = 3;
-        this.add(chSettings, c);
+        mainTab.add(chSettings, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.weightx = 0;
-        this.add(new JLabel("Filter: "), c);
+        mainTab.add(new JLabel("Filter: "), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
-        this.add(filter, c);
+        mainTab.add(filter, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.weightx = 0;
-        this.add(new JLabel("Report settings: "), c);
+        mainTab.add(new JLabel("Report settings: "), c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
-        this.add(reportSettings, c);
+        mainTab.add(reportSettings, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
+        return mainTab;
+    }
+
+
+    ///
+    ///
+    ///
+    public JPanel createFooter() {
+        JPanel p = new JPanel(new GridBagLayout());
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(4, 4, 4, 4); // top padding
+        
         ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy++;
-        c.weightx = 3;
+        c.gridy=0;
+        c.weightx = 1;
+        c.gridwidth = 3;
         mProgressbar.setStringPainted(true);
         mProgressbar.setString("0");
-        this.add(mProgressbar, c);
+        p.add(mProgressbar, c);
 
         ////////////////////////////////////////////////////
         mMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -1028,25 +1078,29 @@ public class EvColocDialog extends JFrame {
         mClose.setText("Close");
         mMenu.add(mClose);
 
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(mMenu, c);
+        c.weightx = 1;
+        p.add(mMenu, c);
 
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
+        c.weightx = 1;
         int size = NewsTickerText.mNewsTicker.length - 1;
         int rand = 0 + (int) (Math.random() * ((size - 0) + 1));
         mLNewsTicker.setText(NewsTickerText.mNewsTicker[rand]);
-        this.add(mLNewsTicker, c);
+        p.add(mLNewsTicker, c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
         c.gridwidth = 3;
-        this.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        p.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////
 
@@ -1057,9 +1111,9 @@ public class EvColocDialog extends JFrame {
 
         c.gridx = 0;
         c.gridy++;
-        c.weightx = 2;
-        c.gridwidth = 2;
-        this.add(logo, c);
+        c.weightx = 1;
+        c.gridwidth = 1;
+        p.add(logo, c);
 
         JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
         about.addActionListener(new java.awt.event.ActionListener() {
@@ -1075,16 +1129,28 @@ public class EvColocDialog extends JFrame {
         c.gridx = 2;
         c.weightx = 0;
         c.gridwidth = 1;
-        this.add(about, c);
+        p.add(about, c);
 
-        // Pack it
-        // setBackground(Color.WHITE);
-        // getContentPane().setBackground(Color.WHITE);
-        pack();
 
-        // this.setAlwaysOnTop(true);
-        this.setResizable(false);
-        setTitle("Exosome analyzer " + Version.getVersion());
+
+        return p;
+    }
+
+    JTextArea mLog = new JTextArea();
+    public JPanel createLogPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        JScrollPane sp = new JScrollPane(mLog);   // JTextArea is placed in a JScrollPane.
+
+        p.add(sp,BorderLayout.CENTER);
+        return p;
+    }
+
+    public void addLogEntry(String text){
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formatDateTime = localDateTime.format(formatter);
+        mLog.append(formatDateTime+"\t"+text+"\n");
+        mLog.setCaretPosition(mLog.getDocument().getLength());
     }
 
     public void setProgressBarMaxSize(int value, String lable) {
@@ -1141,8 +1207,7 @@ public class EvColocDialog extends JFrame {
         // It is not allowed to have two equal channel types
         for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
             for (int m = 0; m < NUMBEROFCHANNELSETTINGS; m++) {
-                if (sett.channelSettings.get(n).mChannelNr >=0
-                        && sett.channelSettings.get(m).mChannelNr >=0) {
+                if (sett.channelSettings.get(n).mChannelNr >= 0 && sett.channelSettings.get(m).mChannelNr >= 0) {
                     if (n != m) {
                         if (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
 
@@ -1190,6 +1255,7 @@ public class EvColocDialog extends JFrame {
         }
 
         if (error.length() <= 0) {
+            tabbedPane.setSelectedIndex(1);
             mActAnalyzer = new FileProcessor(this, sett);
             mActAnalyzer.start();
         } else {
