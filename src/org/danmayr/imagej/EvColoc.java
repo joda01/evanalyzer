@@ -24,7 +24,7 @@ public class EvColoc implements PlugIn {
 	@Override
 	public void run(String arg) {
 		PerformanceAnalyzer.setGui(dialog);
-		dialog.setAlwaysOnTop(true);
+		dialog.toFront();
 		dialog.setVisible(true);
 	/*	ImagePlus imp = IJ.getImage();
 		

@@ -456,7 +456,7 @@ public class EvColocDialog extends JFrame {
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(mPrevImgIdx, mInputFolder.getText());
                 if (null != OpenImage) {
-                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedIndex());
+                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedIndex(),true);
                 }
             }
 
@@ -748,7 +748,7 @@ public class EvColocDialog extends JFrame {
     ///
     /// Constructor
     ///
-    JTabbedPane tabbedPane = new JTabbedPane();
+    public JTabbedPane tabbedPane = new JTabbedPane();
     public EvColocDialog() {
 
         BorderLayout boorderL = new BorderLayout();
@@ -1145,12 +1145,15 @@ public class EvColocDialog extends JFrame {
         return p;
     }
 
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public void addLogEntry(String text){
         LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formatDateTime = localDateTime.format(formatter);
-        mLog.append(formatDateTime+"\t"+text+"\n");
-        mLog.setCaretPosition(mLog.getDocument().getLength());
+        mLog.insert(formatDateTime+"\t"+text+"\n", 0);
+    }
+
+    public void addLogEntryNewLine(){
+        mLog.insert("\n", 0);
     }
 
     public void setProgressBarMaxSize(int value, String lable) {

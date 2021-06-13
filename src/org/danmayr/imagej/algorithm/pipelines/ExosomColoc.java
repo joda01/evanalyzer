@@ -38,10 +38,8 @@ public class ExosomColoc extends Pipeline {
         double[] in0 = new double[2];
         double[] in1 = new double[2];
 
-        PerformanceAnalyzer.start("filter_coloc");
         ImagePlus img0BeforeTh = preFilterSetColoc(img0Th,background, img0.enhanceContrast, img0.mThersholdMethod, img0.minThershold,
         img0.maxThershold, in0);
-        PerformanceAnalyzer.stop("filter_coloc");
 
         ImagePlus img1BeforeTh = preFilterSetColoc(img1Th,background, img1.enhanceContrast, img1.mThersholdMethod, img1.minThershold,
         img1.maxThershold, in1);

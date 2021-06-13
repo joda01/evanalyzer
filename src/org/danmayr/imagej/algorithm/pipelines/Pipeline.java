@@ -21,7 +21,7 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
-  //protected RoiManager rm = new RoiManager();
+  // protected RoiManager rm = new RoiManager();
 
   // Enum which contains the color indexes for a RGBStackMerge
   // see:
@@ -87,7 +87,7 @@ abstract public class Pipeline {
   public TreeMap<Integer, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
     // String[] imageTitles = WindowManager.getImageTitles();
     imgChannel.clear();
-    PerformanceAnalyzer.start("Preprocessing");
+    PerformanceAnalyzer.start("preprocessing");
     if (null != imagesLoaded) {
       for (int n = 0; n < mSettings.channelSettings.size(); n++) {
         ChannelSettings chSet = mSettings.channelSettings.get(n);
@@ -100,11 +100,11 @@ abstract public class Pipeline {
         }
       }
     }
-    PerformanceAnalyzer.stop("Preprocessing");
+    PerformanceAnalyzer.stop("preprocessing");
 
-    PerformanceAnalyzer.start("Pipeline");
+    PerformanceAnalyzer.start("analyze_img");
     TreeMap<Integer, Channel> result = startPipeline(imageFile);
-    PerformanceAnalyzer.stop("Pipeline");
+    PerformanceAnalyzer.stop("analyze_img");
 
     return result;
   }
@@ -168,14 +168,16 @@ abstract public class Pipeline {
   public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
       String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
+    PerformanceAnalyzer.start("filter_coloc");
+
     ImagePlus th = img;
     if (null != background) {
       th = Filter.SubtractImages(th, background);
     }
 
-    if (true == enhanceContrast) {
-      Filter.EnhanceContrast(th);
-    }
+   // if (true == enhanceContrast) {
+   //   Filter.EnhanceContrast(th);
+   // }
 
     Filter.SubtractBackground(th);
     Filter.ApplyGaus(th);
@@ -184,6 +186,8 @@ abstract public class Pipeline {
 
     Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
     img.setImage(th);
+    PerformanceAnalyzer.stop("filter_coloc");
+
     return beforeThershold;
   }
 

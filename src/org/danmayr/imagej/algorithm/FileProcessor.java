@@ -130,7 +130,7 @@ public class FileProcessor extends Thread {
         }
     }
 
-    public static ImagePlus[] OpenImage(File imgToOpen, int series) {
+    public static ImagePlus[] OpenImage(File imgToOpen, int series, boolean showImg) {
 
         int n = Runtime.getRuntime().availableProcessors();
         IJ.log("Available Processors: " + n);
@@ -149,11 +149,13 @@ public class FileProcessor extends Thread {
             opt.setId(fileName);
             imps = BF.openImagePlus(opt);
 
-            /*
-             * PerformanceAnalyzer.start("Show image " + imgToOpen.getName()); for
-             * (ImagePlus imp : imps) imp.show();
-             */
-            PerformanceAnalyzer.stop("open_image");
+            if(showImg == true)
+            {
+             for(ImagePlus imp : imps) imp.show();
+             IJ.run("Tile", ""); 
+             IJ.run("Tile", "");
+            }
+            
         } catch (Exception exc) {
             IJ.error("Sorry, an error occurred: " + exc.getMessage());
             IJ.log("ERROR " + exc.getMessage());
@@ -184,9 +186,11 @@ public class FileProcessor extends Thread {
     boolean mAllLoaded = false;
 
     private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
-        PerformanceAnalyzer.start("walk_through_files");
+        mDialog.addLogEntryNewLine();
+        PerformanceAnalyzer.start("analyze_files");
         loadNextFile(fileList);
         loadNextFile(fileList);
+        mDialog.setAlwaysOnTop(true);
 
         while (false == mAllLoaded && false == mStopping) {
             while (mLoadedImages.size() > 0) {
@@ -205,27 +209,28 @@ public class FileProcessor extends Thread {
                 closeAllWindow();
                 loadNextFile(fileList);
                 mDialog.incrementProgressBarValue("analyzing ...");
-
             }
         }
-
-        PerformanceAnalyzer.stop("walk_through_files");
+        mDialog.setAlwaysOnTop(false);
+        mDialog.tabbedPane.setSelectedIndex(0);
+        PerformanceAnalyzer.stop("analyze_files");
     }
 
     //
     // Load the next file
     //
     int mLoadFileCnt = 0;
+
     void loadNextFile(ArrayList<File> fileList) {
         Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                if(mLoadFileCnt < fileList.size()) {
-                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(mLoadFileCnt), mAnalyseSettings.mSelectedSeries);
+                if (mLoadFileCnt < fileList.size()) {
+                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(mLoadFileCnt), mAnalyseSettings.mSelectedSeries,false);
                     mLoadedImages.add(new Pair(fileList.get(mLoadFileCnt), imagesLoaded));
                     mLoadFileCnt++;
                 }
-                if(mLoadFileCnt >= fileList.size()){
+                if (mLoadFileCnt >= fileList.size()) {
                     mAllLoaded = true;
                 }
             }
