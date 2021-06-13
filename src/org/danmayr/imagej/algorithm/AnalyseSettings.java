@@ -40,7 +40,7 @@ public class AnalyseSettings {
     public Function mSelectedFunction;
     public String mInputFolder;
     public String mOutputFolder;
-    public String mSelectedSeries; // series_1
+    public int mSelectedSeries; // series_1  = 0
     public double mMinParticleSize = 0.0;
     public double mMaxParticleSize = 999999999;
     public double mMinCircularity = 0.0;

@@ -11,6 +11,7 @@ import ij.plugin.frame.RoiManager;
 
 import java.util.*;
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
@@ -21,7 +22,6 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 ///
 abstract public class Pipeline {
   protected RoiManager rm = new RoiManager();
-
 
   // Enum which contains the color indexes for a RGBStackMerge
   // see:
@@ -84,16 +84,18 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile) {
-    String[] imageTitles = WindowManager.getImageTitles();
+  public TreeMap<Integer, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
+    // String[] imageTitles = WindowManager.getImageTitles();
     imgChannel.clear();
+    if (null != imagesLoaded) {
+      for (int n = 0; n < mSettings.channelSettings.size(); n++) {
+        ChannelSettings chSet = mSettings.channelSettings.get(n);
+        if (chSet.mChannelNr >= 0 && imagesLoaded.length > chSet.mChannelNr) {
+          PerformanceAnalyzer.start("Preprocessing");
 
-    for (int n = 0; n < mSettings.channelSettings.size(); n++) {
-      for (int i = 0; i < imageTitles.length; i++) {
-        String actTitle = imageTitles[i];
-        if (true == actTitle.endsWith(mSettings.channelSettings.get(n).mChannelName)) {
-          ChannelSettings chSet = mSettings.channelSettings.get(n);
-          chSet.mChannelImg = preProcessingSteps(WindowManager.getImage(actTitle),chSet);
+          chSet.mChannelImg = preProcessingSteps(imagesLoaded[chSet.mChannelNr], chSet);
+          PerformanceAnalyzer.stop();
+
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
           if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
             evChannel.put(mSettings.channelSettings.get(n).type, chSet);
@@ -105,17 +107,15 @@ abstract public class Pipeline {
     return startPipeline(imageFile);
   }
 
-
   ///
   /// Do some preprocessing
   ///
-  private ImagePlus preProcessingSteps(ImagePlus imgIn,ChannelSettings chSettings){
+  private ImagePlus preProcessingSteps(ImagePlus imgIn, ChannelSettings chSettings) {
     IJ.run(imgIn, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
-    
-    if(chSettings.ZProjector != "OFF"){
+    if (chSettings.ZProjector != "OFF") {
       return ZProjector.run(imgIn, chSettings.ZProjector);
-    }else{
+    } else {
       return imgIn;
     }
   }
@@ -235,7 +235,7 @@ abstract public class Pipeline {
         if (imgAry[n] != null && chAry[n] != null) {
           String fileName = "_" + chNames[n] + ".jpg";
           ImagePlus newImg = Filter.duplicateImage(imgAry[n]);
-          Filter.SaveImageWithOverlay(newImg,rm,path + fileName);
+          Filter.SaveImageWithOverlay(newImg, rm, path + fileName);
           chAry[n].addControlImagePath(name + fileName);
         }
       }

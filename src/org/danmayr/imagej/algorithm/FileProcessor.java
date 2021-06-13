@@ -2,6 +2,11 @@ package org.danmayr.imagej.algorithm;
 
 import ij.*;
 import ij.process.*;
+
+import java.io.File;
+
+import loci.plugins.BF;
+import loci.plugins.in.ImporterOptions;
 import ij.gui.*;
 import java.awt.*;
 import java.io.BufferedWriter;
@@ -32,6 +37,7 @@ import org.danmayr.imagej.algorithm.filters.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 
 import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 public class FileProcessor extends Thread {
 
@@ -77,7 +83,7 @@ public class FileProcessor extends Thread {
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
             int nrOfEnabledCh = 0;
             for (ChannelSettings chSett : mAnalyseSettings.channelSettings) {
-                if (chSett.mChannelName != "OFF" && true == chSett.type.isEvChannel()) {
+                if (chSett.mChannelNr >=0 && true == chSett.type.isEvChannel()) {
                     nrOfEnabledCh++;
                 }
             }
@@ -124,13 +130,41 @@ public class FileProcessor extends Thread {
         }
     }
 
-    public static void OpenImage(File imgToOpen, String series) {
-        IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
+    public static ImagePlus[] OpenImage(File imgToOpen, int series) {
+       
+        ImagePlus[] imps = null;
+        try {
+            PerformanceAnalyzer.start("Open image " + imgToOpen.getName());
+            String fileName = imgToOpen.getAbsoluteFile().toString();
+            IJ.log(imgToOpen.getAbsoluteFile().toString());
+            ImporterOptions opt = new ImporterOptions();
+            opt.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
+            opt.setStackOrder(ImporterOptions.ORDER_XYZCT);
+            opt.setSeriesOn(series, true);
+            opt.setSplitChannels(true);
+            opt.setSpecifyRanges(false);
+            opt.setId(fileName);
+            imps = BF.openImagePlus(opt);
+            IJ.log(""+imps.length);
+
+            /*PerformanceAnalyzer.start("Show image " + imgToOpen.getName());
+            for (ImagePlus imp : imps) imp.show();
+            PerformanceAnalyzer.stop();*/
+        } catch (Exception exc) {
+            IJ.error("Sorry, an error occurred: " + exc.getMessage());
+            IJ.log("ERROR " + exc.getMessage());
+        }
+        
+        return imps;
+
+        /*IJ.run("Bio-Formats Importer", "open=[" + imgToOpen.getAbsoluteFile().toString()
                 + "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
                 + series);
-
+        PerformanceAnalyzer.stop();
+        PerformanceAnalyzer.start("Tile");
         IJ.run("Tile", "");
         IJ.run("Tile", "");
+        PerformanceAnalyzer.stop();*/
     }
 
     /**
@@ -148,7 +182,7 @@ public class FileProcessor extends Thread {
         for (final File file : fileList) {
             value++;
 
-            OpenImage(file, mAnalyseSettings.mSelectedSeries);
+            ImagePlus[] imagesLoaded = OpenImage(file, mAnalyseSettings.mSelectedSeries);
 
             // String[] imageTitles = WindowManager.getImageTitles();
             // if (imageTitles.length > 1) {
@@ -161,14 +195,14 @@ public class FileProcessor extends Thread {
             // * green channel negative control
 
             try {
-                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file);
+                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file,imagesLoaded);
                 mResuls.addImage(file.getParent(), file.getName(), images);
             } catch (Exception ey) {
                 ey.printStackTrace();
             }
 
             closeAllWindow();
-            //WindowManager.closeAllWindows();
+            // WindowManager.closeAllWindows();
             mDialog.incrementProgressBarValue("analyzing ...");
             if (true == mStopping) {
                 break;

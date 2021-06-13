@@ -38,6 +38,7 @@ import ij.plugin.frame.*;
 import ij.plugin.filter.ParticleAnalyzer;
 
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.statistics.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 
@@ -241,6 +242,16 @@ public class Filter {
         IJ.run(image, "Select None", "");
     }
 
+    public static void SetRoiInImage(ImagePlus image, RoiManager rm, int idx) {
+        image.setRoi(rm.getRoi(idx));
+        image.getProcessor().setRoi(rm.getRoi(idx));
+    }
+
+    public static void ClearRoiInImage(ImagePlus image) {
+        image.deleteRoi();
+        image.getProcessor().setRoi((Roi)null);
+    }
+
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity) {
         return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null);
@@ -268,7 +279,7 @@ public class Filter {
         if (true == addToRoi) {
             Filter.ClearRois(image, rm);
             option |= ParticleAnalyzer.ADD_TO_MANAGER;
-        }else{
+        } else {
             option &= ~ParticleAnalyzer.ADD_TO_MANAGER;
         }
         if (maxSize < 0) {
@@ -292,14 +303,15 @@ public class Filter {
 
         int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
                 | Measurements.SHAPE_DESCRIPTORS;
-        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,1.0);
+        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,
+                1.0);
         if (true == addToRoi) {
             ParticleAnalyzer.setRoiManager(rm);
-        }else{
+        } else {
             ParticleAnalyzer.setRoiManager(null);
         }
         analyzer.setHideOutputImage(true);
-        analyzer.analyze(image,image.getProcessor());
+        analyzer.analyze(image, image.getProcessor());
         ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
         Filter.ApplyThershold(mask, "Default");
@@ -329,10 +341,17 @@ public class Filter {
         // https://imagej.nih.gov/ij/developer/api/ij/measure/ResultsTable.html
         // ij.measure.ResultsTable
 
+        PerformanceAnalyzer.start("MeasureImage 1");
         ResultsTable r1 = measure(imageOrigial, rm);
-        ResultsTable r2 = measure(imageThershold, rm);
+        PerformanceAnalyzer.stop();
 
+        PerformanceAnalyzer.start("MeasureImage 2");
+        ResultsTable r2 = measure(imageThershold, rm);
+        PerformanceAnalyzer.stop();
+
+        PerformanceAnalyzer.start("createChannelFromMeasurement");
         Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2);
+        PerformanceAnalyzer.stop();
 
         return ch;
     }

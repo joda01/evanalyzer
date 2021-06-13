@@ -145,7 +145,7 @@ public class ExcelExport {
         row = WriteRow(summarySheet,row,"Report filename",String.valueOf(settings.mOutputFileName));
 
         for(int n = 0; n<settings.channelSettings.size();n++){
-            row = WriteChannelSettingToSummarySheet(summarySheet, row,settings.channelSettings.get(n).mChannelName,settings.channelSettings.get(n));
+            row = WriteChannelSettingToSummarySheet(summarySheet, row,"C="+settings.channelSettings.get(n).mChannelNr,settings.channelSettings.get(n));
         }
         return row;
     }

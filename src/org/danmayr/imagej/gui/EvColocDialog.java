@@ -119,7 +119,7 @@ public class EvColocDialog extends JFrame {
             public ChannelSettings getChannelSettings() {
 
                 ChannelSettings chSet = new ChannelSettings();
-                chSet.mChannelName = channel.getSelectedItem().toString();
+                chSet.mChannelNr = channel.getSelectedIndex()-1;
                 chSet.type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem()).getValue();
                 chSet.mThersholdMethod = thersholdMethod.getSelectedItem().toString();
                 chSet.enhanceContrast = false;
@@ -450,7 +450,7 @@ public class EvColocDialog extends JFrame {
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(mPrevImgIdx, mInputFolder.getText());
                 if (null != OpenImage) {
-                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedItem().toString());
+                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedIndex());
                 }
             }
 
@@ -1125,7 +1125,7 @@ public class EvColocDialog extends JFrame {
         if (sett.mOutputFolder.length() <= 0) {
             error = "Please select an output folder!\n";
         }
-        sett.mSelectedSeries = mSeries.getSelectedItem().toString();
+        sett.mSelectedSeries = mSeries.getSelectedIndex();
 
         //
         // Assign channel settings
@@ -1141,15 +1141,15 @@ public class EvColocDialog extends JFrame {
         // It is not allowed to have two equal channel types
         for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
             for (int m = 0; m < NUMBEROFCHANNELSETTINGS; m++) {
-                if (sett.channelSettings.get(n).mChannelName != "OFF"
-                        && sett.channelSettings.get(m).mChannelName != "OFF") {
+                if (sett.channelSettings.get(n).mChannelNr >=0
+                        && sett.channelSettings.get(m).mChannelNr >=0) {
                     if (n != m) {
                         if (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
 
                             // Only check two different channel
                             error += "There are two equal channel types!\n";
                         }
-                        if (sett.channelSettings.get(n).mChannelName == sett.channelSettings.get(m).mChannelName) {
+                        if (sett.channelSettings.get(n).mChannelNr == sett.channelSettings.get(m).mChannelNr) {
                             // Only check two different channel
                             error += "There are two equal channel numbers!\n";
                         }

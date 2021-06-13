@@ -7,7 +7,7 @@ import ij.ImagePlus;
 
 public class ChannelSettings implements Cloneable{
     public ImagePlus mChannelImg;
-    public String mChannelName="C=0";
+    public int mChannelNr=0;
     public Pipeline.ChannelType type;
     public String mThersholdMethod;
     public boolean enhanceContrast;
