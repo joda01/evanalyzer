@@ -56,6 +56,7 @@ public class FileProcessor extends Thread {
      */
     public void run() {
 
+        mStopping = false;
         // Close all open windows
         closeAllWindow();
         WindowManager.closeAllWindows();
@@ -149,13 +150,13 @@ public class FileProcessor extends Thread {
             opt.setId(fileName);
             imps = BF.openImagePlus(opt);
 
-            if(showImg == true)
-            {
-             for(ImagePlus imp : imps) imp.show();
-             IJ.run("Tile", ""); 
-             IJ.run("Tile", "");
+            if (showImg == true) {
+                for (ImagePlus imp : imps)
+                    imp.show();
+                IJ.run("Tile", "");
+                IJ.run("Tile", "");
             }
-            
+
         } catch (Exception exc) {
             IJ.error("Sorry, an error occurred: " + exc.getMessage());
             IJ.log("ERROR " + exc.getMessage());
@@ -179,21 +180,20 @@ public class FileProcessor extends Thread {
         mStopping = true;
     }
 
-    /**
-     * Walk through all found files and analyse each image after the other
-     */
     Vector<Pair<File, ImagePlus[]>> mLoadedImages = new Vector<>();
-    boolean mAllLoaded = false;
 
     private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
+        mLoadedImages.clear();
+        int fileIdx = 0;
+        int processedFiles = 0;
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
-        loadNextFile(fileList);
-        loadNextFile(fileList);
+        fileIdx = loadNextFile(fileList, fileIdx);
+        fileIdx = loadNextFile(fileList, fileIdx);
         mDialog.setAlwaysOnTop(true);
 
-        while (false == mAllLoaded && false == mStopping) {
-            while (mLoadedImages.size() > 0) {
+        do {
+            while (mLoadedImages.size() > 0 && false == mStopping && processedFiles < fileList.size()) {
                 if (true == mStopping) {
                     break;
                 }
@@ -207,10 +207,11 @@ public class FileProcessor extends Thread {
 
                 mLoadedImages.removeElementAt(0);
                 closeAllWindow();
-                loadNextFile(fileList);
+                fileIdx = loadNextFile(fileList, fileIdx);
                 mDialog.incrementProgressBarValue("analyzing ...");
+                processedFiles++;
             }
-        }
+        } while (false == mStopping && processedFiles < fileList.size());
         mDialog.setAlwaysOnTop(false);
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
@@ -219,23 +220,21 @@ public class FileProcessor extends Thread {
     //
     // Load the next file
     //
-    int mLoadFileCnt = 0;
-
-    void loadNextFile(ArrayList<File> fileList) {
-        Thread t1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (mLoadFileCnt < fileList.size()) {
-                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(mLoadFileCnt), mAnalyseSettings.mSelectedSeries,false);
-                    mLoadedImages.add(new Pair(fileList.get(mLoadFileCnt), imagesLoaded));
-                    mLoadFileCnt++;
+    int loadNextFile(ArrayList<File> fileList, int fileIdx) {
+        int idx = fileIdx;
+        if (idx < fileList.size()) {
+            Thread t1 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(idx),
+                            mAnalyseSettings.mSelectedSeries, false);
+                    mLoadedImages.add(new Pair(fileList.get(idx), imagesLoaded));
                 }
-                if (mLoadFileCnt >= fileList.size()) {
-                    mAllLoaded = true;
-                }
-            }
-        });
-        t1.start();
+            });
+            t1.start();
+        }
+        fileIdx++;
+        return fileIdx;
     }
 
     /**
