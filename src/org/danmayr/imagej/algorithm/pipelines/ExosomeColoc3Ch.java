@@ -23,65 +23,102 @@ public class ExosomeColoc3Ch extends ExosomColoc {
         super(settings);
     }
 
+    ImagePlus img0BeforeTh;
+    Channel measCh0;
+
+    ImagePlus img1BeforeTh;
+    Channel measCh1;
+
+    ImagePlus img2BeforeTh;
+    Channel measCh2;
+
+    ImagePlus background = null;
+
+
     @Override
     protected TreeMap<Integer, Channel> startPipeline(File img) {
 
-        RoiManager rm = new RoiManager(false);
+        background = null;
 
-        ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
-        ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
-        ChannelSettings img2 = (ChannelSettings)getEvChannels().values().toArray()[2];
-        ImagePlus background = null;
+        final ChannelSettings img0 = (ChannelSettings)getEvChannels().values().toArray()[0];
+        final ChannelSettings img1 = (ChannelSettings)getEvChannels().values().toArray()[1];
+        final ChannelSettings img2 = (ChannelSettings)getEvChannels().values().toArray()[2];
+        ImagePlus img0Th = Filter.duplicateImage(img0.mChannelImg);
+        ImagePlus img1Th = Filter.duplicateImage(img1.mChannelImg);
+        ImagePlus img2Th = Filter.duplicateImage(img2.mChannelImg);
+        final TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
+
+
         if(null != getBackground()){
             background = getBackground().mChannelImg;
         }
 
-        double[] in0 = new double[2];
-        double[] in1 = new double[2];
-        double[] in2 = new double[2];
 
-        ImagePlus img0BeforeTh = preFilterSetColoc(img0.mChannelImg,background, img0.enhanceContrast, img0.mThersholdMethod,
-                img0.minThershold, img0.maxThershold, in0);
-        ImagePlus img1BeforeTh = preFilterSetColoc(img1.mChannelImg,background, img1.enhanceContrast, img1.mThersholdMethod,
-                img1.minThershold, img1.maxThershold, in1);
-        ImagePlus img2BeforeTh = preFilterSetColoc(img2.mChannelImg,background, img2.enhanceContrast, img2.mThersholdMethod,
-                img2.minThershold, img2.maxThershold, in2);
+        Thread t1 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    RoiManager rm = new RoiManager(false);
+                    double[] in0 = new double[2];
+                    img0BeforeTh = preFilterSetColoc(img0Th, background, img0.enhanceContrast,
+                            img0.mThersholdMethod, img0.minThershold, img0.maxThershold, in0);
+                    ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, mSettings.mMinCircularity);
+                    measCh0 = Filter.MeasureImage("ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
+                    measCh0.setThershold(in0[0], in0[1]);
+                    channels.put(0, measCh0);
+                }
+            });
+            t1.start();
 
-        ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
-        Channel measCh0 = Filter.MeasureImage( "ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
+            Thread t2 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    RoiManager rm = new RoiManager(false);
+                    double[] in0 = new double[2];
+                    img1BeforeTh = preFilterSetColoc(img1Th, background, img1.enhanceContrast,
+                            img1.mThersholdMethod, img1.minThershold, img1.maxThershold, in0);
+                    ImagePlus analzeImg1 = Filter.AnalyzeParticles(img1Th, rm, 0, -1, mSettings.mMinCircularity);
+                    measCh1 = Filter.MeasureImage("ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
+                    measCh1.setThershold(in0[0], in0[1]);
+                    channels.put(1, measCh1);
+                }
+            });
+            t2.start();
 
-        // Channel measCh1Temp = Filter.MeasureImage(1, "ch1", mSettings, img1BeforeTh,
-        // img1, rm);
-        // Channel measColocCh0 = calculateColoc(1, "Coloc Ch0 with Ch1", measCh0,
-        // measCh1Temp);
 
-        ImagePlus analzeImg1 = Filter.AnalyzeParticles(img1.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
-        Channel measCh1 = Filter.MeasureImage( "ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
-        // Channel measCh0Temp = Filter.MeasureImage(0, "ch0", mSettings, img0BeforeTh,
-        // img0, rm);
-        // Channel measColocCh1 = calculateColoc(2, "Coloc Ch1 with Ch0", measCh0Temp,
-        // measCh1);
+            Thread t3 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    RoiManager rm = new RoiManager(false);
+                    double[] in0 = new double[2];
+                    img2BeforeTh = preFilterSetColoc(img2Th, background, img2.enhanceContrast,
+                            img2.mThersholdMethod, img2.minThershold, img2.maxThershold, in0);
+                    ImagePlus analzeImg2 = Filter.AnalyzeParticles(img2Th, rm, 0, -1, mSettings.mMinCircularity);
+                    measCh2 = Filter.MeasureImage("ch2", mSettings, img2BeforeTh, img2.mChannelImg, rm);
+                    measCh2.setThershold(in0[0], in0[1]);
+                    channels.put(2, measCh2);
+                }
+            });
+            t3.start();
 
-        ImagePlus analzeImg2 = Filter.AnalyzeParticles(img2.mChannelImg, rm, 0, -1, mSettings.mMinCircularity);
-        Channel measCh2 = Filter.MeasureImage("ch2", mSettings, img2BeforeTh, img2.mChannelImg, rm);
+      
+            try {
+                t1.join();
+                t2.join();
+                t3.join();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
         // Coloc 01
+        RoiManager rm = new RoiManager(false);
         Channel coloc01 = CalcColoc("Coloc 01", 3, rm, img0.mChannelImg, img1.mChannelImg, img0BeforeTh, img1BeforeTh);
         Channel coloc02 = CalcColoc("Coloc 02", 4, rm, img0.mChannelImg, img2.mChannelImg, img0BeforeTh, img2BeforeTh);
         Channel coloc12 = CalcColoc("Coloc 12", 5, rm, img1.mChannelImg, img2.mChannelImg, img1BeforeTh, img2BeforeTh);
         Channel coloc012 = CalcColoc("Coloc 012", 6, rm, img0.mChannelImg, img1.mChannelImg, img2.mChannelImg,
                 img0BeforeTh, img1BeforeTh, img2BeforeTh);
 
-        measCh0.setThershold(in0[0], in0[1]);
-        measCh1.setThershold(in1[0], in1[1]);
-        measCh2.setThershold(in1[0], in1[1]);
-
-        TreeMap<Integer, Channel> channels = new TreeMap<Integer, Channel>();
-
-        channels.put(0, measCh0);
-        channels.put(1, measCh1);
-        channels.put(2, measCh2);
-
+       
         channels.put(3, coloc01);
         channels.put(4, coloc02);
         channels.put(5, coloc12);
