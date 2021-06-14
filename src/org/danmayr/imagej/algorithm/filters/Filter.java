@@ -243,8 +243,10 @@ public class Filter {
     }
 
     public static void SetRoiInImage(ImagePlus image, RoiManager rm, int idx) {
-        image.setRoi(rm.getRoi(idx));
-        image.getProcessor().setRoi(rm.getRoi(idx));
+        if(idx < rm.getCount()){
+            image.setRoi(rm.getRoi(idx));
+            image.getProcessor().setRoi(rm.getRoi(idx));
+        }
     }
 
     public static void ClearRoiInImage(ImagePlus image) {

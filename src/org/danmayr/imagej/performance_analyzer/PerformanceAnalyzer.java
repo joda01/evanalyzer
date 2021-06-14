@@ -19,7 +19,7 @@ public class PerformanceAnalyzer {
         Entry ent = new Entry(comment, System.nanoTime());
         mEntry.put(comment, ent);
         if (null != mDialog) {
-            // mDialog.addLogEntryStart("CMD START: " + leftpad(comment, 50));
+            mDialog.addLogEntry("CMD S: " + leftpad(comment, 80)+"\t ...");
         }
     }
 
@@ -28,7 +28,7 @@ public class PerformanceAnalyzer {
         if (null == mDialog) {
             IJ.log("CMD: " + comment + "; " + Double.toString((double) diff / (double) 1000000000));
         } else {
-            mDialog.addLogEntry("CMD: " + leftpad(comment, 80) + "\t"
+            mDialog.addLogEntry("CMD E: " + leftpad(comment, 80) + "\t"
                     + Double.toString((double) diff / (double) 1000000000) + " s");
         }
 

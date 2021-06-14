@@ -39,17 +39,17 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mEditedEvs.clear();
                 mImage = img;
 
-                PerformanceAnalyzer.start("ExosomeCountInCells:EvSeparation");
+                PerformanceAnalyzer.start("CntInCells:EvSeparation");
                 EvSeparation();
-                PerformanceAnalyzer.stop("ExosomeCountInCells:EvSeparation");
+                PerformanceAnalyzer.stop("CntInCells:EvSeparation");
 
-                PerformanceAnalyzer.start("ExosomeCountInCells:CellShapeDetection");
+                PerformanceAnalyzer.start("CntInCells:CellShapeDetection");
                 ImagePlus cellArea = CellShapeDetection();
-                PerformanceAnalyzer.stop("ExosomeCountInCells:CellShapeDetection");
+                PerformanceAnalyzer.stop("CntInCells:CellShapeDetection");
 
-                PerformanceAnalyzer.start("ExosomeCountInCells:NucleusSeparation");
+                PerformanceAnalyzer.start("CntInCells:NucleusSeparation");
                 // NucleusSeparation(cellArea);
-                PerformanceAnalyzer.stop("ExosomeCountInCells:NucleusSeparation");
+                PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
 
                 return mReturnChannels;
         }
@@ -58,44 +58,64 @@ public class ExosomeCountInCells extends ExosomColoc {
         ///
         ///
         void EvSeparation() {
+                Vector<Thread> threads = new Vector<>();
                 TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
                 for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
-                        // evs.entrySet().parallelStream().forEach((val) -> {
-                        RoiManager rm = new RoiManager(false);
+                        Thread t = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                        // evs.entrySet().parallelStream().forEach((val) -> {
+                                        RoiManager rm = new RoiManager(false);
 
-                        ImagePlus evOriginal = val.getValue().mChannelImg;
-                        if (null != evOriginal) {
-                                ImagePlus evEdited = Filter.duplicateImage(evOriginal);
-                                Filter.Median(evEdited);
+                                        ImagePlus evOriginal = val.getValue().mChannelImg;
+                                        if (null != evOriginal) {
+                                                ImagePlus evEdited = Filter.duplicateImage(evOriginal);
+                                                Filter.Median(evEdited);
 
-                                ImagePlus evSubtracted = Filter.SubtractImages(evOriginal, evEdited);
-                                ImagePlus evSubtractedOriginal = Filter.duplicateImage(evSubtracted);
-                                // Filter.SubtractBackground(evSubtracted);
-                                // Filter.ApplyGaus(evSubtracted);
-                                Filter.Smooth(evSubtracted);
-                                double[] in = new double[2];
-                                Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod,
-                                                val.getValue().minThershold, val.getValue().maxThershold, in, true);
-                                Filter.Watershed(evSubtracted);
-                                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
-                                                mSettings.mMinCircularity);
+                                                ImagePlus evSubtracted = Filter.SubtractImages(evOriginal, evEdited);
+                                                ImagePlus evSubtractedOriginal = Filter.duplicateImage(evSubtracted);
+                                                // Filter.SubtractBackground(evSubtracted);
+                                                // Filter.ApplyGaus(evSubtracted);
+                                                Filter.Smooth(evSubtracted);
+                                                double[] in = new double[2];
+                                                Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod,
+                                                                val.getValue().minThershold,
+                                                                val.getValue().maxThershold, in, true);
+                                                Filter.Watershed(evSubtracted);
+                                                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
+                                                                mSettings.mMinCircularity);
 
-                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask",
-                                                rm);
-                                Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
-                                                evSubtractedOriginal, evSubtracted, rm);
-                                evCh.setThershold(in[0], in[1]);
-                                addReturnChannel(evCh);
-                                try {
-                                        ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
-                                        setNew.mChannelImg = evSubtracted;
-                                        mEditedEvs.put(val.getKey(), setNew);
-                                } catch (CloneNotSupportedException e) {
-                                        e.printStackTrace();
+                                                Filter.SaveImage(mask, getPath(mImage) + "_"
+                                                                + val.getValue().type.toString() + "_mask", rm);
+                                                Channel evCh = Filter.MeasureImage(val.getValue().type.toString(),
+                                                                mSettings, evSubtractedOriginal, evSubtracted, rm);
+                                                evCh.setThershold(in[0], in[1]);
+                                                addReturnChannel(evCh);
+                                                try {
+                                                        ChannelSettings setNew = (ChannelSettings) val.getValue()
+                                                                        .clone();
+                                                        setNew.mChannelImg = evSubtracted;
+                                                        mEditedEvs.put(val.getKey(), setNew);
+                                                } catch (CloneNotSupportedException e) {
+                                                        e.printStackTrace();
+                                                }
+
+                                        }
                                 }
-                        }
+                        });
+                        t.start();
+                        threads.add(t);
 
                 } // );
+
+                for (Thread th : threads) {
+                        try {
+                                th.join();
+                        } catch (InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                        }
+                }
         }
 
         ///
@@ -137,38 +157,59 @@ public class ExosomeCountInCells extends ExosomColoc {
                         // Count EVS in Cells
                         //
                         // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
+                        Vector<Thread> threads = new Vector<>();
+
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                                RoiManager rmEvs = new RoiManager(false);
+                                Thread t = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
 
-                                ImagePlus evChannelImg = val.getValue().mChannelImg;
-                                ImagePlus evChannelImgOriginal = getEvChannels().get(val.getKey()).mChannelImg;
+                                                RoiManager rmEvs = new RoiManager(false);
 
-                                Filter.SetRoiInImage(evChannelImgOriginal, rm, 0);
-                                Filter.SetRoiInImage(evChannelImg, rm, 0);
+                                                ImagePlus evChannelImg = val.getValue().mChannelImg;
+                                                ImagePlus evChannelImgOriginal = getEvChannels()
+                                                                .get(val.getKey()).mChannelImg;
 
-                                //
-                                // Calculate cell original thershold
-                                //
-                                Channel cellArea = Filter.MeasureImage("cell area in" + val.getValue().type.toString(),
-                                                null, evChannelImgOriginal, evChannelImg, rm);
-                                addReturnChannel(cellArea);
+                                                Filter.SetRoiInImage(evChannelImgOriginal, rm, 0);
+                                                Filter.SetRoiInImage(evChannelImg, rm, 0);
 
-                                //
-                                //
-                                //
-                                ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
-                                ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1,
-                                                mSettings.mMinCircularity);
-                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
-                                                + "_ev_in_cell_mask", rmEvs);
-                                Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell",
-                                                mSettings, evChannelImgOriginal, mask, rmEvs);
-                                addReturnChannel(evsInCells);
+                                                //
+                                                // Calculate cell original thershold
+                                                //
+                                                Channel cellArea = Filter.MeasureImage(
+                                                                "cell area in" + val.getValue().type.toString(), null,
+                                                                evChannelImgOriginal, evChannelImg, rm);
+                                                addReturnChannel(cellArea);
 
-                                Filter.ClearRoiInImage(evChannelImgOriginal);
-                                Filter.ClearRoiInImage(evChannelImg);
+                                                //
+                                                //
+                                                //
+                                                ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
+                                                ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1,
+                                                                mSettings.mMinCircularity);
+                                                Filter.SaveImage(mask, getPath(mImage) + "_"
+                                                                + val.getValue().type.toString() + "_ev_in_cell_mask",
+                                                                rmEvs);
+                                                Channel evsInCells = Filter.MeasureImage(
+                                                                val.getValue().type.toString() + " in Cell", mSettings,
+                                                                evChannelImgOriginal, mask, rmEvs);
+                                                addReturnChannel(evsInCells);
+
+                                                Filter.ClearRoiInImage(evChannelImgOriginal);
+                                                Filter.ClearRoiInImage(evChannelImg);
+                                        }
+                                });
+                                threads.add(t);
 
                         } // );
+                        for (Thread th : threads) {
+                                try {
+                                        th.join();
+                                } catch (InterruptedException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                }
+                        }
                         return cellsEdited;
                 }
                 return null;
@@ -229,7 +270,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                          * Filter.SaveImage(analzedEvs, getPath(mImage) + "_evs_in_cell_" +
                                          * Integer.toString(n), rm); PerformanceAnalyzer.stop();
                                          */
-                                        Channel cell = Filter.createChannelFromMeasurement(
+                                    Channel cell = Filter.createChannelFromMeasurement(
                                                         "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
                                         addReturnChannel(cell);
                                 }
