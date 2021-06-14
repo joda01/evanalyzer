@@ -348,12 +348,16 @@ public class Filter {
     }
 
     private static ResultsTable measure(ImagePlus image, RoiManager rm) {
-        IJ.run("Clear Results", "");
-        IJ.run("Set Measurements...", "area mean min shape redirect=None decimal=3");
-        rm.runCommand(image, "Measure");
-        ResultsTable tb = (ResultsTable) ResultsTable.getResultsTable().clone();
-        IJ.run("Clear Results", "");
-        return tb;
+        ResultsTable rt = new ResultsTable();
+        int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
+                | Measurements.SHAPE_DESCRIPTORS;
+        Analyzer analyzer = new Analyzer(image,measurements,rt);
+        
+        for(int n=0;n<rm.getCount();n++){
+            SetRoiInImage(image, rm, n);
+            analyzer.measure();
+        }
+        return rt;
     }
 
     public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
