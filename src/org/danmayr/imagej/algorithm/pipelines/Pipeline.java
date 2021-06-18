@@ -156,17 +156,17 @@ abstract public class Pipeline {
   }
 
   public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
-      String thMethod, int thMin, int thMax, double[] thershold) {
+      AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
     return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, true);
   }
 
   public static ImagePlus preFilterSetColocPreview(ImagePlus img, ImagePlus background, boolean enhanceContrast,
-      String thMethod, int thMin, int thMax, double[] thershold) {
+  AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
     return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
   public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
-      String thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+  AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
     PerformanceAnalyzer.start("filter_coloc");
 

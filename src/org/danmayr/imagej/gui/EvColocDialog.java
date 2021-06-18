@@ -127,7 +127,8 @@ public class EvColocDialog extends JFrame {
                 ChannelSettings chSet = new ChannelSettings();
                 chSet.mChannelNr = channel.getSelectedIndex() - 1;
                 chSet.type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem()).getValue();
-                chSet.mThersholdMethod = thersholdMethod.getSelectedItem().toString();
+                chSet.mThersholdMethod = ((ComboItem<AutoThresholder.Method>) thersholdMethod.getSelectedItem())
+                        .getValue();
                 chSet.enhanceContrast = false;
                 chSet.maxThershold = 65535;
                 chSet.ZProjector = mZProjection.getSelectedItem().toString();
@@ -202,11 +203,14 @@ public class EvColocDialog extends JFrame {
                         Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
                                 .getValue();
                         if (Pipeline.ChannelType.CELL == type) {
-                            thersholdMethod.setSelectedItem("MinError");
+                            thersholdMethod.setSelectedItem(
+                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "MinError"));
                         } else if (Pipeline.ChannelType.NUCLEUS == type) {
-                            thersholdMethod.setSelectedItem("Triangle");
+                            thersholdMethod.setSelectedItem(
+                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "Triangle"));
                         } else {
-                            thersholdMethod.setSelectedItem("Li");
+                            thersholdMethod.setSelectedItem(
+                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "LI"));
                         }
 
                         if (Pipeline.ChannelType.BACKGROUND == type) {
@@ -222,10 +226,18 @@ public class EvColocDialog extends JFrame {
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                String[] thersholdAlgo = { "Li", "MaxEntropy", "Moments", "Otsu", "MinError", "Triangle" };
+                int t = 0;
+                ComboItem<AutoThresholder.Method>[] thersholds = new ComboItem[6];
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "LI");
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.MaxEntropy,
+                        "MaxEntropy");
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Moments, "Moments");
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Otsu, "Otsu");
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.MinError, "MinError");
+                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Triangle, "Triangle");
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
-                thersholdMethod = new JComboBox<String>(thersholdAlgo);
+                thersholdMethod = new JComboBox<ComboItem<AutoThresholder.Method>>(thersholds);
                 thersholdMethod.addItemListener(new ItemListener() {
                     @Override
                     public void itemStateChanged(ItemEvent e) {
@@ -456,7 +468,7 @@ public class EvColocDialog extends JFrame {
             if (imageTitles.length <= 0) {
                 File OpenImage = FileProcessor.getFile(mPrevImgIdx, mInputFolder.getText());
                 if (null != OpenImage) {
-                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedIndex(),true);
+                    FileProcessor.OpenImage(OpenImage, mSeries.getSelectedIndex(), true);
                 }
             }
 
@@ -558,8 +570,9 @@ public class EvColocDialog extends JFrame {
                 } catch (NumberFormatException ex) {
                 }
                 double[] th = new double[2];
-                Filter.ApplyThershold(imgPrev, elem.thersholdMethod.getSelectedItem().toString(), lowThershold, 65535,
-                        th, false);
+                Filter.ApplyThershold(imgPrev,
+                        ((ComboItem<AutoThresholder.Method>) elem.thersholdMethod.getSelectedItem()).getValue(),
+                        lowThershold, 65535, th, false);
 
             } else {
                 /*
@@ -749,17 +762,17 @@ public class EvColocDialog extends JFrame {
     /// Constructor
     ///
     public JTabbedPane tabbedPane = new JTabbedPane();
+
     public EvColocDialog() {
 
         BorderLayout boorderL = new BorderLayout();
         this.setLayout(boorderL);
 
-
         tabbedPane.addTab("main", CreateMainTab());
         tabbedPane.addTab("log", createLogPanel());
 
         this.add(tabbedPane, BorderLayout.CENTER);
-        this.add(createFooter(),BorderLayout.SOUTH);
+        this.add(createFooter(), BorderLayout.SOUTH);
 
         // Pack it
         // setBackground(Color.WHITE);
@@ -775,7 +788,7 @@ public class EvColocDialog extends JFrame {
     ///
     ///
     ///
-    public JPanel CreateMainTab(){
+    public JPanel CreateMainTab() {
         ////////////////////////////////////////////////////////////////////
         JPanel mainTab = new JPanel();
 
@@ -1008,7 +1021,6 @@ public class EvColocDialog extends JFrame {
         return mainTab;
     }
 
-
     ///
     ///
     ///
@@ -1017,11 +1029,11 @@ public class EvColocDialog extends JFrame {
 
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
-        
+
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy=0;
+        c.gridy = 0;
         c.weightx = 1;
         c.gridwidth = 3;
         mProgressbar.setStringPainted(true);
@@ -1131,28 +1143,28 @@ public class EvColocDialog extends JFrame {
         c.gridwidth = 1;
         p.add(about, c);
 
-
-
         return p;
     }
 
     JTextArea mLog = new JTextArea();
+
     public JPanel createLogPanel() {
         JPanel p = new JPanel(new BorderLayout());
-        JScrollPane sp = new JScrollPane(mLog);   // JTextArea is placed in a JScrollPane.
+        JScrollPane sp = new JScrollPane(mLog); // JTextArea is placed in a JScrollPane.
 
-        p.add(sp,BorderLayout.CENTER);
+        p.add(sp, BorderLayout.CENTER);
         return p;
     }
 
     static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    public void addLogEntry(String text){
+
+    public void addLogEntry(String text) {
         LocalDateTime localDateTime = LocalDateTime.now();
         String formatDateTime = localDateTime.format(formatter);
-        mLog.insert(formatDateTime+"\t"+text+"\n", 0);
+        mLog.insert(formatDateTime + "\t" + text + "\n", 0);
     }
 
-    public void addLogEntryNewLine(){
+    public void addLogEntryNewLine() {
         mLog.insert("\n", 0);
     }
 

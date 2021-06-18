@@ -235,7 +235,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus", rm);
                         Filter.Voronoi(nucleusMask);
                         // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_original", rm);
-                        Filter.ApplyThershold(nucleusMask, "Yen");
+                        Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Yen);
                         Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid", rm);
                         ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
                         ImagePlus separatedCells = Filter.XORImages(andImg, cells);

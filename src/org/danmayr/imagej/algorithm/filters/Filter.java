@@ -100,14 +100,6 @@ public class Filter {
         IJ.run(img, "Find Edges", "");
     }
 
-    public static void Make16BitImage(ImagePlus img) {
-        IJ.run(img, "16-bit", "");
-    }
-
-    public static void Make8BitImage(ImagePlus img) {
-        IJ.run(img, "8-bit", "");
-    }
-
     public static void Smooth(ImagePlus img) {
         IJ.run(img, "Smooth", "");
     }
@@ -130,31 +122,90 @@ public class Filter {
         rm.addRoi(img.getRoi());
     }
 
-    public static void ApplyThershold(ImagePlus img, String thersholdMethod, double lowerThershold,
+    public static void ApplyThershold(ImagePlus img, AutoThresholder.Method thersholdMethod) {
+        ApplyThershold(img, thersholdMethod, -1, -1, null, true);
+    }
+
+    public static void ApplyThershold(ImagePlus img, AutoThresholder.Method thersholdMethod, double lowerThershold,
             double upperThershold, double[] thRet, boolean convertToMask) {
-        int lower, upper;
-        IJ.setAutoThreshold(img, thersholdMethod + " dark");
-        if (lowerThershold >= 0 && upperThershold >= 0) {
-            IJ.setRawThreshold(img, lowerThershold, upperThershold, null);
+
+        ImageProcessor ip = img.getProcessor();
+
+        ip.setRoi(img.getRoi());
+
+        boolean darkBackground = true;
+        int measurements = Analyzer.getMeasurements();
+        Analyzer.setMeasurements(Measurements.AREA + Measurements.MIN_MAX);
+        ImageStatistics stats = new StackStatistics(img);
+        Analyzer.setMeasurements(measurements);
+        AutoThresholder thresholder = new AutoThresholder();
+        double min = 0.0, max = 255.0;
+        if (img.getBitDepth() != 8) {
+            min = stats.min;
+            max = stats.max;
         }
-        Prefs.blackBackground = true;
+        int threshold = thresholder.getThreshold(thersholdMethod, stats.histogram);
+
+        double lower, upper;
+
+        //
+        // Take auto thershold
+        //
+        if (darkBackground) {
+            if (ip.isInvertedLut()) {
+                lower = 0.0;
+                upper = threshold;
+            } else {
+                lower = threshold + 1;
+                upper = 255.0;
+            }
+        } else {
+            if (ip.isInvertedLut()) {
+                lower = threshold + 1;
+                upper = 255.0;
+            } else {
+                lower = 0.0;
+                upper = threshold;
+            }
+        }
+        if (lower > 255) {
+            lower = 255;
+        }
+        if (max > min) {
+            lower = min + (lower / 255.0) * (max - min);
+            upper = min + (upper / 255.0) * (max - min);
+        } else {
+            lower = upper = min;
+        }
+        //
+        // Take manual thershold
+        //
+        if (lowerThershold >= 0 && upperThershold >= 0) {
+            lower = lowerThershold;
+            upper = upperThershold;
+        }
 
         if (thRet != null) {
-            double[] th = getAutoThreshold(img);
-            thRet[0] = th[0];
-            thRet[1] = th[1];
+            thRet[0] = lower;
+            thRet[1] = upper;
         }
+        ip.setMinAndMax(min, max);
+        ip.setThreshold(lower, upper, ImageProcessor.RED_LUT);
+        img.updateAndDraw();
 
         if (true == convertToMask) {
-            IJ.run(img, "Convert to Mask", "");
+            ByteProcessor mask = img.createThresholdMask();
+            mask = ip.createMask();
+            img.setImage(new ImagePlus(img.getTitle(), mask));
         }
+
     }
 
-    public static void ApplyThershold(ImagePlus img, String thersholdMethod) {
-        IJ.setAutoThreshold(img, thersholdMethod + " dark");
-        Prefs.blackBackground = true;
-        IJ.run(img, "Convert to Mask", "");
-    }
+    // public static void ApplyThershold(ImagePlus img, String thersholdMethod) {
+    // IJ.setAutoThreshold(img, thersholdMethod + " dark");
+    // Prefs.blackBackground = true;
+    // IJ.run(img, "Convert to Mask", "");
+    // }
 
     public static double[] getAutoThreshold(ImagePlus imp) {
         ImageProcessor ip = imp.getProcessor();
@@ -243,7 +294,7 @@ public class Filter {
     }
 
     public static void SetRoiInImage(ImagePlus image, RoiManager rm, int idx) {
-        if(idx < rm.getCount()){
+        if (idx < rm.getCount()) {
             image.setRoi(rm.getRoi(idx));
             image.getProcessor().setRoi(rm.getRoi(idx));
         }
@@ -251,7 +302,7 @@ public class Filter {
 
     public static void ClearRoiInImage(ImagePlus image) {
         image.deleteRoi();
-        image.getProcessor().setRoi((Roi)null);
+        image.getProcessor().setRoi((Roi) null);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
@@ -316,7 +367,7 @@ public class Filter {
         analyzer.analyze(image, image.getProcessor());
         ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
-        Filter.ApplyThershold(mask, "Default");
+        Filter.ApplyThershold(mask, AutoThresholder.Method.Default);
         return mask;
 
     }
@@ -353,9 +404,9 @@ public class Filter {
         ResultsTable rt = new ResultsTable();
         int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
                 | Measurements.SHAPE_DESCRIPTORS;
-        Analyzer analyzer = new Analyzer(image,measurements,rt);
-        
-        for(int n=0;n<rm.getCount();n++){
+        Analyzer analyzer = new Analyzer(image, measurements, rt);
+
+        for (int n = 0; n < rm.getCount(); n++) {
             SetRoiInImage(image, rm, n);
             analyzer.measure();
         }
