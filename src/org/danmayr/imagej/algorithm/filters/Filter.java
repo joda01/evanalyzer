@@ -104,16 +104,25 @@ public class Filter {
         IJ.run(img, "Smooth", "");
     }
 
-    public static void EnhanceContrast(ImagePlus img) {
-        IJ.run(img, "Enhance Contrast...", "saturated=0.3 normalize");
-    }
-
     public static void SubtractBackground(ImagePlus img) {
-        IJ.run(img, "Subtract Background...", "rolling=4 sliding");
+        BackgroundSubtracter sb = new BackgroundSubtracter();
+        // ImageProcessor ip, double radius, boolean createBackground,
+        // boolean lightBackground, boolean useParaboloid, boolean doPresmooth, boolean
+        // correctCorners
+        sb.rollingBallBackground(img.getProcessor(), 4.0, false, false, true, true, true);
+        img.getProcessor().resetMinAndMax();
+        img.updateAndDraw();
+        // IJ.run(img, "Subtract Background...", "rolling=4 sliding");
     }
 
     public static void ApplyGaus(ImagePlus img) {
-        IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+        float kernel[] = { 1, 4, 6, 4, 1, 4, 16, 24, 16, 4, 6, 24, 36, 24, 6, 4, 16, 24, 16, 4, 1, 4, 6, 4, 1 };
+        Convolver cv = new Convolver();
+        cv.convolve(img.getProcessor(), kernel, 5, 5);
+        img.getProcessor().resetMinAndMax();
+        img.updateAndDraw();
+        // IJ.run(img, "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4
+        // 16 24 16 4\n1 4 6 4 1] normalize");
     }
 
     public static void AddThersholdToROI(ImagePlus img, RoiManager rm) {
@@ -130,67 +139,20 @@ public class Filter {
             double upperThershold, double[] thRet, boolean convertToMask) {
 
         ImageProcessor ip = img.getProcessor();
-
         ip.setRoi(img.getRoi());
 
-        boolean darkBackground = true;
-        int measurements = Analyzer.getMeasurements();
-        Analyzer.setMeasurements(Measurements.AREA + Measurements.MIN_MAX);
-        ImageStatistics stats = new StackStatistics(img);
-        Analyzer.setMeasurements(measurements);
-        AutoThresholder thresholder = new AutoThresholder();
-        double min = 0.0, max = 255.0;
-        if (img.getBitDepth() != 8) {
-            min = stats.min;
-            max = stats.max;
-        }
-        int threshold = thresholder.getThreshold(thersholdMethod, stats.histogram);
-
-        double lower, upper;
-
-        //
-        // Take auto thershold
-        //
-        if (darkBackground) {
-            if (ip.isInvertedLut()) {
-                lower = 0.0;
-                upper = threshold;
-            } else {
-                lower = threshold + 1;
-                upper = 255.0;
-            }
-        } else {
-            if (ip.isInvertedLut()) {
-                lower = threshold + 1;
-                upper = 255.0;
-            } else {
-                lower = 0.0;
-                upper = threshold;
-            }
-        }
-        if (lower > 255) {
-            lower = 255;
-        }
-        if (max > min) {
-            lower = min + (lower / 255.0) * (max - min);
-            upper = min + (upper / 255.0) * (max - min);
-        } else {
-            lower = upper = min;
-        }
-        //
-        // Take manual thershold
-        //
         if (lowerThershold >= 0 && upperThershold >= 0) {
-            lower = lowerThershold;
-            upper = upperThershold;
+            ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
+
+        } else {
+            ip.setAutoThreshold(thersholdMethod, true, ImageProcessor.RED_LUT);
         }
 
         if (thRet != null) {
-            thRet[0] = lower;
-            thRet[1] = upper;
+            thRet[0] = ip.getMinThreshold();
+            thRet[1] = ip.getMaxThreshold();
         }
-        ip.setMinAndMax(min, max);
-        ip.setThreshold(lower, upper, ImageProcessor.RED_LUT);
+
         img.updateAndDraw();
 
         if (true == convertToMask) {
@@ -282,21 +244,23 @@ public class Filter {
     }
 
     public static void InvertImage(ImagePlus image) {
-        IJ.run(image, "Invert", "");
+        // IJ.run(image, "Invert", "");
+        image.getProcessor().invert();
+        image.updateAndDraw();
     }
 
     public static void ClearRois(ImagePlus image, RoiManager rm) {
-        rm.runCommand(image, "Show None");
-        image.setRoi(new OvalRoi(1, 1, 1, 1));
-        rm.addRoi(image.getRoi());
-        rm.runCommand(image, "Delete");
-        IJ.run(image, "Select None", "");
+        rm.reset();
     }
 
     public static void SetRoiInImage(ImagePlus image, RoiManager rm, int idx) {
-        if (idx < rm.getCount()) {
-            image.setRoi(rm.getRoi(idx));
-            image.getProcessor().setRoi(rm.getRoi(idx));
+        try {
+            if (idx < rm.getCount()) {
+                image.setRoi(rm.getRoi(idx));
+                image.getProcessor().setRoi(rm.getRoi(idx));
+            }
+        } catch (java.lang.IndexOutOfBoundsException ex) {
+            IJ.log("ROI out of bound: " + rm.getCount() + " " + idx);
         }
     }
 
