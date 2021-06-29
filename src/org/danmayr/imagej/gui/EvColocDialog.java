@@ -203,14 +203,14 @@ public class EvColocDialog extends JFrame {
                         Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
                                 .getValue();
                         if (Pipeline.ChannelType.CELL == type) {
-                            thersholdMethod.setSelectedItem(
-                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "MinError"));
+                            // Select MinError
+                            thersholdMethod.setSelectedIndex(4);
                         } else if (Pipeline.ChannelType.NUCLEUS == type) {
-                            thersholdMethod.setSelectedItem(
-                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "Triangle"));
+                            // Select triangle
+                            thersholdMethod.setSelectedIndex(5);
                         } else {
-                            thersholdMethod.setSelectedItem(
-                                    new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "LI"));
+                            // Select LI
+                            thersholdMethod.setSelectedIndex(0);                                  
                         }
 
                         if (Pipeline.ChannelType.BACKGROUND == type) {

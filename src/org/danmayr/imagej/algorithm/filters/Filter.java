@@ -76,20 +76,74 @@ public class Filter {
         return sumImage;
     }
 
+    ///
+    /// https://imagej.nih.gov/ij/source/ij/plugin/filter/RankFilters.java
+    ///
     public static void Median(ImagePlus img) {
-        IJ.run(img, "Median...", "radius=3");
+        // IJ.run(img, "Median...", "radius=3");
+        RankFilters filter = new RankFilters();
+        filter.rank(img.getProcessor(), 3, RankFilters.MEDIAN);
     }
 
+    ///
+    /// https://imagej.nih.gov/ij/source/ij/plugin/filter/EDM.java
+    ///
     public static void Watershed(ImagePlus img) {
-        IJ.run(img, "Watershed", "");
+        // IJ.run(img, "Watershed", "");
+        EDM i = new EDM();
+        i.setup("watershed", img);
+        i.run(img.getProcessor());
     }
 
-    public static void FillHoles(ImagePlus img) {
-        IJ.run(img, "Fill Holes", "");
-    }
-
+    ///
+    /// https://imagej.nih.gov/ij/source/ij/plugin/filter/EDM.java
+    ///
     public static void Voronoi(ImagePlus img) {
-        IJ.run(img, "Voronoi", "");
+        // IJ.run(img, "Voronoi", "");
+        EDM i = new EDM();
+        i.setup("voronoi", img);
+        i.run(img.getProcessor());
+    }
+
+    ///
+    /// https://imagej.nih.gov/ij/developer/source/ij/plugin/filter/Binary.java.html
+    ///
+    public static void FillHoles(ImagePlus img) {
+        // IJ.run(img, "Fill Holes", "");
+        // Binary ip = new Binary();
+        // ip.setup("Fill Holes", img);
+
+        // Binary fill by Gabriel Landini, G.Landini at bham.ac.uk
+        // 21/May/2008
+        ImageProcessor ip = img.getProcessor();
+        int fg = Prefs.blackBackground ? 255 : 0;
+        int foreground = ip.isInvertedLut() ? 255 - fg : fg;
+        int background = 255 - foreground;
+
+        int width = ip.getWidth();
+        int height = ip.getHeight();
+        FloodFiller ff = new FloodFiller(ip);
+        ip.setColor(127);
+        for (int y = 0; y < height; y++) {
+            if (ip.getPixel(0, y) == background)
+                ff.fill(0, y);
+            if (ip.getPixel(width - 1, y) == background)
+                ff.fill(width - 1, y);
+        }
+        for (int x = 0; x < width; x++) {
+            if (ip.getPixel(x, 0) == background)
+                ff.fill(x, 0);
+            if (ip.getPixel(x, height - 1) == background)
+                ff.fill(x, height - 1);
+        }
+        byte[] pixels = (byte[]) ip.getPixels();
+        int n = width * height;
+        for (int i = 0; i < n; i++) {
+            if (pixels[i] == 127)
+                pixels[i] = (byte) background;
+            else
+                pixels[i] = (byte) foreground;
+        }
     }
 
     public static ImagePlus duplicateImage(ImagePlus img) {
@@ -97,11 +151,15 @@ public class Filter {
     }
 
     public static void FindEdges(ImagePlus img) {
-        IJ.run(img, "Find Edges", "");
+        img.getProcessor().findEdges();
+        img.updateAndDraw();
+        // IJ.run(img, "Find Edges", "");
     }
 
     public static void Smooth(ImagePlus img) {
-        IJ.run(img, "Smooth", "");
+        img.getProcessor().smooth();
+        img.updateAndDraw();
+        // IJ.run(img, "Smooth", "");
     }
 
     public static void SubtractBackground(ImagePlus img) {
@@ -126,9 +184,24 @@ public class Filter {
     }
 
     public static void AddThersholdToROI(ImagePlus img, RoiManager rm) {
-        ClearRois(img, rm);
-        IJ.run(img, "Create Selection", "");
-        rm.addRoi(img.getRoi());
+        /*
+         * ClearRois(img, rm); img.getProcessor().select IJ.run(img, "Create Selection",
+         * ""); rm.addRoi(img.getRoi());
+         */
+
+        ImageProcessor ip = img.getProcessor();
+
+        if (ip.getMinThreshold() == ImageProcessor.NO_THRESHOLD) {
+            int threshold = ip.isInvertedLut() ? 255 : 0;
+            if (Prefs.blackBackground)
+                threshold = (threshold == 255) ? 0 : 255;
+            ip.setThreshold(threshold, threshold, ImageProcessor.NO_LUT_UPDATE);
+        }
+
+        rm.reset();
+        ThresholdToSelection th = new ThresholdToSelection();
+        Roi region = th.convert(ip);
+        rm.add(region, 0);
     }
 
     public static void ApplyThershold(ImagePlus img, AutoThresholder.Method thersholdMethod) {
@@ -188,14 +261,9 @@ public class Filter {
         return mrg;
     }
 
-    public static void showNoRoi(ImagePlus image, RoiManager rm) {
-        rm.runCommand(image, "Show All without labels");
-        rm.runCommand(image, "Show None");
-        IJ.run(image, "Select None", "");
-    }
-
     public static void SaveImage(ImagePlus image, String imageName, RoiManager rm) {
-        IJ.saveAs(image, "Jpeg", imageName);
+        // IJ.saveAs(image, "Jpeg", imageName);
+        JpegWriter.save(image, imageName, 30);
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
@@ -205,7 +273,7 @@ public class Filter {
         // IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none
         // label_1=right");
         ImagePlus overlayimage = image.flatten();
-        IJ.saveAs(overlayimage, "Jpeg", imageName);
+        JpegWriter.save(overlayimage, imageName, 100);
         rm.runCommand(image, "Show None");
     }
 
@@ -334,17 +402,6 @@ public class Filter {
         Filter.ApplyThershold(mask, AutoThresholder.Method.Default);
         return mask;
 
-    }
-
-    public static void RoiSave(ImagePlus image, RoiManager rm) {
-        File roizip = new File("roiset.zip");
-        roizip.delete();
-        rm.runCommand("save", "roiset.zip");
-    }
-
-    public static void RoiOpen(ImagePlus image, RoiManager rm) {
-        ClearRois(image, rm);
-        rm.runCommand("open", "roiset.zip");
     }
 
     ///
