@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.Semaphore;
+
 import ij.*;
 import ij.process.*;
 import ij.gui.*;
@@ -329,6 +331,7 @@ public class Filter {
             }
         } catch (java.lang.IndexOutOfBoundsException ex) {
             IJ.log("ROI out of bound: " + rm.getCount() + " " + idx);
+            IJ.log(ex.getMessage());
         }
     }
 
@@ -351,6 +354,8 @@ public class Filter {
             double minCircularity, boolean addToRoi) {
         return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null);
     }
+
+    //static Semaphore sem = new Semaphore(1);
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, boolean addToRoi, ResultsTable rt) {
@@ -388,15 +393,25 @@ public class Filter {
 
         int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
                 | Measurements.SHAPE_DESCRIPTORS;
-        ParticleAnalyzer analyzer = new ParticleAnalyzer(option, measurements, rt, minSize, maxSize, minCircularity,
+                ParticleAnalyzerThreadSafe analyzer = new ParticleAnalyzerThreadSafe(option, measurements, rt, minSize, maxSize, minCircularity,
                 1.0);
-        if (true == addToRoi) {
-            ParticleAnalyzer.setRoiManager(rm);
-        } else {
-            ParticleAnalyzer.setRoiManager(null);
-        }
         analyzer.setHideOutputImage(true);
-        analyzer.analyze(image, image.getProcessor());
+
+        //try {
+           // sem.acquire();
+            if (true == addToRoi) {
+                analyzer.setRoiManager(rm);
+            } else {
+                analyzer.setRoiManager(null);
+            }
+            analyzer.analyze(image, image.getProcessor());
+        /*} catch (InterruptedException exc) {
+            sem.release();
+        }finally{
+            sem.release();
+        }*/
+
+
         ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
         Filter.ApplyThershold(mask, AutoThresholder.Method.Default);

@@ -7,7 +7,13 @@ import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
 
 import java.io.File;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -39,6 +45,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mEditedEvs.clear();
                 mImage = img;
 
+                System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "12");
+
                 PerformanceAnalyzer.start("CntInCells:EvSeparation");
                 EvSeparation();
                 PerformanceAnalyzer.stop("CntInCells:EvSeparation");
@@ -55,16 +63,37 @@ public class ExosomeCountInCells extends ExosomColoc {
         }
 
         ///
-        ///
+        /// EV separation
         ///
         void EvSeparation() {
                 // Vector<Thread> threads = new Vector<>();
                 TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
+
+                ExecutorService exec = Executors.newFixedThreadPool(evs.size());
                 for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
-                        // Thread t = new Thread(new Runnable() {
-                        // @Override
-                        // public void run() {
-                        // evs.entrySet().parallelStream().forEach((val) -> {
+                        exec.execute(new EvSeperatorRunner(val));
+                }
+                exec.shutdown();
+                try {
+                        exec.awaitTermination(1, TimeUnit.HOURS);
+                } catch (InterruptedException e) {
+                        e.printStackTrace();
+                }
+
+        }
+
+        class EvSeperatorRunner implements Runnable {
+
+                Map.Entry<ChannelType, ChannelSettings> val;
+
+                EvSeperatorRunner(Map.Entry<ChannelType, ChannelSettings> v) {
+                        this.val = v;
+                }
+
+                @Override
+                public void run() {
+                        IJ.log(LocalTime.now() + " - value: " + " - thread: " + Thread.currentThread().getName());
+                        IJ.log(" " + val.getValue().type.toString() + " " + Thread.currentThread().getName());
                         RoiManager rm = new RoiManager(false);
 
                         ImagePlus evOriginal = val.getValue().mChannelImg;
@@ -99,18 +128,10 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 }
 
                         }
+
                 }
-                // });
-                // t.start();
-                // threads.add(t);
 
-        } // );
-
-        /*
-         * for (Thread th : threads) { try { th.join(); } catch (InterruptedException e)
-         * { // TODO Auto-generated catch block e.printStackTrace(); } }
-         */
-        // }
+        }
 
         ///
         /// Detect cells
@@ -153,10 +174,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                         // Vector<Thread> threads = new Vector<>();
 
-                        for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                                // Thread t = new Thread(new Runnable() {
-                                // @Override
-                                // public void run() {
+                        mEditedEvs.entrySet().parallelStream().forEach(val -> {
 
                                 RoiManager rmEvs = new RoiManager(false);
 
@@ -187,15 +205,8 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                                 Filter.ClearRoiInImage(evChannelImgOriginal);
                                 Filter.ClearRoiInImage(evChannelImg);
-                        }
-                        // });
-                        // threads.add(t);
+                        });
 
-                        // } );
-                        /*
-                         * for (Thread th : threads) { try { th.join(); } catch (InterruptedException e)
-                         * { // TODO Auto-generated catch block e.printStackTrace(); } }
-                         */
                         return cellsEdited;
                 }
                 return null;
@@ -234,7 +245,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Filter.RoiSave(analyzedCells, rm);
 
-                        for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
+                        mEditedEvs.entrySet().parallelStream().forEach(val -> {
                                 // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                                 ImagePlus evImg = val.getValue().mChannelImg;
                                 // ImagePlus evImgOri =getEvChannels().get(val.getKey());
@@ -261,7 +272,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         addReturnChannel(cell);
                                 }
                                 evImg.hide();
-                        } // );
+                        });
 
                 }
         }
