@@ -92,7 +92,8 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                 @Override
                 public void run() {
-                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: " + Thread.currentThread().getName());
+                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: "
+                                        + Thread.currentThread().getName());
                         RoiManager rm = new RoiManager(false);
 
                         ImagePlus evOriginal = val.getValue().mChannelImg;
@@ -197,7 +198,8 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                 @Override
                 public void run() {
-                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: " + Thread.currentThread().getName());
+                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: "
+                                        + Thread.currentThread().getName());
 
                         RoiManager rmEvs = new RoiManager(false);
 
@@ -263,40 +265,148 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Filter.RoiSave(analyzedCells, rm);
 
-                        mEditedEvs.entrySet().parallelStream().forEach(val -> {
+                        for(Map.Entry<Pipeline.ChannelType,ChannelSettings> val : mEditedEvs.entrySet()){
                                 // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                                 ImagePlus evImg = val.getValue().mChannelImg;
-                                // ImagePlus evImgOri =getEvChannels().get(val.getKey());
+                                //ImagePlus evImgOri =getEvChannels().get(val.getKey());
                                 evImg.show();
                                 ResultsTable rt = new ResultsTable();
+
+                                //
+                                // Contains Cell information
+                                //
+                                Channel evsInCell = new Channel("evs_in_cell_" + val.getKey().toString(),
+                                                new CellInfoStatistics());
+
+                                //
+                                // Measure the cell
+                                //
+                                Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, evImg, evImg, rm);
 
                                 for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
                                         rt.reset();
                                         rm.selectAndMakeVisible(evImg, n);
                                         Filter.SetRoiInImage(evImg, rm, n);
-
                                         Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
-
-                                        /* ImagePlus analzedEvs = */
-                                        // ImagePlus analzedEvsOriginal = Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0,
-                                        // -1, 0, rt);
-                                        /*
-                                         * PerformanceAnalyzer.start("NucleusSeparation:SaveImage");
-                                         * Filter.SaveImage(analzedEvs, getPath(mImage) + "_evs_in_cell_" +
-                                         * Integer.toString(n), rm); PerformanceAnalyzer.stop();
-                                         */
                                         Channel cell = Filter.createChannelFromMeasurement(
                                                         "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
-                                        addReturnChannel(cell);
+                                        cell.calcStatistics();
+                                        Statistics stat = cell.getStatistic();
+                                        CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
+                                        cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
+                                        evsInCell.addRoi(info);
                                 }
+                                evsInCell.calcStatistics();
+                                addReturnChannel(evsInCell);
                                 evImg.hide();
-                        });
+
+                        }
 
                 }
         }
 
         void addReturnChannel(Channel ch) {
                 mReturnChannels.put(mReturnChannels.size(), ch);
+        }
+
+        ///
+        /// CellInfo class
+        ///
+        class CellInfo extends ParticleInfo {
+                public CellInfo(int roiName, int valid, int invalid, double areaSize, double areaGrayScale,
+                                double circularity) {
+                        super(roiName, areaSize, areaGrayScale, 255, circularity);
+                        this.valid = valid;
+                        this.invalid = invalid;
+
+                }
+
+                ///
+                /// \breif check if this particle is valid
+                ///
+                public boolean isValid() {
+                        return true;
+                }
+
+                ///
+                /// \brief Returns the name of the roi
+                ///
+                public String toString() {
+                        return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale) + ";"
+                                        + Double.toString(areaThersholdScale) + ";" + Double.toString(circularity);
+                }
+
+                public int getRoiNr() {
+                        return roiName;
+                }
+
+                public double[] getValues() {
+                        double[] values = { areaSize, areaGrayScale, circularity, valid, invalid };
+                        return values;
+                }
+
+                public String[] getTitle() {
+                        String[] title = { "area size", "intensity", "circularity", "valid", "invalid" };
+                        return title;
+                }
+
+                int valid = 0;
+                int invalid = 0;
+        }
+
+        public class CellInfoStatistics extends Statistics {
+                public CellInfoStatistics() {
+
+                }
+
+                public void setThershold(double minTH, double maxTH) {
+                        this.minTH = minTH;
+                        this.maxTH = maxTH;
+                }
+
+                public void calcStatistics(Channel ch) {
+                        int nrOfInvalid = 0;
+                        int nrOfValid = 0;
+                        double areaSizeSum = 0;
+                        double grayScaleSum = 0;
+                        double circularitySum = 0;
+
+                        for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
+                                CellInfo info = (CellInfo) entry.getValue();
+
+                                nrOfInvalid += info.invalid;
+                                nrOfValid += info.valid;
+                                areaSizeSum += info.areaSize;
+                                grayScaleSum += info.areaGrayScale;
+                                circularitySum += info.circularity;
+
+                        }
+                        this.avgAreaSize = areaSizeSum / ch.getRois().size();
+                        this.avgGrayScale = grayScaleSum / ch.getRois().size();
+                        this.avgCircularity = circularitySum / ch.getRois().size();
+                        this.invalid = nrOfInvalid;
+                        this.valid = nrOfValid;
+                }
+
+                public double[] getValues() {
+                        // double[] values = { avgAreaSize, avgGrayScale, avgCircularity, valid, invalid
+                        // };
+                        double[] values = { valid, invalid };
+                        return values;
+                }
+
+                public String[] getTitle() {
+                        // String[] title = { "area size", "intensity", "circularity", "valid",
+                        // "invalid" };
+                        String[] title = { "valid", "invalid" };
+                        return title;
+                }
+
+                public int valid;
+                public int invalid;
+                public double avgAreaSize;
+                public double avgGrayScale;
+                public double avgCircularity;
         }
 
 }

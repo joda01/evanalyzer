@@ -52,6 +52,10 @@ public class Channel {
         return mStatistics.getValues();
     }
 
+    public Statistics getStatistic(){
+        return mStatistics;
+    }
+
     public String[] getStatisticTitle() {
         return mStatistics.getTitle();
     }

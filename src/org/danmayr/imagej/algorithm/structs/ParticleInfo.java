@@ -26,25 +26,33 @@ public class ParticleInfo {
     ///
     /// \breif check if this particle matches the filter criteria
     ///
-    public void validatearticle(double minAreaSize, double maxAreaSize, double minCircularity, double minGrayScale) {
+    public boolean validatearticle(double minAreaSize, double maxAreaSize, double minCircularity, double minGrayScale) {
+        boolean valid = true;
         status = VALID;
         
         if(areaSize < minAreaSize){
             status |= TOO_SMALL;
+            valid = false;
         }
 
         if(areaSize > maxAreaSize){
             status |= TOO_BIG;
+            valid = false;
         }
 
         if(circularity < minCircularity){
             status |= WRONG_CIRCULARITY;
+            valid = false;
         }
 
         if(areaGrayScale<minGrayScale){
             status |= WRONG_INTENSITY;
+            valid = false;
         }
+
+        return valid;
     }
+
 
     ///
     /// \breif check if this particle is valid
