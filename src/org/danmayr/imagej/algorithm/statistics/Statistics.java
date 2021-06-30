@@ -47,13 +47,24 @@ public class Statistics {
         this.valid = nrOfValid;
     }
 
+    // public double[] getValues() {
+    //     double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH, maxTH };
+    //     return values;
+    // }
+// 
+//    // public String[] getTitle() {
+    //     String[] title = { "area size", "intensity", "circularity","valid","invalid","min TH", "max TH" };
+    //     return title;
+    //}
+
+
     public double[] getValues() {
-        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH, maxTH };
+        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "intensity", "circularity","valid","invalid","min TH", "max TH" };
+        String[] title = { "area size", "intensity", "circularity","valid","invalid","threshold" };
         return title;
     }
 

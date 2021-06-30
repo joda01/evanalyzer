@@ -52,7 +52,7 @@ public class ExosomColoc extends Pipeline {
                 img0BeforeTh = preFilterSetColoc(img0Th, background, img0.enhanceContrast,
                         img0.mThersholdMethod, img0.minThershold, img0.maxThershold, in0);
                 ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, mSettings.mMinCircularity);
-                measCh0 = Filter.MeasureImage("ch0", mSettings, img0BeforeTh, img0.mChannelImg, rm);
+                measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0BeforeTh, img0.mChannelImg, rm);
                 measCh0.setThershold(in0[0], in0[1]);
                 channels.put(0, measCh0);
 
@@ -70,7 +70,7 @@ public class ExosomColoc extends Pipeline {
                 img1BeforeTh = preFilterSetColoc(img1Th, background, img1.enhanceContrast,
                         img1.mThersholdMethod, img1.minThershold, img1.maxThershold, in1);
                 ImagePlus analzeImg1 = Filter.AnalyzeParticles(img1Th, rm, 0, -1, mSettings.mMinCircularity);
-                measCh1 = Filter.MeasureImage("ch1", mSettings, img1BeforeTh, img1.mChannelImg, rm);
+                measCh1 = Filter.MeasureImage(img1.type.toString(), mSettings, img1BeforeTh, img1.mChannelImg, rm);
                 measCh1.setThershold(in1[0], in1[1]);
                 channels.put(1, measCh1);
 
@@ -88,7 +88,7 @@ public class ExosomColoc extends Pipeline {
         }
 
         RoiManager rm = new RoiManager(false);
-        Channel coloc01 = CalcColoc("Coloc 01", 3, rm, img0Th, img1Th, img0BeforeTh, img1BeforeTh);
+        Channel coloc01 = CalcColoc("Coloc of " + img0.type.toString() + " with " + img1.type.toString(), 3, rm, img0Th, img1Th, img0BeforeTh, img1BeforeTh);
         channels.put(3, coloc01);
 
         // Save debug images
