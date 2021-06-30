@@ -32,10 +32,14 @@ public class Image {
     public void addChannel(TreeMap<Integer, Channel> channels) {
         mChannels = channels;
         for (Map.Entry<Integer, Channel> channel : getChannels().entrySet()) {
-            mStatisticTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getStatisticTitle()));
-            mTitle.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getTitle()));
-            mStatistics.put(channel.getKey(), channel.getValue().getStatistics());
-            mCtrlImage.put(channel.getKey(), channel.getValue().getCtrlImagePath());
+            if(channel != null ){
+                if(channel.getValue() != null){
+                    mStatisticTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getStatisticTitle()));
+                    mTitle.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getTitle()));
+                    mStatistics.put(channel.getKey(), channel.getValue().getStatistics());
+                    mCtrlImage.put(channel.getKey(), channel.getValue().getCtrlImagePath());
+                }
+            }
         }
     }
 

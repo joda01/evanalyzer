@@ -6,7 +6,13 @@
         "fijii/jars/fiji-2.1.0.jar",
         "libs/poi-4.1.2/poi-4.1.2.jar",
         "libs/poi-4.1.2/poi-excelant-4.1.2.jar",
-        "libs/poi-4.1.2/poi-ooxml-4.1.2.jar"
+        "libs/poi-4.1.2/poi-ooxml-4.1.2.jar",
+        "libs/fijii/jars/bio-formats/formats-api-6.5.1.jar",
+        "libs/fijii/jars/bio-formats/jai_imageio-0.0.0-STUB.jar",
+        "libs/fijii/jars/bio-formats/formats-bsd-6.5.1.jar",
+        "libs/fijii/jars/bio-formats/formats-gpl-6.5.1.jar",
+        "fijii/plugins/bio-formats_plugins-6.6.0.jar",
+        "libs/fijii/plugins/bio-formats_plugins-6.6.0.jar"
     ],
     "java.dependency.packagePresentation": "flat"
 }

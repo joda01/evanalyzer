@@ -33,20 +33,38 @@ public class Statistics {
                 circularitySum += info.circularity;
             }
         }
-        avgAreaSize = areaSizeSum / nrOfValid;
-        avgGrayScale = grayScaleSum / nrOfValid;
-        avgCircularity = circularitySum / nrOfValid;
+        if(nrOfValid > 0){
+            avgAreaSize = areaSizeSum / nrOfValid;
+            avgGrayScale = grayScaleSum / nrOfValid;
+            avgCircularity = circularitySum / nrOfValid;
+
+        }else{
+            avgAreaSize = 0;
+            avgGrayScale = 0;
+            avgCircularity = 0;
+        }
         this.invalid = nrOfInvalid;
         this.valid = nrOfValid;
     }
 
+    // public double[] getValues() {
+    //     double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH, maxTH };
+    //     return values;
+    // }
+// 
+//    // public String[] getTitle() {
+    //     String[] title = { "area size", "intensity", "circularity","valid","invalid","min TH", "max TH" };
+    //     return title;
+    //}
+
+
     public double[] getValues() {
-        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH, maxTH };
+        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "intensity", "circularity","valid","invalid","min TH", "max TH" };
+        String[] title = { "area size", "intensity", "circularity","valid","invalid","threshold" };
         return title;
     }
 

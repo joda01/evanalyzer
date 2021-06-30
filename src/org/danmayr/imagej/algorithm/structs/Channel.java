@@ -29,11 +29,11 @@ public class Channel {
         mRois.put(roi.roiName, roi);
     }
 
-    public void addControlImagePath(String ctrlImagePath){
+    public void addControlImagePath(String ctrlImagePath) {
         mControlImgPath = ctrlImagePath;
     }
 
-    public String getCtrlImagePath(){
+    public String getCtrlImagePath() {
         return mControlImgPath;
     }
 
@@ -44,7 +44,7 @@ public class Channel {
         return mName;
     }
 
-    public void calcStatistics(){
+    public void calcStatistics() {
         mStatistics.calcStatistics(this);
     }
 
@@ -52,17 +52,24 @@ public class Channel {
         return mStatistics.getValues();
     }
 
+    public Statistics getStatistic(){
+        return mStatistics;
+    }
+
     public String[] getStatisticTitle() {
         return mStatistics.getTitle();
     }
 
-
     public String[] getTitle() {
-        return mRois.firstEntry().getValue().getTitle();
+        if (mRois.size() > 0) {
+            return mRois.firstEntry().getValue().getTitle();
+        } else {
+            String[] title = { "area size", "intensity", "thershold scale", "circularity" };
+            return title;
+        }
     }
 
-
-    public void setThershold(double minTH, double maxTH){
+    public void setThershold(double minTH, double maxTH) {
         mStatistics.setThershold(minTH, maxTH);
     }
 
