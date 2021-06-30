@@ -4,7 +4,7 @@ package org.danmayr.imagej.gui;
 public class NewsTickerText {
     public static String[] mNewsTicker = {
         "Quicksort and Heapsort are the fastest sort algorithms.",
-        "1 byte corresponds to 8 bit. This allows 255 different states to be mapped.",
+        "1 byte corresponds to 8 bit. This allows 256 different states to be mapped.",
         "The fastest computer on earth can execute 148 quadrillion computing operations per second.",
         "Liquid hydrogen weighs 70.8 grams per litre.",
         "The earth weighs 5.977 thousand trillion tonnes.",

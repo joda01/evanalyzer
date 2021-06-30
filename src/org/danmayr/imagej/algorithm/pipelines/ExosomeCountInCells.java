@@ -56,7 +56,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                 PerformanceAnalyzer.stop("CntInCells:CellShapeDetection");
 
                 PerformanceAnalyzer.start("CntInCells:NucleusSeparation");
-                // NucleusSeparation(cellArea);
+                NucleusSeparation(cellArea);
                 PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
 
                 return mReturnChannels;
@@ -92,8 +92,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                 @Override
                 public void run() {
-                        IJ.log(LocalTime.now() + " - value: " + " - thread: " + Thread.currentThread().getName());
-                        IJ.log(" " + val.getValue().type.toString() + " " + Thread.currentThread().getName());
+                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: " + Thread.currentThread().getName());
                         RoiManager rm = new RoiManager(false);
 
                         ImagePlus evOriginal = val.getValue().mChannelImg;
@@ -168,49 +167,68 @@ public class ExosomeCountInCells extends ExosomColoc {
                         chCell.setThershold(in[0], in[1]);
                         addReturnChannel(chCell);
 
-                        //
-                        // Count EVS in Cells
-                        //
-                        // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
-                        // Vector<Thread> threads = new Vector<>();
-
-                        mEditedEvs.entrySet().parallelStream().forEach(val -> {
-
-                                RoiManager rmEvs = new RoiManager(false);
-
-                                ImagePlus evChannelImg = val.getValue().mChannelImg;
-                                ImagePlus evChannelImgOriginal = getEvChannels().get(val.getKey()).mChannelImg;
-
-                                Filter.SetRoiInImage(evChannelImgOriginal, rm, 0);
-                                Filter.SetRoiInImage(evChannelImg, rm, 0);
-
-                                //
-                                // Calculate cell original thershold
-                                //
-                                Channel cellArea = Filter.MeasureImage("cell area in" + val.getValue().type.toString(),
-                                                null, evChannelImgOriginal, evChannelImg, rm);
-                                addReturnChannel(cellArea);
-
-                                //
-                                //
-                                //
-                                ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
-                                ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1,
-                                                mSettings.mMinCircularity);
-                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
-                                                + "_ev_in_cell_mask", rmEvs);
-                                Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell",
-                                                mSettings, evChannelImgOriginal, mask, rmEvs);
-                                addReturnChannel(evsInCells);
-
-                                Filter.ClearRoiInImage(evChannelImgOriginal);
-                                Filter.ClearRoiInImage(evChannelImg);
-                        });
-
+                        ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
+                        for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
+                                exec.execute(new CellShapeDetectionRunner(val, rm, cellsEdited));
+                        }
+                        exec.shutdown();
+                        try {
+                                exec.awaitTermination(1, TimeUnit.HOURS);
+                        } catch (InterruptedException e) {
+                                e.printStackTrace();
+                        }
                         return cellsEdited;
                 }
                 return null;
 
+        }
+
+        class CellShapeDetectionRunner implements Runnable {
+                Map.Entry<ChannelType, ChannelSettings> val;
+                RoiManager rm;
+                ImagePlus cellsEdited;
+
+                CellShapeDetectionRunner(Map.Entry<ChannelType, ChannelSettings> v, RoiManager manager,
+                                ImagePlus editedCells) {
+                        this.val = v;
+                        this.rm = manager;
+                        this.cellsEdited = editedCells;
+                }
+
+                @Override
+                public void run() {
+                        IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: " + " - thread: " + Thread.currentThread().getName());
+
+                        RoiManager rmEvs = new RoiManager(false);
+
+                        ImagePlus evChannelImg = val.getValue().mChannelImg;
+                        ImagePlus evChannelImgOriginal = getEvChannels().get(val.getKey()).mChannelImg;
+
+                        Filter.SetRoiInImage(evChannelImgOriginal, rm, 0);
+                        Filter.SetRoiInImage(evChannelImg, rm, 0);
+
+                        //
+                        // Calculate cell original thershold
+                        //
+                        Channel cellArea = Filter.MeasureImage("cell area in" + val.getValue().type.toString(), null,
+                                        evChannelImgOriginal, evChannelImg, rm);
+                        addReturnChannel(cellArea);
+
+                        //
+                        //
+                        //
+                        ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
+                        ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, mSettings.mMinCircularity);
+                        Filter.SaveImage(mask,
+                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask",
+                                        rmEvs);
+                        Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell", mSettings,
+                                        evChannelImgOriginal, mask, rmEvs);
+                        addReturnChannel(evsInCells);
+
+                        Filter.ClearRoiInImage(evChannelImgOriginal);
+                        Filter.ClearRoiInImage(evChannelImg);
+                }
         }
 
         ///
