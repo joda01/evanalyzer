@@ -805,10 +805,16 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 3;
-        JLabel titl = new JLabel("Version " + Version.getVersion() + " | pre release | multithreading experimental");
+        JLabel titl = new JLabel("Version " + Version.getVersion());
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
-        titl.setBackground(Color.RED);
+        if (Version.status == "alpha") {
+            titl.setBackground(Color.RED);
+        } else if (Version.status == "beta") {
+            titl.setBackground(Color.YELLOW);
+        } else {
+            titl.setBackground(Color.CYAN);
+        }
         mainTab.add(titl, c);
 
         ////////////////////////////////////////////////////
