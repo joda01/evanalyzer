@@ -355,8 +355,6 @@ public class Filter {
         return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null);
     }
 
-    //static Semaphore sem = new Semaphore(1);
-
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, boolean addToRoi, ResultsTable rt) {
 
@@ -393,25 +391,16 @@ public class Filter {
 
         int measurements = Measurements.AREA | Measurements.MEAN | Measurements.MIN_MAX
                 | Measurements.SHAPE_DESCRIPTORS;
-                ParticleAnalyzerThreadSafe analyzer = new ParticleAnalyzerThreadSafe(option, measurements, rt, minSize, maxSize, minCircularity,
-                1.0);
+        ParticleAnalyzerThreadSafe analyzer = new ParticleAnalyzerThreadSafe(option, measurements, rt, minSize, maxSize,
+                minCircularity, 1.0);
         analyzer.setHideOutputImage(true);
 
-        //try {
-           // sem.acquire();
-            if (true == addToRoi) {
-                analyzer.setRoiManager(rm);
-            } else {
-                analyzer.setRoiManager(null);
-            }
-            analyzer.analyze(image, image.getProcessor());
-        /*} catch (InterruptedException exc) {
-            sem.release();
-        }finally{
-            sem.release();
-        }*/
-
-
+        if (true == addToRoi) {
+            analyzer.setRoiManager(rm);
+        } else {
+            analyzer.setRoiManager(null);
+        }
+        analyzer.analyze(image, image.getProcessor());
         ImagePlus mask = analyzer.getOutputImage();
         Filter.InvertImage(mask);
         Filter.ApplyThershold(mask, AutoThresholder.Method.Default);
