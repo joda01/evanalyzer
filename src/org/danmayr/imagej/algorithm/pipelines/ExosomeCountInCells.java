@@ -264,44 +264,44 @@ public class ExosomeCountInCells extends ExosomColoc {
                         // Now analyze cell by cell
                         //
                         // Filter.RoiSave(analyzedCells, rm);
+                        if(true == mSettings.mCountEvsPerCell){
+                                for(Map.Entry<Pipeline.ChannelType,ChannelSettings> val : mEditedEvs.entrySet()){
+                                        // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
+                                        ImagePlus evImg = val.getValue().mChannelImg;
+                                        //ImagePlus evImgOri =getEvChannels().get(val.getKey());
+                                        evImg.show();
+                                        ResultsTable rt = new ResultsTable();
 
-                        for(Map.Entry<Pipeline.ChannelType,ChannelSettings> val : mEditedEvs.entrySet()){
-                                // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
-                                ImagePlus evImg = val.getValue().mChannelImg;
-                                //ImagePlus evImgOri =getEvChannels().get(val.getKey());
-                                evImg.show();
-                                ResultsTable rt = new ResultsTable();
+                                        //
+                                        // Contains Cell information
+                                        //
+                                        Channel evsInCell = new Channel("evs_in_cell_" + val.getKey().toString(),
+                                                        new CellInfoStatistics());
 
-                                //
-                                // Contains Cell information
-                                //
-                                Channel evsInCell = new Channel("evs_in_cell_" + val.getKey().toString(),
-                                                new CellInfoStatistics());
+                                        //
+                                        // Measure the cell
+                                        //
+                                        Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, evImg, evImg, rm);
 
-                                //
-                                // Measure the cell
-                                //
-                                Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, evImg, evImg, rm);
+                                        for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
+                                                rt.reset();
+                                                rm.selectAndMakeVisible(evImg, n);
+                                                Filter.SetRoiInImage(evImg, rm, n);
+                                                Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
+                                                Channel cell = Filter.createChannelFromMeasurement(
+                                                                "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
+                                                cell.calcStatistics();
+                                                Statistics stat = cell.getStatistic();
+                                                CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
+                                                cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
+                                                evsInCell.addRoi(info);
+                                        }
+                                        evsInCell.calcStatistics();
+                                        addReturnChannel(evsInCell);
+                                        evImg.hide();
 
-                                for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
-                                        rt.reset();
-                                        rm.selectAndMakeVisible(evImg, n);
-                                        Filter.SetRoiInImage(evImg, rm, n);
-                                        Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
-                                        Channel cell = Filter.createChannelFromMeasurement(
-                                                        "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
-                                        cell.calcStatistics();
-                                        Statistics stat = cell.getStatistic();
-                                        CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
-                                        cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
-                                        evsInCell.addRoi(info);
                                 }
-                                evsInCell.calcStatistics();
-                                addReturnChannel(evsInCell);
-                                evImg.hide();
-
                         }
-
                 }
         }
 

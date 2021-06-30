@@ -95,6 +95,11 @@ public class FileProcessor extends Thread {
             }
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
+            mAnalyseSettings.mCountEvsPerCell = false;
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparation)) {
+            mAnalyseSettings.mCountEvsPerCell = true;
             pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
         if (null == pipeline) {

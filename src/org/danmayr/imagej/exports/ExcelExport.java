@@ -147,6 +147,7 @@ public class ExcelExport {
 
         row = WriteRow(summarySheet, row, "Min Circularity", String.valueOf(settings.mMinCircularity));
         row = WriteRow(summarySheet, row, "Min Intensity", String.valueOf(settings.minIntensity));
+        row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
 
         row = WriteRow(summarySheet, row, "Report filename", String.valueOf(settings.mOutputFileName));
 

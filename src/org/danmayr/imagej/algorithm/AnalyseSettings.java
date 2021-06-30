@@ -15,7 +15,7 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"), countInCellExosomes("EV Counting in Cells");;
+        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"), countInCellExosomes("EV Counting in Cells"), countInCellExosomesWithCellSeparation("EV Counting in Cells with cell separation [BETA]");
 
         private final String name;
 
@@ -47,5 +47,6 @@ public class AnalyseSettings {
     public double minIntensity = 0.0;
     public String mOutputFileName="";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
+    public boolean mCountEvsPerCell = false;
 
 }

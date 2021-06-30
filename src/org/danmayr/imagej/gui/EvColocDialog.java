@@ -210,7 +210,7 @@ public class EvColocDialog extends JFrame {
                             thersholdMethod.setSelectedIndex(5);
                         } else {
                             // Select LI
-                            thersholdMethod.setSelectedIndex(0);                                  
+                            thersholdMethod.setSelectedIndex(0);
                         }
 
                         if (Pipeline.ChannelType.BACKGROUND == type) {
@@ -530,8 +530,9 @@ public class EvColocDialog extends JFrame {
                         mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
 
                         Filter.SubtractBackground(mPreviewImage0[n]);
-                        //Filter.ApplyGaus(mPreviewImage0[n]);
-                        IJ.run(mPreviewImage0[n], "Convolve...", "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+                        // Filter.ApplyGaus(mPreviewImage0[n]);
+                        IJ.run(mPreviewImage0[n], "Convolve...",
+                                "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
                     } else {
                         // Swap image
                         if (mPreviewImage0[n].getTitle() != imagesPerChannel.get(channelNr).getTitle()) {
@@ -924,7 +925,8 @@ public class EvColocDialog extends JFrame {
 
         AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
                 AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes,
-                AnalyseSettings.Function.countInCellExosomes };
+                AnalyseSettings.Function.countInCellExosomes,
+                AnalyseSettings.Function.countInCellExosomesWithCellSeparation };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
@@ -940,7 +942,8 @@ public class EvColocDialog extends JFrame {
                     for (int n = 2; n < chSettings.channelSettings.size(); n++) {
                         chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
                     }
-                } else if (AnalyseSettings.Function.countInCellExosomes == type) {
+                } else if (AnalyseSettings.Function.countInCellExosomes == type
+                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type) {
                     chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
                     chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
                     chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
