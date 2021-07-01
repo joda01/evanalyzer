@@ -209,8 +209,7 @@ public class ExcelExport {
                 rowTitleCell.setCellStyle(actStyleThinLine);
                 column++;
             }
-
-            overviewSheet.addMergedRegion(new CellRangeAddress(0, 0, startColumnMerge, column - 1));
+            overviewSheet.addMergedRegion(new CellRangeAddress(row, row, startColumnMerge, column - 1));
             startColumnMerge = column;
         }
         return row + 2;
