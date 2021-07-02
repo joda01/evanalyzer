@@ -183,11 +183,9 @@ abstract public class Pipeline {
     Filter.ApplyGaus(th);
 
     ImagePlus beforeThershold = Filter.duplicateImage(th);
-
     Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
-    img.setImage(th);
+    img = th;
     PerformanceAnalyzer.stop("filter_coloc");
-
     return beforeThershold;
   }
 

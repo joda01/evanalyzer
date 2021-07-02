@@ -228,13 +228,15 @@ public class Filter {
             thRet[1] = ip.getMaxThreshold();
         }
 
-        img.updateAndDraw();
 
         if (true == convertToMask) {
             ByteProcessor mask = img.createThresholdMask();
-            mask = ip.createMask();
-            img.setImage(new ImagePlus(img.getTitle(), mask));
+            img.setImage(new ImagePlus(img.getTitle(),mask));
+            img.setProcessor(mask);
+            mask.setThreshold(255, 255, ImageProcessor.NO_LUT_UPDATE);
         }
+
+        img.updateAndDraw();
 
     }
 
