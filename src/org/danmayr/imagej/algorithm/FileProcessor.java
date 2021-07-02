@@ -145,7 +145,6 @@ public class FileProcessor extends Thread {
         try {
             PerformanceAnalyzer.start("open_image");
             String fileName = imgToOpen.getAbsoluteFile().toString();
-            IJ.log(imgToOpen.getAbsoluteFile().toString());
             ImporterOptions opt = new ImporterOptions();
             opt.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
             opt.setStackOrder(ImporterOptions.ORDER_XYZCT);
@@ -264,7 +263,6 @@ public class FileProcessor extends Thread {
         if (parentFile != null && !parentFile.exists()) {
             parentFile.mkdirs();
         }
-        IJ.log(parentFile.getAbsolutePath());
     }
 
     private void closeAllWindow() {
