@@ -27,6 +27,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 import org.danmayr.imagej.algorithm.structs.Channel;
 import org.danmayr.imagej.algorithm.structs.Folder;
 import org.danmayr.imagej.algorithm.structs.FolderResults;
@@ -187,12 +188,12 @@ public class ExcelExport {
         Row rowChName = overviewSheet.createRow(row);
         Row rowTitles = overviewSheet.createRow(row + 1);
 
-        TreeMap<Integer, Pair<String, String[]>> titles = folder.getStatisticTitle();
+        TreeMap<ChannelType, Pair<String, String[]>> titles = folder.getStatisticTitle();
         int column = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
         int startColumnMerge = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
         CellStyle actStyleThinLine = createCellStyleHeader(overviewSheet, false);
         CellStyle actStyleThickLine = createCellStyleHeader(overviewSheet, true);
-        for (Map.Entry<Integer, Pair<String, String[]>> value : titles.entrySet()) {
+        for (Map.Entry<ChannelType, Pair<String, String[]>> value : titles.entrySet()) {
             // Channel Name
             Cell rowNameFirst = rowChName.createCell(column);
             rowNameFirst.setCellValue(value.getValue().getFirst());
@@ -257,14 +258,14 @@ public class ExcelExport {
         linkCell.setHyperlink(link2);
         linkCell.setCellStyle(actStyleThinLine);
 
-        TreeMap<Integer, String> ctrlImages = image.getCtrlImages();
+        TreeMap<ChannelType, String> ctrlImages = image.getCtrlImages();
 
         ///
         /// Write values for one image
         ///
-        TreeMap<Integer, double[]> values = image.getStatistics();
+        TreeMap<ChannelType, double[]> values = image.getStatistics();
         int column = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
-        for (Map.Entry<Integer, double[]> value : values.entrySet()) {
+        for (Map.Entry<ChannelType, double[]> value : values.entrySet()) {
             Cell picCell = rowImgSummary.createCell(column);
             picCell.setCellValue("Open pic");
             Hyperlink picLik = createHelper.createHyperlink(HyperlinkType.FILE);
@@ -392,11 +393,11 @@ public class ExcelExport {
         Row rowChName = imgSheet.createRow(0);
         Row rowTitles = imgSheet.createRow(0 + 1);
 
-        TreeMap<Integer, Pair<String, String[]>> titles = image.getTitle();
-        TreeMap<Integer, Integer> channelColumnSize = new TreeMap<>(); // Stores the number of Columns per channel
+        TreeMap<ChannelType, Pair<String, String[]>> titles = image.getTitle();
+        TreeMap<ChannelType, Integer> channelColumnSize = new TreeMap<>(); // Stores the number of Columns per channel
 
         int column = 1;
-        for (Map.Entry<Integer, Pair<String, String[]>> value : titles.entrySet()) {
+        for (Map.Entry<ChannelType, Pair<String, String[]>> value : titles.entrySet()) {
             rowChName.createCell(column).setCellValue(value.getValue().getFirst());
             channelColumnSize.put(value.getKey(), column);
             for (int n = 0; n < value.getValue().getSecond().length; n++) {
@@ -408,15 +409,15 @@ public class ExcelExport {
         ///
         /// Write values
         ///
-        TreeMap<Integer, TreeMap<Integer, double[]>> rows = new TreeMap<>(); // <ROI <ChannelNr,values>>
+        TreeMap<Integer, TreeMap<ChannelType, double[]>> rows = new TreeMap<>(); // <ROI <ChannelNr,values>>
 
-        for (Map.Entry<Integer, Channel> channelMap : image.getChannels().entrySet()) {
+        for (Map.Entry<ChannelType, Channel> channelMap : image.getChannels().entrySet()) {
             Channel channel = channelMap.getValue();
             for (Map.Entry<Integer, ParticleInfo> roiMap : channel.getRois().entrySet()) {
                 ParticleInfo info = roiMap.getValue();
                 double values[] = info.getValues();
 
-                TreeMap<Integer, double[]> vec = rows.get(roiMap.getKey());
+                TreeMap<ChannelType, double[]> vec = rows.get(roiMap.getKey());
                 if (null == vec) {
                     vec = new TreeMap<>();
                     rows.put(roiMap.getKey(), vec);
@@ -426,12 +427,12 @@ public class ExcelExport {
         }
 
         int row = 2;
-        for (Map.Entry<Integer, TreeMap<Integer, double[]>> entry3 : rows.entrySet()) {
+        for (Map.Entry<Integer, TreeMap<ChannelType, double[]>> entry3 : rows.entrySet()) {
             Row currentRow = imgSheet.createRow(row);
             currentRow.createCell(0).setCellValue(entry3.getKey());
-            TreeMap<Integer, double[]> valVec = entry3.getValue();
+            TreeMap<ChannelType, double[]> valVec = entry3.getValue();
 
-            for (Map.Entry<Integer, double[]> valVecEntry : valVec.entrySet()) {
+            for (Map.Entry<ChannelType, double[]> valVecEntry : valVec.entrySet()) {
                 Object key = valVecEntry.getKey();
                 if (null != key && null != channelColumnSize && true == channelColumnSize.containsKey(key)) { // channelColumnSize.containsKey(key)
                                                                                                               // was
@@ -457,12 +458,12 @@ public class ExcelExport {
     private static int WriteOverviewFolderStatistics(SXSSFSheet overviewSheet, Folder folder, int row) {
         Row rowFolderStatistics = overviewSheet.createRow(row);
 
-        TreeMap<Integer, double[]> statistics = folder.calcStatistic();
+        TreeMap<ChannelType, double[]> statistics = folder.calcStatistic();
         int column = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
         CellStyle actStyleThinLine = createCellStyleFooter(overviewSheet, false);
         CellStyle actStyleThickLine = createCellStyleFooter(overviewSheet, true);
 
-        for (Map.Entry<Integer, double[]> value : statistics.entrySet()) {
+        for (Map.Entry<ChannelType, double[]> value : statistics.entrySet()) {
             Cell emptyCell = rowFolderStatistics.createCell(column);
             emptyCell.setCellValue("Avg:");
             emptyCell.setCellStyle(actStyleThickLine);

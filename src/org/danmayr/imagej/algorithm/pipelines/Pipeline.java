@@ -40,19 +40,61 @@ abstract public class Pipeline {
     int mIdx;
   }
 
-  public enum ChannelType {
-    EV_DAPI("dapi", ChannelColor.BLUE, true), EV_GFP("gfp", ChannelColor.GREEN, true),
-    EV_CY3("cy3", ChannelColor.RED, true), EV_CY5("cy5", ChannelColor.MAGENTA, true),
-    EV_CY7("cy7", ChannelColor.YELLOW, true), CELL("cell", ChannelColor.GRAY, false),
-    NUCLEUS("nucleus", ChannelColor.CYAN, false), NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false),
-    BACKGROUND("background", ChannelColor.GRAY, false);
-    ;
+  private static Map<Integer,ChannelType> map = new HashMap<Integer,ChannelType>();
 
-    private ChannelType(String name, ChannelColor chColor, boolean evChannel) {
+  public enum ChannelType {
+    EV_DAPI("dapi", ChannelColor.BLUE, true,0), 
+    EV_GFP("gfp", ChannelColor.GREEN, true,1),
+    EV_CY3("cy3", ChannelColor.RED, true,2), 
+    EV_CY5("cy5", ChannelColor.MAGENTA, true,3),
+    EV_CY7("cy7", ChannelColor.YELLOW, true,4), 
+    CELL("cell", ChannelColor.GRAY, false,5),
+    NUCLEUS("nucleus", ChannelColor.CYAN, false,6), 
+    NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false,7),
+    BACKGROUND("background", ChannelColor.GRAY, false,8),
+    FREE_01("free_1", ChannelColor.GRAY, false,9),
+    FREE_02("free_2", ChannelColor.GRAY, false,10),
+    FREE_03("free_3", ChannelColor.GRAY, false,11),
+    FREE_04("free_4", ChannelColor.GRAY, false,12),
+    FREE_05("free_5", ChannelColor.GRAY, false,13),
+    FREE_06("free_6", ChannelColor.GRAY, false,14),
+    FREE_07("free_7", ChannelColor.GRAY, false,15),
+    FREE_08("free_8", ChannelColor.GRAY, false,16),
+    FREE_09("free_9", ChannelColor.GRAY, false,17),
+    FREE_10("free_10", ChannelColor.GRAY, false,18),
+    FREE_11("free_11", ChannelColor.GRAY, false,19),
+    FREE_12("free_12", ChannelColor.GRAY, false,20),
+    FREE_13("free_13", ChannelColor.GRAY, false,21),
+    FREE_14("free_14", ChannelColor.GRAY, false,22),
+    FREE_15("free_15", ChannelColor.GRAY, false,23),
+    FREE_16("free_16", ChannelColor.GRAY, false,24),
+    FREE_17("free_17", ChannelColor.GRAY, false,25),
+    FREE_18("free_18", ChannelColor.GRAY, false,26),
+    FREE_19("free_19", ChannelColor.GRAY, false,27),
+    FREE_20("free_20", ChannelColor.GRAY, false,28),
+    COLOC_ALL("coloc_all", ChannelColor.GRAY, false,23);
+
+    
+    private ChannelType(String name, ChannelColor chColor, boolean evChannel, int i) {
       mName = name;
       mChColor = chColor;
       mIsEvChannel = evChannel;
+      this.idx = i;
     }
+
+    public static ChannelType getColocEnum(int idx){
+      return map.get(idx+getFirstFreeChannel());
+    }
+
+    static int getFirstFreeChannel(){
+      return 9;
+    }
+
+    static {
+      for (ChannelType pageType : ChannelType.values()) {
+          map.put(pageType.idx, pageType);
+      }
+  }
 
     public String getName() {
       return mName;
@@ -66,6 +108,7 @@ abstract public class Pipeline {
       return mIsEvChannel;
     }
 
+    int idx;
     private final String mName;
     private final ChannelColor mChColor;
     private final boolean mIsEvChannel;
@@ -84,7 +127,7 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<Integer, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
+  public TreeMap<ChannelType, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
     // String[] imageTitles = WindowManager.getImageTitles();
     imgChannel.clear();
     PerformanceAnalyzer.start("preprocessing");
@@ -103,7 +146,7 @@ abstract public class Pipeline {
     PerformanceAnalyzer.stop("preprocessing");
 
     PerformanceAnalyzer.start("analyze_img");
-    TreeMap<Integer, Channel> result = startPipeline(imageFile);
+    TreeMap<ChannelType, Channel> result = startPipeline(imageFile);
     PerformanceAnalyzer.stop("analyze_img");
 
     return result;
@@ -189,63 +232,8 @@ abstract public class Pipeline {
     return beforeThershold;
   }
 
-  abstract protected TreeMap<Integer, Channel> startPipeline(File imageFile);
+  abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
 
-  protected void saveControlImages(String name, ImagePlus img0, ImagePlus img1, ImagePlus img2, Channel measCh0,
-      Channel measCh1, Channel measCh2, ChannelType type0, ChannelType type1, ChannelType type2, RoiManager rm,
-      Channel measColoc) {
-    if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
-      // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
-      ImagePlus[] imgAry = { null, null, null, null, null, null, null };
-      Channel[] chAry = { null, null, null, null, null, null, null };
-      String[] chNames = { null, null, null, null, null, null, null };
-
-      imgAry[type0.getColorIdx()] = img0;
-      chAry[type0.getColorIdx()] = measCh0;
-      chNames[type0.getColorIdx()] = type0.getName();
-
-      if (type1 != null) {
-        imgAry[type1.getColorIdx()] = img1;
-        chAry[type1.getColorIdx()] = measCh1;
-        chNames[type1.getColorIdx()] = type1.getName();
-      }
-
-      if (type2 != null) {
-        imgAry[type2.getColorIdx()] = img2;
-        chAry[type2.getColorIdx()] = measCh2;
-        chNames[type2.getColorIdx()] = type2.getName();
-      }
-      // imgAry[ch2s.type.getColorIdx()] = img2;
-      // chAry[ch2s.type.getColorIdx()] = measCh2;
-
-      name = name.replace("%", "");
-      name = name.replace(" ", "");
-      name = name.replace(":", "");
-      name = name.replace("^", "");
-      name = name.replace("+", "");
-      name = name.replace("*", "");
-      name = name.replace("~", "");
-      name = name.toLowerCase();
-
-      String path = mSettings.mOutputFolder + java.io.File.separator + name;
-
-      if (null != measColoc) {
-        ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-        Filter.SaveImage(mergedChannel, path + "_merged.jpg", rm);
-        measColoc.addControlImagePath(name + "_merged.jpg");
-      }
-
-      for (int n = 0; n < imgAry.length; n++) {
-        if (imgAry[n] != null && chAry[n] != null) {
-          String fileName = "_" + chNames[n] + ".jpg";
-          ImagePlus newImg = Filter.duplicateImage(imgAry[n]);
-          Filter.SaveImageWithOverlay(newImg, rm, path + fileName);
-          chAry[n].addControlImagePath(name + fileName);
-        }
-      }
-
-    }
-  }
 
   protected String getPath(File file) {
     String name = file.getName();

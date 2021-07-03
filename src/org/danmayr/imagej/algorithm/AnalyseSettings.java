@@ -48,5 +48,6 @@ public class AnalyseSettings {
     public String mOutputFileName="";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
     public boolean mCountEvsPerCell = false;
+    public boolean mCalcColoc = false;
 
 }

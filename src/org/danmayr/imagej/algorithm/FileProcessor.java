@@ -35,7 +35,7 @@ import org.danmayr.imagej.exports.*;
 import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.filters.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
-
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 import org.danmayr.imagej.gui.EvColocDialog;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
@@ -55,6 +55,8 @@ public class FileProcessor extends Thread {
      * Start the analyse thread
      */
     public void run() {
+        int n = Runtime.getRuntime().availableProcessors();
+        IJ.log("Available Processors: " + n);
 
         mStopping = false;
         // Close all open windows
@@ -79,27 +81,23 @@ public class FileProcessor extends Thread {
         Pipeline pipeline = null;
 
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
-            pipeline = new ExosomCount(mAnalyseSettings);
+            mAnalyseSettings.mCalcColoc = false;
+            mAnalyseSettings.mCountEvsPerCell = false;
+            pipeline = new ExosomColoc(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
-            int nrOfEnabledCh = 0;
-            for (ChannelSettings chSett : mAnalyseSettings.channelSettings) {
-                if (chSett.mChannelNr >= 0 && true == chSett.type.isEvChannel()) {
-                    nrOfEnabledCh++;
-                }
-            }
-            if (nrOfEnabledCh == 3) {
-                pipeline = new ExosomeColoc3Ch(mAnalyseSettings);
-            } else {
-                pipeline = new ExosomColoc(mAnalyseSettings);
-            }
+            mAnalyseSettings.mCalcColoc = true;
+            mAnalyseSettings.mCountEvsPerCell = false;
+            pipeline = new ExosomColoc(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
             mAnalyseSettings.mCountEvsPerCell = false;
+            mAnalyseSettings.mCalcColoc = false;
             pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparation)) {
             mAnalyseSettings.mCountEvsPerCell = true;
+            mAnalyseSettings.mCalcColoc = false;
             pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
         if (null == pipeline) {
@@ -137,10 +135,6 @@ public class FileProcessor extends Thread {
     }
 
     public static ImagePlus[] OpenImage(File imgToOpen, int series, boolean showImg) {
-
-        int n = Runtime.getRuntime().availableProcessors();
-        IJ.log("Available Processors: " + n);
-
         ImagePlus[] imps = null;
         try {
             PerformanceAnalyzer.start("open_image");
@@ -202,7 +196,7 @@ public class FileProcessor extends Thread {
                     break;
                 }
                 File file = mLoadedImages.elementAt(0).getFirst();
-                TreeMap<Integer, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
+                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
                 mResuls.addImage(file.getParent(), file.getName(), images);
 
                 for (int n = 0; n < mLoadedImages.elementAt(0).getSecond().length; n++) {

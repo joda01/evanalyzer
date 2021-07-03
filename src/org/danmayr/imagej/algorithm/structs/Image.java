@@ -3,6 +3,8 @@ package org.danmayr.imagej.algorithm.structs;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 import org.danmayr.imagej.algorithm.structs.Pair;
 
 
@@ -12,11 +14,11 @@ import org.danmayr.imagej.algorithm.structs.Pair;
 ///
 public class Image {
     String mImageName;
-    TreeMap<Integer, Channel> mChannels = new TreeMap<>(); // Channel Nr, Channel
-    TreeMap<Integer, Pair<String,String[]>> mStatisticTitles = new TreeMap<>();
-    TreeMap<Integer, Pair<String,String[]>> mTitle = new TreeMap<>();
-    TreeMap<Integer, double[]> mStatistics = new TreeMap<>();
-    TreeMap<Integer, String> mCtrlImage = new TreeMap<>();
+    TreeMap<ChannelType, Channel> mChannels = new TreeMap<>(); // Channel Nr, Channel
+    TreeMap<ChannelType, Pair<String,String[]>> mStatisticTitles = new TreeMap<>();
+    TreeMap<ChannelType, Pair<String,String[]>> mTitle = new TreeMap<>();
+    TreeMap<ChannelType, double[]> mStatistics = new TreeMap<>();
+    TreeMap<ChannelType, String> mCtrlImage = new TreeMap<>();
 
 
     ///
@@ -29,9 +31,9 @@ public class Image {
     ///
     /// \brief Adds a channel to the image
     ///
-    public void addChannel(TreeMap<Integer, Channel> channels) {
+    public void addChannel(TreeMap<ChannelType, Channel> channels) {
         mChannels = channels;
-        for (Map.Entry<Integer, Channel> channel : getChannels().entrySet()) {
+        for (Map.Entry<ChannelType, Channel> channel : getChannels().entrySet()) {
             if(channel != null ){
                 if(channel.getValue() != null){
                     mStatisticTitles.put(channel.getKey(), new Pair<String, String[]>(channel.getValue().toString(), channel.getValue().getStatisticTitle()));
@@ -53,23 +55,23 @@ public class Image {
     ///
     /// \brief Returns the channels of the image
     ///
-    public TreeMap<Integer, Channel> getChannels(){
+    public TreeMap<ChannelType, Channel> getChannels(){
         return mChannels;
     }
 
-    public TreeMap<Integer, String> getCtrlImages(){
+    public TreeMap<ChannelType, String> getCtrlImages(){
         return mCtrlImage;
     }
 
-    public TreeMap<Integer, Pair<String,String[]>> getStatisticTitle(){
+    public TreeMap<ChannelType, Pair<String,String[]>> getStatisticTitle(){
         return mStatisticTitles;
     }
 
-    public TreeMap<Integer, double[]> getStatistics(){
+    public TreeMap<ChannelType, double[]> getStatistics(){
         return mStatistics;
     }
 
-    public TreeMap<Integer, Pair<String,String[]>> getTitle(){
+    public TreeMap<ChannelType, Pair<String,String[]>> getTitle(){
         return mTitle;
     }
 

@@ -3,6 +3,8 @@ package org.danmayr.imagej.algorithm.structs;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 import org.danmayr.imagej.algorithm.structs.Pair;
 
 
@@ -25,7 +27,7 @@ public class Folder {
     ///
     /// Add an image to the folder
     ///
-    public void addImage(String imageName, TreeMap<Integer, Channel> channels) {
+    public void addImage(String imageName, TreeMap<ChannelType, Channel> channels) {
         Image actImage = mImages.get(imageName);
         if (null == actImage) {
             actImage = new Image(imageName);
@@ -46,13 +48,13 @@ public class Folder {
     }
 
 
-    public TreeMap<Integer, double[]> calcStatistic(){
-        TreeMap<Integer, double[]> mValues = new TreeMap<>();
+    public TreeMap<ChannelType, double[]> calcStatistic(){
+        TreeMap<ChannelType, double[]> mValues = new TreeMap<>();
 
         for (Map.Entry<String, Image> image : getImages().entrySet()) {
-            TreeMap<Integer, double[]> imgStatistic = image.getValue().getStatistics();
+            TreeMap<ChannelType, double[]> imgStatistic = image.getValue().getStatistics();
             
-            for (Map.Entry<Integer, double[]> channel : imgStatistic.entrySet()) {
+            for (Map.Entry<ChannelType, double[]> channel : imgStatistic.entrySet()) {
                 double[] getValues = channel.getValue();
                 double[] values = mValues.get(channel.getKey());
                 if(values == null){
@@ -65,7 +67,7 @@ public class Folder {
             }
         }
 
-        for (Map.Entry<Integer, double[]> value : mValues.entrySet()) {
+        for (Map.Entry<ChannelType, double[]> value : mValues.entrySet()) {
             double[] values = value.getValue();
             for(int n=0;n<values.length;n++){
                 values[n] =values[n]/getImages().size();
@@ -75,7 +77,7 @@ public class Folder {
         return mValues;
     }
 
-    public TreeMap<Integer,  Pair<String,String[]>> getStatisticTitle(){
+    public TreeMap<ChannelType,  Pair<String,String[]>> getStatisticTitle(){
         Image img = mImages.firstEntry().getValue();
         return img.getStatisticTitle();
     }

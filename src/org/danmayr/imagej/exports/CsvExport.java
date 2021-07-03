@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 
 
 public class CsvExport {
@@ -28,8 +29,8 @@ public class CsvExport {
                 outPut += "\n";
 
                 Image image = entry1.getValue();
-                for (Map.Entry<Integer, Channel> entry2 : image.getChannels().entrySet()) {
-                    int chName = entry2.getKey();
+                for (Map.Entry<ChannelType, Channel> entry2 : image.getChannels().entrySet()) {
+                    ChannelType chName = entry2.getKey();
                     Channel channel = entry2.getValue();
                     outPut += chName;
                     outPut += "\n";

@@ -32,7 +32,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         File mImage;
         static int MAX_THERSHOLD = 255;
-        TreeMap<Integer, Channel> mReturnChannels = new TreeMap<Integer, Channel>();
+        TreeMap<ChannelType, Channel> mReturnChannels = new TreeMap<ChannelType, Channel>();
         TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
 
         public ExosomeCountInCells(AnalyseSettings settings) {
@@ -40,7 +40,7 @@ public class ExosomeCountInCells extends ExosomColoc {
         }
 
         @Override
-        protected TreeMap<Integer, Channel> startPipeline(File img) {
+        protected TreeMap<ChannelType, Channel> startPipeline(File img) {
                 mReturnChannels.clear();
                 mEditedEvs.clear();
                 mImage = img;
@@ -306,7 +306,7 @@ public class ExosomeCountInCells extends ExosomColoc {
         }
 
         void addReturnChannel(Channel ch) {
-                mReturnChannels.put(mReturnChannels.size(), ch);
+                mReturnChannels.put(ChannelType.getColocEnum(mReturnChannels.size()), ch);
         }
 
         ///
