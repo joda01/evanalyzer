@@ -60,7 +60,7 @@ import ij.process.*;
 public class EvColocDialog extends JFrame {
 
     private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
-    private static final int NUMBEROFCHANNELSETTINGS = 4;
+    private static final int NUMBEROFCHANNELSETTINGS = 5;
 
     private static final long serialVersionUID = 1L;
 
@@ -182,7 +182,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[9];
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[10];
                 channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
                 channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
@@ -193,6 +193,7 @@ public class EvColocDialog extends JFrame {
                 channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
                 channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
+                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD, "TetraSpecks");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
@@ -442,7 +443,7 @@ public class EvColocDialog extends JFrame {
                 }
             });
             previewButtons.add(nextPreviewImage);
-            c.gridx = 4;
+            c.gridx = NUMBEROFCHANNELSETTINGS;
             c.weightx = 0;
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.LINE_END;
@@ -1230,7 +1231,7 @@ public class EvColocDialog extends JFrame {
         // Check channel settings
         //
         // It is not allowed to have two equal channel types
-        for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+        /*for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
             for (int m = 0; m < NUMBEROFCHANNELSETTINGS; m++) {
                 if (sett.channelSettings.get(n).mChannelNr >= 0 && sett.channelSettings.get(m).mChannelNr >= 0) {
                     if (n != m) {
@@ -1246,7 +1247,7 @@ public class EvColocDialog extends JFrame {
                     }
                 }
             }
-        }
+        }*/
 
         //
         //

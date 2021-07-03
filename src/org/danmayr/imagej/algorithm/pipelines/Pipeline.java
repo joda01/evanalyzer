@@ -21,7 +21,7 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
-  // protected RoiManager rm = new RoiManager();
+  // protected RoiManager rm = new RoiManager(false);
 
   // Enum which contains the color indexes for a RGBStackMerge
   // see:
@@ -40,41 +40,26 @@ abstract public class Pipeline {
     int mIdx;
   }
 
-  private static Map<Integer,ChannelType> map = new HashMap<Integer,ChannelType>();
+  private static Map<Integer, ChannelType> map = new HashMap<Integer, ChannelType>();
 
   public enum ChannelType {
-    EV_DAPI("dapi", ChannelColor.BLUE, true,0), 
-    EV_GFP("gfp", ChannelColor.GREEN, true,1),
-    EV_CY3("cy3", ChannelColor.RED, true,2), 
-    EV_CY5("cy5", ChannelColor.MAGENTA, true,3),
-    EV_CY7("cy7", ChannelColor.YELLOW, true,4), 
-    CELL("cell", ChannelColor.GRAY, false,5),
-    NUCLEUS("nucleus", ChannelColor.CYAN, false,6), 
-    NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false,7),
-    BACKGROUND("background", ChannelColor.GRAY, false,8),
-    FREE_01("free_1", ChannelColor.GRAY, false,9),
-    FREE_02("free_2", ChannelColor.GRAY, false,10),
-    FREE_03("free_3", ChannelColor.GRAY, false,11),
-    FREE_04("free_4", ChannelColor.GRAY, false,12),
-    FREE_05("free_5", ChannelColor.GRAY, false,13),
-    FREE_06("free_6", ChannelColor.GRAY, false,14),
-    FREE_07("free_7", ChannelColor.GRAY, false,15),
-    FREE_08("free_8", ChannelColor.GRAY, false,16),
-    FREE_09("free_9", ChannelColor.GRAY, false,17),
-    FREE_10("free_10", ChannelColor.GRAY, false,18),
-    FREE_11("free_11", ChannelColor.GRAY, false,19),
-    FREE_12("free_12", ChannelColor.GRAY, false,20),
-    FREE_13("free_13", ChannelColor.GRAY, false,21),
-    FREE_14("free_14", ChannelColor.GRAY, false,22),
-    FREE_15("free_15", ChannelColor.GRAY, false,23),
-    FREE_16("free_16", ChannelColor.GRAY, false,24),
-    FREE_17("free_17", ChannelColor.GRAY, false,25),
-    FREE_18("free_18", ChannelColor.GRAY, false,26),
-    FREE_19("free_19", ChannelColor.GRAY, false,27),
-    FREE_20("free_20", ChannelColor.GRAY, false,28),
-    COLOC_ALL("coloc_all", ChannelColor.GRAY, false,23);
+    EV_DAPI("dapi", ChannelColor.BLUE, true, 0), EV_GFP("gfp", ChannelColor.GREEN, true, 1),
+    EV_CY3("cy3", ChannelColor.RED, true, 2), EV_CY5("cy5", ChannelColor.MAGENTA, true, 3),
+    EV_CY7("cy7", ChannelColor.YELLOW, true, 4), CELL("cell", ChannelColor.GRAY, false, 5),
+    NUCLEUS("nucleus", ChannelColor.CYAN, false, 6), NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false, 7),
+    BACKGROUND("background", ChannelColor.GRAY, false, 8), FREE_01("free_1", ChannelColor.GRAY, false, 9),
+    FREE_02("free_2", ChannelColor.GRAY, false, 10), FREE_03("free_3", ChannelColor.GRAY, false, 11),
+    FREE_04("free_4", ChannelColor.GRAY, false, 12), FREE_05("free_5", ChannelColor.GRAY, false, 13),
+    FREE_06("free_6", ChannelColor.GRAY, false, 14), FREE_07("free_7", ChannelColor.GRAY, false, 15),
+    FREE_08("free_8", ChannelColor.GRAY, false, 16), FREE_09("free_9", ChannelColor.GRAY, false, 17),
+    FREE_10("free_10", ChannelColor.GRAY, false, 18), FREE_11("free_11", ChannelColor.GRAY, false, 19),
+    FREE_12("free_12", ChannelColor.GRAY, false, 20), FREE_13("free_13", ChannelColor.GRAY, false, 21),
+    FREE_14("free_14", ChannelColor.GRAY, false, 22), FREE_15("free_15", ChannelColor.GRAY, false, 23),
+    FREE_16("free_16", ChannelColor.GRAY, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, 25),
+    FREE_18("free_18", ChannelColor.GRAY, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, 27),
+    FREE_20("free_20", ChannelColor.GRAY, false, 28), TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, 29),
+    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 30);
 
-    
     private ChannelType(String name, ChannelColor chColor, boolean evChannel, int i) {
       mName = name;
       mChColor = chColor;
@@ -82,19 +67,19 @@ abstract public class Pipeline {
       this.idx = i;
     }
 
-    public static ChannelType getColocEnum(int idx){
-      return map.get(idx+getFirstFreeChannel());
+    public static ChannelType getColocEnum(int idx) {
+      return map.get(idx + getFirstFreeChannel());
     }
 
-    static int getFirstFreeChannel(){
+    static int getFirstFreeChannel() {
       return 9;
     }
 
     static {
       for (ChannelType pageType : ChannelType.values()) {
-          map.put(pageType.idx, pageType);
+        map.put(pageType.idx, pageType);
       }
-  }
+    }
 
     public String getName() {
       return mName;
@@ -156,12 +141,13 @@ abstract public class Pipeline {
   /// Do some preprocessing
   ///
   private ImagePlus preProcessingSteps(ImagePlus imgIn, ChannelSettings chSettings) {
+    ImagePlus dup = Filter.duplicateImage(imgIn);
     IJ.run(imgIn, "Set Scale...", "distance=0 known=0 unit=pixel global");
 
     if (chSettings.ZProjector != "OFF") {
-      return ZProjector.run(imgIn, chSettings.ZProjector);
+      return ZProjector.run(dup, chSettings.ZProjector);
     } else {
-      return imgIn;
+      return dup;
     }
   }
 
@@ -190,6 +176,14 @@ abstract public class Pipeline {
   ///
   ///
   ///
+  ChannelSettings getTetraSpeckBead() {
+    return getImageOfChannel(ChannelType.TETRASPECK_BEAD);
+  }
+
+
+  ///
+  ///
+  ///
   ChannelSettings getImageOfChannel(int idx) {
     if (imgChannel.values().toArray().length > idx) {
       return (ChannelSettings) imgChannel.values().toArray()[idx];
@@ -204,12 +198,12 @@ abstract public class Pipeline {
   }
 
   public static ImagePlus preFilterSetColocPreview(ImagePlus img, ImagePlus background, boolean enhanceContrast,
-  AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
+      AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
     return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
   public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
-  AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
+      AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
     PerformanceAnalyzer.start("filter_coloc");
 
@@ -218,15 +212,18 @@ abstract public class Pipeline {
       th = Filter.SubtractImages(th, background);
     }
 
-   // if (true == enhanceContrast) {
-   //   Filter.EnhanceContrast(th);
-   // }
+    // if (true == enhanceContrast) {
+    // Filter.EnhanceContrast(th);
+    // }
 
     Filter.SubtractBackground(th);
-    Filter.ApplyGaus(th);
+    //Filter.ApplyGaus(th);
+    Filter.Smooth(th);
+    Filter.Smooth(th);
 
     ImagePlus beforeThershold = Filter.duplicateImage(th);
     Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
+    img.setImage(th);
     img = th;
     PerformanceAnalyzer.stop("filter_coloc");
     return beforeThershold;
@@ -234,9 +231,8 @@ abstract public class Pipeline {
 
   abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
 
-
   protected String getPath(File file) {
-    String name = file.getName();
+    String name = file.getAbsolutePath().replace(java.io.File.separator, "");
     name = name.replace("%", "");
     name = name.replace(" ", "");
     name = name.replace(":", "");
