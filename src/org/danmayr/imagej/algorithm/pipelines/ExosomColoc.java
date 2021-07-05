@@ -274,7 +274,7 @@ public class ExosomColoc extends Pipeline {
 
             if (null != measColoc) {
                 ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-                Filter.SaveImage(mergedChannel, path + "_merged.jpg", rm);
+                Filter.SaveImageWithOverlay(mergedChannel,rm, path + "_merged.jpg");
                 measColoc.addControlImagePath(name + "_merged.jpg");
             }
 
