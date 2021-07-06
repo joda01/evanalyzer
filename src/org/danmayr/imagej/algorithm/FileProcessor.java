@@ -137,7 +137,6 @@ public class FileProcessor extends Thread {
     public static ImagePlus[] OpenImage(File imgToOpen, int series, boolean showImg) {
         ImagePlus[] imps = null;
         try {
-            PerformanceAnalyzer.start("open_image");
             String fileName = imgToOpen.getAbsoluteFile().toString();
             ImporterOptions opt = new ImporterOptions();
             opt.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);

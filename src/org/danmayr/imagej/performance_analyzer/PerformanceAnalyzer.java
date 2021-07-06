@@ -24,14 +24,15 @@ public class PerformanceAnalyzer {
     }
 
     public static void stop(String comment) {
-        long diff = System.nanoTime() - mEntry.get(comment).mStartTime;
-        if (null == mDialog) {
-            IJ.log("CMD: " + comment + "; " + Double.toString((double) diff / (double) 1000000000));
-        } else {
-            mDialog.addLogEntry("CMD E: " + leftpad(comment, 80) + "\t"
-                    + Double.toString((double) diff / (double) 1000000000) + " s");
+        if(mEntry.containsKey(comment)){
+            long diff = System.nanoTime() - mEntry.get(comment).mStartTime;
+            if (null == mDialog) {
+                IJ.log("CMD: " + comment + "; " + Double.toString((double) diff / (double) 1000000000));
+            } else {
+                mDialog.addLogEntry("CMD E: " + leftpad(comment, 80) + "\t"
+                        + Double.toString((double) diff / (double) 1000000000) + " s");
+            }
         }
-
     }
 
     private static String leftpad(String text, int length) {

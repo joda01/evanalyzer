@@ -205,8 +205,6 @@ abstract public class Pipeline {
   public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
-    PerformanceAnalyzer.start("filter_coloc");
-
     ImagePlus th = img;
     if (null != background) {
       th = Filter.SubtractImages(th, background);
@@ -225,7 +223,6 @@ abstract public class Pipeline {
     Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
     img.setImage(th);
     img = th;
-    PerformanceAnalyzer.stop("filter_coloc");
     return beforeThershold;
   }
 
