@@ -182,7 +182,7 @@ public class EvColocDialog extends JFrame {
                 panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[10];
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[11];
                 channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
                 channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
