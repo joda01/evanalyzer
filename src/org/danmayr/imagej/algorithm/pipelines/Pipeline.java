@@ -45,7 +45,7 @@ abstract public class Pipeline {
   public enum ChannelType {
     EV_DAPI("dapi", ChannelColor.BLUE, true, 0), EV_GFP("gfp", ChannelColor.GREEN, true, 1),
     EV_CY3("cy3", ChannelColor.RED, true, 2), EV_CY5("cy5", ChannelColor.MAGENTA, true, 3),
-    EV_CY7("cy7", ChannelColor.YELLOW, true, 4), CELL("cell", ChannelColor.GRAY, false, 5),
+    EV_CY7("cy7", ChannelColor.YELLOW, true, 4),CELL("cell", ChannelColor.GRAY, false, 5),
     NUCLEUS("nucleus", ChannelColor.CYAN, false, 6), NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false, 7),
     BACKGROUND("background", ChannelColor.GRAY, false, 8), FREE_01("free_1", ChannelColor.GRAY, false, 9),
     FREE_02("free_2", ChannelColor.GRAY, false, 10), FREE_03("free_3", ChannelColor.GRAY, false, 11),
@@ -58,7 +58,7 @@ abstract public class Pipeline {
     FREE_16("free_16", ChannelColor.GRAY, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, 25),
     FREE_18("free_18", ChannelColor.GRAY, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, 27),
     FREE_20("free_20", ChannelColor.GRAY, false, 28), TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, 29),
-    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 30);
+    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 30),EV_CY3FCY5("cy3fcy5",ChannelColor.YELLOW,true,31),;
 
     private ChannelType(String name, ChannelColor chColor, boolean evChannel, int i) {
       mName = name;

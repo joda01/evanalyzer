@@ -188,12 +188,13 @@ public class EvColocDialog extends JFrame {
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
                 channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY5, "EV (CY5)");
                 channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
-                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
-                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
-                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
+                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5, "EV (CY3 fret CY7)");
+                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
+                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
+                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
-                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
-                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD, "TetraSpecks");
+                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
+                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD, "TetraSpecks");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
@@ -958,8 +959,8 @@ public class EvColocDialog extends JFrame {
 
                     chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
                     chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
-                    chSettings.channelSettings.get(2).channelType.setSelectedIndex(6);
-                    chSettings.channelSettings.get(3).channelType.setSelectedIndex(5);
+                    chSettings.channelSettings.get(2).channelType.setSelectedIndex(7);
+                    chSettings.channelSettings.get(3).channelType.setSelectedIndex(6);
 
                 } else if (AnalyseSettings.Function.noSelection == type) {
                     for (int n = 0; n < chSettings.channelSettings.size(); n++) {
