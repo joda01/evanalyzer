@@ -78,12 +78,12 @@ public class ParticleInfo {
     }
 
     public double[] getValues() {
-        double[] values = { areaSize,areaGrayScale, areaThersholdScale, circularity };
+        double[] values = { areaSize,areaGrayScale, areaThersholdScale, circularity, status };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "intensity","thershold scale", "circularity" };
+        String[] title = { "area size", "intensity","thershold scale", "circularity","validity" };
         return title;
     }
 

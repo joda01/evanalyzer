@@ -230,9 +230,10 @@ public class Filter {
 
         if (true == convertToMask) {
             ByteProcessor mask = img.createThresholdMask();
+            mask.resetThreshold();
+            mask.setThreshold(255, 255, ImageProcessor.NO_LUT_UPDATE);
             img.setImage(new ImagePlus(img.getTitle(), mask));
             img.setProcessor(mask);
-            mask.setThreshold(255, 255, ImageProcessor.NO_LUT_UPDATE);
         }
 
         img.updateAndDraw();
@@ -272,38 +273,45 @@ public class Filter {
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        rm.runCommand(saveImg, "Show All without labels");
-        /*Roi[] rois = rm.getRoisAsArray();
-        Overlay overlay = newOverlay(false);
-        for (int i = 0; i < rois.length; i++) {
-            overlay.add(rois[i]);
-        }
-        ImageCanvas ic = image.getCanvas();
-        if(ic!=null){
-            ic.setShowAllList(overlay);
-            image.draw();
-        }*/
-
-        ImagePlus overlayimage = saveImg.flatten();
-        JpegWriter.save(overlayimage, imageName, 100);
-        
-        rm.runCommand(saveImg, "Show None");
-        /*if(ic!=null){
-            ic.setShowAllList(null);
-            image.draw();
-        }*/
+        saveImg = saveImg.flatten();
+        paintRoiOverlay(saveImg, rm);
+        JpegWriter.save(saveImg, imageName, 100);
     }
 
-    private static Overlay newOverlay(boolean withLabels) {
-        Overlay overlay = OverlayLabels.createOverlay();
-        overlay.drawLabels(withLabels);
-        if (overlay.getLabelFont() == null && overlay.getLabelColor() == null) {
-            overlay.setLabelColor(Color.white);
-            overlay.drawBackgrounds(true);
+
+    private static void paintRoiOverlay(ImagePlus image, RoiManager rm){
+         Overlay ov = new Overlay();
+
+        int fontSize = 12;
+
+        Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+
+        Roi[] rois = rm.getRoisAsArray();
+        for (int n = 0; n < rois.length; n++) {
+            Rectangle rec = rois[n].getBounds();
+
+            double p;
+            if (fontSize < 16) {
+                p = 10;
+            } else if (fontSize < 24) {
+                p = 12;
+            } else {
+                p = 20;
+            }
+
+            double x1 = rec.getX() + rec.getWidth() + 5;
+            double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
+
+            TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
+            lbl.setStrokeColor(Color.red);
+            lbl.setFillColor(Color.black);
+            //ov.add(lbl);
+            ov.add(rois[n]);
         }
-        overlay.drawNames(Prefs.useNamesAsLabels);
-        return overlay;
+
+        image.setOverlay(ov);
     }
+
 
     private static void PaintRoiLabels(ImagePlus image, RoiManager rm) {
 

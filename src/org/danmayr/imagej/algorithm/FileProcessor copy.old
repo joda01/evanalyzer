@@ -1,0 +1,238 @@
+package org.danmayr.imagej.algorithm;
+
+import ij.*;
+import ij.process.*;
+
+import java.io.File;
+
+import loci.plugins.BF;
+import loci.plugins.in.ImporterOptions;
+import ij.gui.*;
+import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.util.*;
+
+import javax.swing.JDialog;
+import javax.swing.JWindow;
+
+import ij.plugin.*;
+import ij.plugin.frame.*;
+
+import java.awt.*;
+
+import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.exports.*;
+
+import org.danmayr.imagej.algorithm.*;
+import org.danmayr.imagej.algorithm.filters.*;
+import org.danmayr.imagej.algorithm.pipelines.*;
+import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
+import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
+
+public class FileProcessor extends Thread {
+
+    EvColocDialog mDialog;
+    boolean mStopping = false;
+    AnalyseSettings mAnalyseSettings;
+    FolderResults mResuls = new FolderResults();
+
+    public FileProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
+        mDialog = dialog;
+        mAnalyseSettings = analyseSettings;
+    }
+
+    /**
+     * Start the analyse thread
+     */
+    public void run() {
+        int n = Runtime.getRuntime().availableProcessors();
+        IJ.log("Available Processors: " + n);
+
+        mStopping = false;
+        // Close all open windows
+        closeAllWindow();
+        WindowManager.closeAllWindows();
+
+        // Prepare results folder
+        prepareOutputFolder();
+
+        mDialog.setProgressBarMaxSize(0, "look for images ...");
+        mDialog.setProgressBarValue(0, "look for images ...");
+
+        //
+        // List all files in folders and subfolders
+        //
+        ArrayList<File> mFoundFiles = new ArrayList<>();
+        findFiles(new File(mAnalyseSettings.mInputFolder).listFiles(), mFoundFiles);
+        mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
+        mDialog.setProgressBarValue(0, "analyzing ...");
+
+        // Analyse images
+        Pipeline pipeline = null;
+
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
+            mAnalyseSettings.mCalcColoc = false;
+            mAnalyseSettings.mCountEvsPerCell = false;
+            pipeline = new ExosomColoc(mAnalyseSettings);
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
+            mAnalyseSettings.mCalcColoc = true;
+            mAnalyseSettings.mCountEvsPerCell = false;
+            pipeline = new ExosomColoc(mAnalyseSettings);
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
+            mAnalyseSettings.mCountEvsPerCell = false;
+            mAnalyseSettings.mCalcColoc = false;
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+        }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparation)) {
+            mAnalyseSettings.mCountEvsPerCell = true;
+            mAnalyseSettings.mCalcColoc = false;
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+        }
+        if (null == pipeline) {
+            mDialog.finishedAnalyse("");
+            return;
+        }
+        walkThroughFiles(pipeline, mFoundFiles);
+
+        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, mAnalyseSettings.mOutputFileName,
+                mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
+
+        // Write statistics to file
+        /*
+         * InputFiles input = new InputFiles(); input.add(analysisOutput,"Results");
+         * input.add(negativeControl,"NegativeControls"); String xlsxResult =
+         * mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
+         * String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
+         */
+
+        mDialog.finishedAnalyse(reportFileName);
+    }
+
+    ///
+    /// \brief Get file from selected folder
+    ///
+    public static File getFile(int idx, String inputFolder) {
+        ArrayList<File> mFoundFiles = new ArrayList<>();
+        findFiles(new File(inputFolder).listFiles(), mFoundFiles);
+
+        if (idx < mFoundFiles.size()) {
+            return mFoundFiles.get(idx);
+        } else {
+            return null;
+        }
+    }
+
+    public static ImagePlus[] OpenImage(File imgToOpen, int series, boolean showImg) {
+        ImagePlus[] imps = null;
+        try {
+            PerformanceAnalyzer.start("open_image");
+            String fileName = imgToOpen.getAbsoluteFile().toString();
+            ImporterOptions opt = new ImporterOptions();
+            opt.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
+            opt.setStackOrder(ImporterOptions.ORDER_XYZCT);
+            opt.setSeriesOn(series, true);
+            opt.setSplitChannels(true);
+            opt.setSpecifyRanges(false);
+            opt.setId(fileName);
+            imps = BF.openImagePlus(opt);
+
+            if (showImg == true) {
+                for (ImagePlus imp : imps)
+                    imp.show();
+                IJ.run("Tile", "");
+                IJ.run("Tile", "");
+            }
+
+        } catch (Exception exc) {
+            IJ.error("Sorry, an error occurred: " + exc.getMessage());
+            IJ.log("ERROR " + exc.getMessage());
+        }
+
+        return imps;
+
+        /*
+         * IJ.run("Bio-Formats Importer", "open=[" +
+         * imgToOpen.getAbsoluteFile().toString() +
+         * "] autoscale color_mode=Grayscale rois_import=[ROI manager] specify_range split_channels view=Hyperstack stack_order=XYCZT "
+         * + series); PerformanceAnalyzer.stop(); PerformanceAnalyzer.start("Tile");
+         * IJ.run("Tile", ""); IJ.run("Tile", ""); PerformanceAnalyzer.stop();
+         */
+    }
+
+    /**
+     * Cancle the process after the actual image has been finished
+     */
+    public void cancle() {
+        mStopping = true;
+    }
+
+    private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
+        mDialog.addLogEntryNewLine();
+        PerformanceAnalyzer.start("analyze_files");
+        
+        mDialog.setAlwaysOnTop(true);
+
+        for (int idx = 0; idx < fileList.size();idx++) {
+            if(true == mStopping){
+                break;
+            }
+                File f = fileList.get(idx);
+                ImagePlus[] imgs = OpenImage(f,mAnalyseSettings.mSelectedSeries, false);
+                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(f,imgs);
+                mResuls.addImage(f.getParent(), f.getName(), images);
+
+                closeAllWindow();
+                mDialog.incrementProgressBarValue("analyzing ...");
+            }
+        mDialog.setAlwaysOnTop(false);
+        mDialog.tabbedPane.setSelectedIndex(0);
+        PerformanceAnalyzer.stop("analyze_files");
+    }
+
+
+    /**
+     * List all images in directory and subdirectory
+     * 
+     * @param files
+     */
+    private static void findFiles(final File[] files, ArrayList<File> foundFiles) {
+        if (null != files) {
+            for (final File file : files) {
+                if (file.isDirectory()) {
+                    findFiles(file.listFiles(), foundFiles);
+                } else if (file.getName().endsWith(".vsi")) {
+                    foundFiles.add(file);
+                }
+            }
+        }
+    }
+
+    private void prepareOutputFolder() {
+        final File parentFile = new File(mAnalyseSettings.mOutputFolder);
+        if (parentFile != null && !parentFile.exists()) {
+            parentFile.mkdirs();
+        }
+    }
+
+    private void closeAllWindow() {
+        ImagePlus img;
+        while (null != WindowManager.getCurrentImage()) {
+            img = WindowManager.getCurrentImage();
+            img.changes = false;
+            img.close();
+        }
+    }
+
+}
