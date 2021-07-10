@@ -870,8 +870,8 @@ public class ParticleAnalyzerThreadSafe implements PlugInFilter, Measurements {
                 return false;
             }
             boolean threshold255 = invertedLut;
-            if (Prefs.blackBackground)
-                threshold255 = !threshold255;
+            /*if (Prefs.blackBackground)
+                threshold255 = !threshold255;*/
             if (threshold255) {
                 level1 = 255;
                 level2 = 255;

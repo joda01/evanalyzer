@@ -1,7 +1,10 @@
 package org.danmayr.imagej.algorithm.structs;
 
+import java.util.Map;
 import java.util.TreeMap;
 import org.danmayr.imagej.algorithm.statistics.*;
+
+import ij.gui.Roi;
 
 ///
 /// \class  Channel
@@ -13,12 +16,20 @@ public class Channel {
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
     String mControlImgPath = "";
+    Roi[] ary = null;
+    String[] mTitles= { "area size", "intensity","thershold scale", "circularity","validity" };
 
     ///
     /// \brief Constructor
     ///
     public Channel(String name, Statistics statistics) {
         mName = name;
+        mStatistics = statistics;
+    }
+
+    public Channel(String name, Statistics statistics, String[] titles) {
+        mName = name;
+        mTitles = titles;
         mStatistics = statistics;
     }
 
@@ -61,16 +72,26 @@ public class Channel {
     }
 
     public String[] getTitle() {
-        if (mRois.size() > 0) {
-            return mRois.firstEntry().getValue().getTitle();
-        } else {
-            String[] title = { "area size", "intensity", "thershold scale", "circularity" };
-            return title;
-        }
+        return mTitles;
     }
 
     public void setThershold(double minTH, double maxTH) {
         mStatistics.setThershold(minTH, maxTH);
+    }
+
+    public Roi[] getRoisAsArray()
+    {
+        if(null == ary){
+            ary = new  Roi[mRois.size()];
+        }else if(ary.length != mRois.size()){
+            ary = new  Roi[mRois.size()];
+        }
+        int i = 0;
+        for(Map.Entry<Integer, ParticleInfo> e : mRois.entrySet()){
+            ary[i] = e.getValue().getRoi();
+            i++;
+        }
+        return ary;
     }
 
     ///

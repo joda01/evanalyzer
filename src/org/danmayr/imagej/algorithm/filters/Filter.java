@@ -274,54 +274,25 @@ public class Filter {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
         saveImg = saveImg.flatten();
-        paintRoiOverlay(saveImg, rm);
+        paintRoiOverlay(saveImg, rm.getRoisAsArray());
         JpegWriter.save(saveImg, imageName, 100);
     }
 
+    public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName) {
 
-    private static void paintRoiOverlay(ImagePlus image, RoiManager rm){
-         Overlay ov = new Overlay();
-
-        int fontSize = 12;
-
-        Font font = new Font("SansSerif", Font.PLAIN, fontSize);
-
-        Roi[] rois = rm.getRoisAsArray();
-        for (int n = 0; n < rois.length; n++) {
-            Rectangle rec = rois[n].getBounds();
-
-            double p;
-            if (fontSize < 16) {
-                p = 10;
-            } else if (fontSize < 24) {
-                p = 12;
-            } else {
-                p = 20;
-            }
-
-            double x1 = rec.getX() + rec.getWidth() + 5;
-            double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
-
-            TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
-            lbl.setStrokeColor(Color.red);
-            lbl.setFillColor(Color.black);
-            //ov.add(lbl);
-            ov.add(rois[n]);
-        }
-
-        image.setOverlay(ov);
+        ImagePlus saveImg = Filter.duplicateImage(image);
+        saveImg = saveImg.flatten();
+        paintRoiOverlay(saveImg, rm.getRoisAsArray());
+        JpegWriter.save(saveImg, imageName, 100);
     }
 
-
-    private static void PaintRoiLabels(ImagePlus image, RoiManager rm) {
-
+    private static void paintRoiOverlay(ImagePlus image, Roi[] rois) {
         Overlay ov = new Overlay();
 
         int fontSize = 12;
 
         Font font = new Font("SansSerif", Font.PLAIN, fontSize);
 
-        Roi[] rois = rm.getRoisAsArray();
         for (int n = 0; n < rois.length; n++) {
             Rectangle rec = rois[n].getBounds();
 
@@ -340,12 +311,13 @@ public class Filter {
             TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
             lbl.setStrokeColor(Color.red);
             lbl.setFillColor(Color.black);
-            ov.add(lbl);
+            // ov.add(lbl);     // LAbel
+            ov.add(rois[n]);
         }
 
         image.setOverlay(ov);
-
     }
+
 
     public static void InvertImage(ImagePlus image) {
         // IJ.run(image, "Invert", "");
@@ -455,7 +427,7 @@ public class Filter {
 
         ResultsTable r1 = measure(imageOrigial, rm);
         ResultsTable r2 = measure(imageThershold, rm);
-        Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2);
+        Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2, rm);
         return ch;
     }
 
@@ -473,7 +445,7 @@ public class Filter {
     }
 
     public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
-            ResultsTable imgOriginal, ResultsTable imgThershold) {
+            ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm) {
 
         int area = imgThershold.getColumnIndex("Area");
         int mean = imgThershold.getColumnIndex("Mean");
@@ -490,7 +462,7 @@ public class Filter {
             double circularity = imgOriginal.getValueAsDouble(circ, i);
             int roiNr = i;
 
-            ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity);
+            ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity, rm.getRoi(i));
             if (null != settings) {
                 exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
                         settings.minIntensity);
@@ -535,6 +507,25 @@ public class Filter {
         Filler filter = new Filler();
         filter.setup("clear", img);
         filter.run(img.getProcessor());
+    }
+
+    public static Roi and(Roi roi1, Roi roi2) {
+        ShapeRoi s1 = null, s2 = null;
+        if (roi1 instanceof ShapeRoi)
+            s1 = (ShapeRoi) roi1.clone();
+        else
+            s1 = new ShapeRoi(roi1);
+        if (s1 == null)
+            return null;
+        if (roi2 instanceof ShapeRoi)
+            s2 = (ShapeRoi) roi2.clone();
+        else
+            s2 = new ShapeRoi(roi2);
+        if (s2 == null)
+            return null;
+        s1.and(s2);
+
+        return s1 != null ? s1.trySimplify() : null;
     }
 
 }
