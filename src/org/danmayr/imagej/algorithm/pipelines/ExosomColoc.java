@@ -116,7 +116,7 @@ public class ExosomColoc extends Pipeline {
         //
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
         PerformanceAnalyzer.start("save_ctrl");
-        saveControlImages(name, rm, colocAll);
+        saveControlImages(name, colocAll);
         PerformanceAnalyzer.stop("save_ctrl");
 
         return channels;
@@ -300,7 +300,7 @@ public class ExosomColoc extends Pipeline {
     ///
     /// Save control images
     ///
-    void saveControlImages(String name, RoiManager rm, Channel measColoc) {
+    void saveControlImages(String name, Channel measColoc) {
         if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
             // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
             ImagePlus[] imgAry = { null, null, null, null, null, null, null };
@@ -331,14 +331,14 @@ public class ExosomColoc extends Pipeline {
 
             if (null != measColoc) {
                 ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-                Filter.SaveImageWithOverlay(mergedChannel, rm, path + "_merged.jpg");
+                Filter.SaveImageWithOverlay(mergedChannel, measColoc, path + "_merged.jpg");
                 measColoc.addControlImagePath(name + "_merged.jpg");
             }
 
             for (int n = 0; n < imgAry.length; n++) {
                 if (imgAry[n] != null && chAry[n] != null) {
                     String fileName = "_" + chNames[n] + ".jpg";
-                    Filter.SaveImageWithOverlay(imgAry[n], rm, path + fileName);
+                    Filter.SaveImageWithOverlay(imgAry[n], chAry[n], path + fileName);
                     chAry[n].addControlImagePath(name + fileName);
                 }
             }

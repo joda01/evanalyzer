@@ -273,29 +273,29 @@ public class Filter {
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        saveImg = saveImg.flatten();
         paintRoiOverlay(saveImg, rm.getRoisAsArray());
+        saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        saveImg = saveImg.flatten();
         paintRoiOverlay(saveImg, rm.getRoisAsArray());
+        saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 
     private static void paintRoiOverlay(ImagePlus image, Roi[] rois) {
         Overlay ov = new Overlay();
 
-        int fontSize = 12;
-
-        Font font = new Font("SansSerif", Font.PLAIN, fontSize);
-
+        //int fontSize = 12;
+        //Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+        IJ.log("L " + rois.length);
         for (int n = 0; n < rois.length; n++) {
-            Rectangle rec = rois[n].getBounds();
-
+            
+            // Text
+            /*Rectangle rec = rois[n].getBounds();
             double p;
             if (fontSize < 16) {
                 p = 10;
@@ -304,14 +304,14 @@ public class Filter {
             } else {
                 p = 20;
             }
-
             double x1 = rec.getX() + rec.getWidth() + 5;
             double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
-
             TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
             lbl.setStrokeColor(Color.red);
             lbl.setFillColor(Color.black);
-            // ov.add(lbl);     // LAbel
+            //ov.add(lbl); 
+            */
+            rois[n].setStrokeColor(Color.red);
             ov.add(rois[n]);
         }
 
