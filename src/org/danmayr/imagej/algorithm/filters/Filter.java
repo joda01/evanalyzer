@@ -291,7 +291,6 @@ public class Filter {
 
         //int fontSize = 12;
         //Font font = new Font("SansSerif", Font.PLAIN, fontSize);
-        IJ.log("L " + rois.length);
         for (int n = 0; n < rois.length; n++) {
             
             // Text
