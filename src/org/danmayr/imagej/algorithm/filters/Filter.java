@@ -228,12 +228,12 @@ public class Filter {
             thRet[1] = ip.getMaxThreshold();
         }
 
-
         if (true == convertToMask) {
             ByteProcessor mask = img.createThresholdMask();
-            img.setImage(new ImagePlus(img.getTitle(),mask));
-            img.setProcessor(mask);
+            mask.resetThreshold();
             mask.setThreshold(255, 255, ImageProcessor.NO_LUT_UPDATE);
+            img.setImage(new ImagePlus(img.getTitle(), mask));
+            img.setProcessor(mask);
         }
 
         img.updateAndDraw();
@@ -271,15 +271,47 @@ public class Filter {
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
-        rm.runCommand(image, "Show All without labels");
-        // rm.runCommand("Set Color", "red");
-        // aintRoiLabels(image, rm);
-        // IJ.run(image,rescource, "font=SanSerif label=red label_0=14 additional=none
-        // label_1=right");
-        ImagePlus overlayimage = image.flatten();
-        JpegWriter.save(overlayimage, imageName, 100);
-        rm.runCommand(image, "Show None");
+
+        ImagePlus saveImg = Filter.duplicateImage(image);
+        saveImg = saveImg.flatten();
+        paintRoiOverlay(saveImg, rm);
+        JpegWriter.save(saveImg, imageName, 100);
     }
+
+
+    private static void paintRoiOverlay(ImagePlus image, RoiManager rm){
+         Overlay ov = new Overlay();
+
+        int fontSize = 12;
+
+        Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+
+        Roi[] rois = rm.getRoisAsArray();
+        for (int n = 0; n < rois.length; n++) {
+            Rectangle rec = rois[n].getBounds();
+
+            double p;
+            if (fontSize < 16) {
+                p = 10;
+            } else if (fontSize < 24) {
+                p = 12;
+            } else {
+                p = 20;
+            }
+
+            double x1 = rec.getX() + rec.getWidth() + 5;
+            double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
+
+            TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
+            lbl.setStrokeColor(Color.red);
+            lbl.setFillColor(Color.black);
+            //ov.add(lbl);
+            ov.add(rois[n]);
+        }
+
+        image.setOverlay(ov);
+    }
+
 
     private static void PaintRoiLabels(ImagePlus image, RoiManager rm) {
 
@@ -469,6 +501,40 @@ public class Filter {
         ch.calcStatistics();
 
         return ch;
+    }
+
+    //
+    // Select element
+    //
+    public static Roi doWand(ImagePlus img, int x, int y, double tolerance) {
+        Roi roi = null;
+        ImageProcessor ip = img.getProcessor();
+        if ((img.getType() == ImagePlus.GRAY32) && Double.isNaN(ip.getPixelValue(x, y)))
+            return null;
+        int imode = Wand.LEGACY_MODE;
+        Wand w = new Wand(ip);
+        double t1 = ip.getMinThreshold();
+        if (t1 == ImageProcessor.NO_THRESHOLD
+                || (ip.getLutUpdateMode() == ImageProcessor.NO_LUT_UPDATE && tolerance > 0.0)) {
+            w.autoOutline(x, y, tolerance, imode);
+        } else
+            w.autoOutline(x, y, t1, ip.getMaxThreshold(), imode);
+        if (w.npoints > 0) {
+            roi = new PolygonRoi(w.xpoints, w.ypoints, w.npoints, Roi.TRACED_ROI);
+        }
+        return roi;
+    }
+
+    //
+    // Fills a ROI with black
+    //
+    public static void PaintSelecttedRoiAreaBlack(ImagePlus img) {
+        java.awt.Color c = new java.awt.Color(0, 0, 0);
+        Toolbar.setBackgroundColor(c);
+        img.getProcessor().setColor(c);
+        Filler filter = new Filler();
+        filter.setup("clear", img);
+        filter.run(img.getProcessor());
     }
 
 }

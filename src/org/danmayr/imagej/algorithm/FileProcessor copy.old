@@ -137,6 +137,7 @@ public class FileProcessor extends Thread {
     public static ImagePlus[] OpenImage(File imgToOpen, int series, boolean showImg) {
         ImagePlus[] imps = null;
         try {
+            PerformanceAnalyzer.start("open_image");
             String fileName = imgToOpen.getAbsoluteFile().toString();
             ImporterOptions opt = new ImporterOptions();
             opt.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
@@ -177,62 +178,29 @@ public class FileProcessor extends Thread {
         mStopping = true;
     }
 
-    Vector<Pair<File, ImagePlus[]>> mLoadedImages = new Vector<>();
-
     private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
-        mLoadedImages.clear();
-        int fileIdx = 0;
-        int processedFiles = 0;
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
-        fileIdx = loadNextFile(fileList, fileIdx);
-        fileIdx = loadNextFile(fileList, fileIdx);
+        
         mDialog.setAlwaysOnTop(true);
 
-        do {
-            while (mLoadedImages.size() > 0 && false == mStopping && processedFiles < fileList.size()) {
-                if (true == mStopping) {
-                    break;
-                }
-                File file = mLoadedImages.elementAt(0).getFirst();
-                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
-                mResuls.addImage(file.getParent(), file.getName(), images);
-
-                for (int n = 0; n < mLoadedImages.elementAt(0).getSecond().length; n++) {
-                    mLoadedImages.elementAt(0).getSecond()[n].close();
-                }
-
-                mLoadedImages.removeElementAt(0);
-                closeAllWindow();
-                fileIdx = loadNextFile(fileList, fileIdx);
-                mDialog.incrementProgressBarValue("analyzing ...");
-                processedFiles++;
+        for (int idx = 0; idx < fileList.size();idx++) {
+            if(true == mStopping){
+                break;
             }
-        } while (false == mStopping && processedFiles < fileList.size());
+                File f = fileList.get(idx);
+                ImagePlus[] imgs = OpenImage(f,mAnalyseSettings.mSelectedSeries, false);
+                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(f,imgs);
+                mResuls.addImage(f.getParent(), f.getName(), images);
+
+                closeAllWindow();
+                mDialog.incrementProgressBarValue("analyzing ...");
+            }
         mDialog.setAlwaysOnTop(false);
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
     }
 
-    //
-    // Load the next file
-    //
-    int loadNextFile(ArrayList<File> fileList, int fileIdx) {
-        int idx = fileIdx;
-        if (idx < fileList.size()) {
-            Thread t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(idx),
-                            mAnalyseSettings.mSelectedSeries, false);
-                    mLoadedImages.add(new Pair(fileList.get(idx), imagesLoaded));
-                }
-            });
-            t1.start();
-        }
-        fileIdx++;
-        return fileIdx;
-    }
 
     /**
      * List all images in directory and subdirectory
