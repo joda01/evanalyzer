@@ -152,7 +152,7 @@ public class ExosomColoc extends Pipeline {
     Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2){
         String valueNames[] = {"coloc area","coloc circularity","coloc validity","inentsity "+ch1.type.toString(),"inentsity "+ch2.type.toString(),"area "+ch1.type.toString(),"area "+ch2.type.toString()};
         
-        Channel coloc = new Channel(name,new StatisticsColoc(),valueNames);
+        Channel coloc = new Channel(name,new StatisticsColoc(),valueNames,3);
         TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
         TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 

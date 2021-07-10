@@ -18,6 +18,7 @@ public class Channel {
     String mControlImgPath = "";
     Roi[] ary = null;
     String[] mTitles= { "area size", "intensity","thershold scale", "circularity","validity" };
+    String[] mTitleDynamic= { "" };
 
     ///
     /// \brief Constructor
@@ -27,10 +28,21 @@ public class Channel {
         mStatistics = statistics;
     }
 
-    public Channel(String name, Statistics statistics, String[] titles) {
+    ///
+    /// \brief start of dynmic title is the index of the title where the dynamic part starts
+    ///
+    public Channel(String name, Statistics statistics, String[] titles, int startOfDynmicTitle) {
         mName = name;
         mTitles = titles;
         mStatistics = statistics;
+        if(startOfDynmicTitle > 0){
+            mTitleDynamic = new String[titles.length-startOfDynmicTitle];
+            int idx = 0;
+            for(int n = startOfDynmicTitle;n<titles.length;n++){
+                mTitleDynamic[idx] = titles[n];
+                idx++;
+            }
+        }
     }
 
     ///
@@ -73,6 +85,10 @@ public class Channel {
 
     public String[] getTitle() {
         return mTitles;
+    }
+
+    public String[] getDynamicTitle() {
+        return mTitleDynamic;
     }
 
     public void setThershold(double minTH, double maxTH) {
