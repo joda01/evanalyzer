@@ -22,6 +22,11 @@ public class StatisticsColoc extends Statistics {
         title[1]="coloc circ.";
         title[2]="coloc valid";
         title[3]="coloc invalid";
+        retValues = new  double[4+dynTitle.length];
+
+        for(int u = 0;u<dynTitle.length;u++){
+            title[u+4] = dynTitle[u];
+        }
         
         int nrOfInvalid = 0;
         int nrOfValid = 0;
@@ -31,7 +36,6 @@ public class StatisticsColoc extends Statistics {
 
         intensityChannelsSum = null;
         areaSizeChannelsSum = null;
-        retValues = null;
 
         for (Map.Entry<Integer, ParticleInfo> entry : ch.getRois().entrySet()) {
             ParticleInfoColoc info = (ParticleInfoColoc)entry.getValue();
@@ -47,8 +51,6 @@ public class StatisticsColoc extends Statistics {
                 if(intensityChannelsSum == null){
                     intensityChannelsSum = new double[info.intensityChannels.length];
                     areaSizeChannelsSum = new double[info.areaSizeChannels.length];
-                    retValues = new  double[4+intensityChannelsSum.length+areaSizeChannelsSum.length];
-
                 }
 
                 for(int n=0;n<intensityChannelsSum.length;n++){
@@ -67,17 +69,13 @@ public class StatisticsColoc extends Statistics {
             avgCircularity = circularitySum / nrOfValid;
 
             int idx = 4;
-            int dynIdx = 0;
             for(int n=0;n<intensityChannelsSum.length;n++){
                 retValues[idx] = intensityChannelsSum[n] / nrOfValid;
-                title[idx] = dynTitle[dynIdx];
                 idx++;
-                dynIdx++;
             }
 
             for(int n=0;n<areaSizeChannelsSum.length;n++){
                 retValues[idx] = areaSizeChannelsSum[n] / nrOfValid;
-                title[idx] = dynTitle[dynIdx];
                 idx++;
             }
 
@@ -90,6 +88,7 @@ public class StatisticsColoc extends Statistics {
         this.valid = nrOfValid;
 
 
+
         retValues[0] = avgAreaSize;
         retValues[1] = avgCircularity;
         retValues[2] = valid;
@@ -100,6 +99,7 @@ public class StatisticsColoc extends Statistics {
         return retValues;
     }
 
+    @Override
     public String[] getTitle() {
         return title;
     }

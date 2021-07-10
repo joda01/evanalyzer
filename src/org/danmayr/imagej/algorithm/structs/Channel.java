@@ -95,6 +95,10 @@ public class Channel {
         mStatistics.setThershold(minTH, maxTH);
     }
 
+    public void setNrOfRemovedParticles(int nrOfRemovedParticles) {
+        mStatistics.setNrOfRemovedParticles(nrOfRemovedParticles);
+    }
+
     public Roi[] getRoisAsArray()
     {
         if(null == ary){

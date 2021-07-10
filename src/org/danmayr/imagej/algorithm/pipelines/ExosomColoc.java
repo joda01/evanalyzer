@@ -89,17 +89,11 @@ public class ExosomColoc extends Pipeline {
                     Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
                     pics2Ch.add(img0);
                     pics2Ch.add(img1);
-                    Channel coloc01 = CalcColoc("Coloc of " + img0.type.toString() + " with " + img1.type.toString(),
-                            rm, pics2Ch);
                     Channel coloc02 = calculateRoiColoc(
                             "Coloc of " + img0.type.toString() + " with " + img1.type.toString(), img0, img1);
-
-                    channels.put(ChannelType.getColocEnum(colocEnum), coloc01);
-                    colocEnum++;
                     channels.put(ChannelType.getColocEnum(colocEnum), coloc02);
                     colocEnum++;
-                    colocAll = coloc01;
-
+                    colocAll = coloc02;
                 }
 
                 nameOfAllChannels = colocChannels.get(n).type.toString();
@@ -149,35 +143,55 @@ public class ExosomColoc extends Pipeline {
         return measColoc;
     }
 
-    Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2){
-        String valueNames[] = {"coloc area","coloc circularity","coloc validity","inentsity "+ch1.type.toString(),"inentsity "+ch2.type.toString(),"area "+ch1.type.toString(),"area "+ch2.type.toString()};
-        
-        Channel coloc = new Channel(name,new StatisticsColoc(),valueNames,3);
+    //
+    // Calculate the coloc by taking a ROI in channel 1 and looking for a ROI in channel 2 which
+    // has an intersection. All the ROIs with intersection are added to the ROI coloc channel
+    //
+    Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2) {
+        String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "inentsity " + ch1.type.toString(),
+                "inentsity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
+
+        Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
         TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
         TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
         int colocNr = 0;
 
-        for(Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()){
-            for(Map.Entry<Integer, ParticleInfo> particle2 : roiPic2.entrySet()){
+        for (Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()) {
+            for (Map.Entry<Integer, ParticleInfo> particle2 : roiPic2.entrySet()) {
                 Roi result = particle1.getValue().isPartOf(particle2.getValue());
-                if(null != result){
+                if (null != result) {
                     result.setImage(ch1.imageAfterThershold);
                     int size = result.getContainedPoints().length;
-                
-                    if(size > 0){
-                    // Calculate circularity
-                    double perimeter = result.getLength();
-                    double circularity = perimeter==0.0?0.0:4.0*Math.PI*(result.getStatistics().area/(perimeter*perimeter));
-                    if (circularity>1.0) circularity = 1.0;
 
-                        double[] intensityChannels={particle1.getValue().areaGrayScale,particle2.getValue().areaGrayScale};
-                        double[] areaChannels={particle1.getValue().areaSize,particle2.getValue().areaSize};
+                    if (size > 0) {
+                        //
+                        // Particles have an intersection!!
+                        //
 
-                        ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size,circularity,intensityChannels, areaChannels, result);
-                        exosom.validatearticle(mSettings.mMinParticleSize,mSettings.mMaxParticleSize,mSettings.mMinCircularity,mSettings.minIntensity);
+
+                        //
+                        // Calculate circularity
+                        //
+                        double perimeter = result.getLength();
+                        double circularity = perimeter == 0.0 ? 0.0
+                                : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
+                        if (circularity > 1.0) {
+                            circularity = 1.0;
+                        }
+                        //
+
+                        double[] intensityChannels = { particle1.getValue().areaGrayScale,
+                                particle2.getValue().areaGrayScale };
+                        double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
+
+                        ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
+                                areaChannels, result);
+                        exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
+                                mSettings.mMinCircularity, mSettings.minIntensity);
                         coloc.addRoi(exosom);
                         colocNr++;
+                        break;          // We have a match. We can continue with the next particle
                     }
                 }
             }
@@ -211,11 +225,12 @@ public class ExosomColoc extends Pipeline {
             //
             // Remove TetraSpeckBeads
             //
-            RemoveTetraSpeckBeads(img0Th, img0.type);
+            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
 
             ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, mSettings.mMinCircularity);
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
+            measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
             channels.put(img0.type, measCh0);
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0));
         }
@@ -223,7 +238,8 @@ public class ExosomColoc extends Pipeline {
         ///
         /// Remove tetraspeck bead
         ///
-        void RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved, ChannelType type) {
+        int RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved, ChannelType type) {
+            int removedTetraSpecs = 0;
             for (int n = 0; n < rmWithTetraSpeckBeads.getCount(); n++) {
                 // Calculate center of mass of the ROI for selecting
                 Rectangle boundingBox = rmWithTetraSpeckBeads.getRoi(n).getPolygon().getBounds();
@@ -237,8 +253,10 @@ public class ExosomColoc extends Pipeline {
                     thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
                     Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
                     Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
+                    removedTetraSpecs++;
                 }
             }
+            return removedTetraSpecs;
         }
     }
 

@@ -14,6 +14,11 @@ public class Statistics {
         this.maxTH = maxTH;
     }
 
+    public void setNrOfRemovedParticles(int nrOfRemovedParticles)
+    {
+        this.nrOfRemovedParticles = nrOfRemovedParticles;
+    }
+
     public void calcStatistics(Channel ch) {
         int nrOfInvalid = 0;
         int nrOfValid = 0;
@@ -48,17 +53,18 @@ public class Statistics {
     }
 
     public double[] getValues() {
-        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, minTH };
+        double[] values = { avgAreaSize, avgGrayScale, avgCircularity,valid,invalid, this.nrOfRemovedParticles,minTH };
         return values;
     }
 
     public String[] getTitle() {
-        String[] title = { "area size", "intensity", "circularity","valid","invalid","threshold" };
+        String[] title = { "area size", "intensity", "circularity","valid","invalid","tetraspeck","threshold" };
         return title;
     }
 
     public int valid;
     public int invalid;
+    public int nrOfRemovedParticles = 0;
     public double avgAreaSize;
     public double avgGrayScale;
     public double avgCircularity;
