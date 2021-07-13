@@ -16,7 +16,6 @@ public class Channel {
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
     String mControlImgPath = "";
-    Roi[] ary = null;
     String[] mTitles= { "area size", "intensity","threshold scale", "circularity","validity" };
     String[] mTitleDynamic= { "" };
 
@@ -97,21 +96,6 @@ public class Channel {
 
     public void setNrOfRemovedParticles(int nrOfRemovedParticles) {
         mStatistics.setNrOfRemovedParticles(nrOfRemovedParticles);
-    }
-
-    public Roi[] getRoisAsArray()
-    {
-        if(null == ary){
-            ary = new  Roi[mRois.size()];
-        }else if(ary.length != mRois.size()){
-            ary = new  Roi[mRois.size()];
-        }
-        int i = 0;
-        for(Map.Entry<Integer, ParticleInfo> e : mRois.entrySet()){
-            ary[i] = e.getValue().getRoi();
-            i++;
-        }
-        return ary;
     }
 
     ///

@@ -20,6 +20,7 @@ import java.util.concurrent.Semaphore;
 import ij.*;
 import ij.process.*;
 import ij.gui.*;
+import java.awt.geom.*;
 import ij.io.*;
 import ij.plugin.filter.*;
 import ij.plugin.Colors;
@@ -281,35 +282,29 @@ public class Filter {
     public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(saveImg, rm.getRoisAsArray());
+        paintRoiOverlay(saveImg, rm.getRois());
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
+    }
+
+    private static void paintRoiOverlay(ImagePlus image,TreeMap<Integer, ParticleInfo> rois) {
+        Overlay ov = new Overlay();
+
+        for(Map.Entry<Integer, ParticleInfo> e : rois.entrySet()){
+            Roi ro = e.getValue().getRoi();
+            ro.setStrokeColor(Color.red);
+            ov.add(ro);
+        }
+
+        image.setOverlay(ov);
     }
 
     private static void paintRoiOverlay(ImagePlus image, Roi[] rois) {
         Overlay ov = new Overlay();
 
-        //int fontSize = 12;
-        //Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+      
         for (int n = 0; n < rois.length; n++) {
-            
-            // Text
-            /*Rectangle rec = rois[n].getBounds();
-            double p;
-            if (fontSize < 16) {
-                p = 10;
-            } else if (fontSize < 24) {
-                p = 12;
-            } else {
-                p = 20;
-            }
-            double x1 = rec.getX() + rec.getWidth() + 5;
-            double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
-            TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
-            lbl.setStrokeColor(Color.red);
-            lbl.setFillColor(Color.black);
-            //ov.add(lbl); 
-            */
+
             rois[n].setStrokeColor(Color.red);
             ov.add(rois[n]);
         }
@@ -317,6 +312,17 @@ public class Filter {
         image.setOverlay(ov);
     }
 
+
+      // int fontSize = 12;
+        // Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+    // Text
+    /*
+     * Rectangle rec = rois[n].getBounds(); double p; if (fontSize < 16) { p = 10; }
+     * else if (fontSize < 24) { p = 12; } else { p = 20; } double x1 = rec.getX() +
+     * rec.getWidth() + 5; double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
+     * TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
+     * lbl.setStrokeColor(Color.red); lbl.setFillColor(Color.black); //ov.add(lbl);
+     */
 
     public static void InvertImage(ImagePlus image) {
         // IJ.run(image, "Invert", "");

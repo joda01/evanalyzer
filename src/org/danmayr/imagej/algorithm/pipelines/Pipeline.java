@@ -239,7 +239,21 @@ abstract public class Pipeline {
     name = name.replace("~", "");
     name = name.toLowerCase();
 
-    return mSettings.mOutputFolder + java.io.File.separator + name;
+    return mSettings.mOutputFolder + java.io.File.separator + getName(file);
+  }
+
+  protected String getName(File file) {
+    String name = file.getAbsolutePath().replace(java.io.File.separator, "");
+    name = name.replace("%", "");
+    name = name.replace(" ", "");
+    name = name.replace(":", "");
+    name = name.replace("^", "");
+    name = name.replace("+", "");
+    name = name.replace("*", "");
+    name = name.replace("~", "");
+    name = name.toLowerCase();
+
+    return name;
   }
 
 }

@@ -275,7 +275,7 @@ public class ExosomColoc extends Pipeline {
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
         String path = getPath(file) + "_tetraspeck.jpg";
-        tetraSpeckBeads.addControlImagePath(path);
+        tetraSpeckBeads.addControlImagePath(getName(file) + "_tetraspeck.jpg");
         channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
         Filter.SaveImageWithOverlay(imageWithTetraSpeckBeads.mChannelImg, rm, path);
     }
