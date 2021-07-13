@@ -148,8 +148,8 @@ public class ExosomColoc extends Pipeline {
     // has an intersection. All the ROIs with intersection are added to the ROI coloc channel
     //
     Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2) {
-        String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "inentsity " + ch1.type.toString(),
-                "inentsity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
+        String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "intensity " + ch1.type.toString(),
+                "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
 
         Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
         TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
@@ -274,9 +274,9 @@ public class ExosomColoc extends Pipeline {
         Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
-        channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
-
         String path = getPath(file) + "_tetraspeck.jpg";
+        tetraSpeckBeads.addControlImagePath(path);
+        channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
         Filter.SaveImageWithOverlay(imageWithTetraSpeckBeads.mChannelImg, rm, path);
     }
 

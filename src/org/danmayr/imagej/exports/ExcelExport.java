@@ -162,7 +162,7 @@ public class ExcelExport {
     private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName,
             ChannelSettings ch) {
         row = WriteRow(summarySheet, row, chName + " type", String.valueOf(ch.type));
-        row = WriteRow(summarySheet, row, chName + " therhsolding", String.valueOf(ch.mThersholdMethod));
+        row = WriteRow(summarySheet, row, chName + " thresholding", String.valueOf(ch.mThersholdMethod));
         row = WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));

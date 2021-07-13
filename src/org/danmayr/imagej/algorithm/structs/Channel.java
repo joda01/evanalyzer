@@ -17,7 +17,7 @@ public class Channel {
     Statistics mStatistics = null;
     String mControlImgPath = "";
     Roi[] ary = null;
-    String[] mTitles= { "area size", "intensity","thershold scale", "circularity","validity" };
+    String[] mTitles= { "area size", "intensity","threshold scale", "circularity","validity" };
     String[] mTitleDynamic= { "" };
 
     ///
