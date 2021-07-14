@@ -51,6 +51,10 @@ public class ParticleInfo {
         }
     }
 
+    public void clearRoi()
+    {
+        mRoi = null;
+    }
 
     public Roi getRoi(){
         return mRoi;

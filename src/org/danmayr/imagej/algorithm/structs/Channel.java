@@ -16,8 +16,8 @@ public class Channel {
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
     String mControlImgPath = "";
-    String[] mTitles= { "area size", "intensity","threshold scale", "circularity","validity" };
-    String[] mTitleDynamic= { "" };
+    String[] mTitles = { "area size", "intensity", "threshold scale", "circularity", "validity" };
+    String[] mTitleDynamic = { "" };
 
     ///
     /// \brief Constructor
@@ -28,16 +28,17 @@ public class Channel {
     }
 
     ///
-    /// \brief start of dynmic title is the index of the title where the dynamic part starts
+    /// \brief start of dynmic title is the index of the title where the dynamic
+    /// part starts
     ///
     public Channel(String name, Statistics statistics, String[] titles, int startOfDynmicTitle) {
         mName = name;
         mTitles = titles;
         mStatistics = statistics;
-        if(startOfDynmicTitle > 0){
-            mTitleDynamic = new String[titles.length-startOfDynmicTitle];
+        if (startOfDynmicTitle > 0) {
+            mTitleDynamic = new String[titles.length - startOfDynmicTitle];
             int idx = 0;
-            for(int n = startOfDynmicTitle;n<titles.length;n++){
+            for (int n = startOfDynmicTitle; n < titles.length; n++) {
                 mTitleDynamic[idx] = titles[n];
                 idx++;
             }
@@ -74,7 +75,7 @@ public class Channel {
         return mStatistics.getValues();
     }
 
-    public Statistics getStatistic(){
+    public Statistics getStatistic() {
         return mStatistics;
     }
 
@@ -103,5 +104,12 @@ public class Channel {
     ///
     public TreeMap<Integer, ParticleInfo> getRois() {
         return mRois;
+    }
+
+    public void ClearRoi() {
+        for (Map.Entry<Integer, ParticleInfo> e : mRois.entrySet()) {
+            e.getValue().clearRoi();
+
+        }
     }
 }

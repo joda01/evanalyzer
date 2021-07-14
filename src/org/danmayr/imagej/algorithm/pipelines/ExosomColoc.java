@@ -119,6 +119,10 @@ public class ExosomColoc extends Pipeline {
         saveControlImages(name, colocAll);
         PerformanceAnalyzer.stop("save_ctrl");
 
+        for (Map.Entry<ChannelType, Channel> e : channels.entrySet()) {
+            e.getValue().ClearRoi();
+        }
+
         return channels;
     }
 
