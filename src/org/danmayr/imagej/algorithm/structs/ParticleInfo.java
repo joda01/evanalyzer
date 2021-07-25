@@ -1,5 +1,8 @@
 package org.danmayr.imagej.algorithm.structs;
 
+import org.danmayr.imagej.algorithm.filters.Filter;
+
+import ij.gui.Roi;
 
 ///
 /// \class  ParticleInfo
@@ -11,6 +14,7 @@ public class ParticleInfo {
     static protected int TOO_SMALL = 0x04;
     static protected int WRONG_CIRCULARITY = 0x08;
     static protected int WRONG_INTENSITY = 0x10;
+    Roi mRoi = null;
 
     ///
     /// \brief Constructor
@@ -21,6 +25,39 @@ public class ParticleInfo {
         this.areaThersholdScale = areaThersholdScale;
         this.circularity = circularity;
         this.areaGrayScale = areaGrayScale;
+    }
+
+    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, Roi roi) {
+        this(roiName,areaSize,areaGrayScale,areaThersholdScale,circularity);
+        this.mRoi = roi;
+    }
+
+    ///
+    /// Calculate the intersection of two ROIs.
+    /// Returns NULL if they do not intersect
+    ///
+    public Roi isPartOf(ParticleInfo roiIn)
+    {
+        if(null != mRoi && null != roiIn.getRoi()){
+            // Only calculate the intersection of the ROIs if the bouding boxes intersects
+            // this makes it faster
+            if(true == mRoi.getBounds().intersects(roiIn.getRoi().getBounds())){
+                return Filter.and(mRoi, roiIn.getRoi());
+            }else{
+                return null;
+            }
+        }else{
+            return null;
+        }
+    }
+
+    public void clearRoi()
+    {
+        mRoi = null;
+    }
+
+    public Roi getRoi(){
+        return mRoi;
     }
 
     ///
@@ -65,14 +102,6 @@ public class ParticleInfo {
         }
     }
 
-    ///
-    /// \brief Returns the name of the roi
-    ///
-    public String toString() {
-        return roiName + ";" + Double.toString(areaSize) +";"+ Double.toString(areaGrayScale) + ";" + Double.toString(areaThersholdScale) + ";"
-                + Double.toString(circularity);
-    }
-
     public int getRoiNr() {
         return roiName;
     }
@@ -80,11 +109,6 @@ public class ParticleInfo {
     public double[] getValues() {
         double[] values = { areaSize,areaGrayScale, areaThersholdScale, circularity, status };
         return values;
-    }
-
-    public String[] getTitle() {
-        String[] title = { "area size", "intensity","thershold scale", "circularity","validity" };
-        return title;
     }
 
     public int status = VALID;

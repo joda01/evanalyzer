@@ -32,7 +32,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         File mImage;
         static int MAX_THERSHOLD = 255;
-        TreeMap<ChannelType, Channel> mReturnChannels = new TreeMap<ChannelType, Channel>();
+        TreeMap<ChannelType, Channel> mReturnChannels;
         TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
 
         public ExosomeCountInCells(AnalyseSettings settings) {
@@ -41,7 +41,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         @Override
         protected TreeMap<ChannelType, Channel> startPipeline(File img) {
-                mReturnChannels.clear();
+                mReturnChannels = new TreeMap<ChannelType, Channel>();
                 mEditedEvs.clear();
                 mImage = img;
 
@@ -289,7 +289,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 Filter.SetRoiInImage(evImg, rm, n);
                                                 Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
                                                 Channel cell = Filter.createChannelFromMeasurement(
-                                                                "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt);
+                                                                "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt,rm);
                                                 cell.calcStatistics();
                                                 Statistics stat = cell.getStatistic();
                                                 CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,

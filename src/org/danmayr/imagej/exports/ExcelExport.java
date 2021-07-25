@@ -162,7 +162,7 @@ public class ExcelExport {
     private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName,
             ChannelSettings ch) {
         row = WriteRow(summarySheet, row, chName + " type", String.valueOf(ch.type));
-        row = WriteRow(summarySheet, row, chName + " therhsolding", String.valueOf(ch.mThersholdMethod));
+        row = WriteRow(summarySheet, row, chName + " thresholding", String.valueOf(ch.mThersholdMethod));
         row = WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
@@ -387,6 +387,9 @@ public class ExcelExport {
     /// Write image statistics
     ///
     private static void WriteImageSheet(SXSSFSheet imgSheet, Image image) {
+        CellStyle actStyleThinLine = createCellStyleHeader(imgSheet, false);
+        CellStyle actStyleThickLine = createCellStyleHeader(imgSheet, true);
+
         ///
         /// Write header
         ///
@@ -397,17 +400,25 @@ public class ExcelExport {
         TreeMap<ChannelType, Integer> channelColumnSize = new TreeMap<>(); // Stores the number of Columns per channel
 
         int column = 1;
+        int startColumnMerge = column;
         for (Map.Entry<ChannelType, Pair<String, String[]>> value : titles.entrySet()) {
-            rowChName.createCell(column).setCellValue(value.getValue().getFirst());
+            // Channel name
+            Cell rowNameFirst = rowChName.createCell(column);
+            rowNameFirst.setCellValue(value.getValue().getFirst());
+            rowNameFirst.setCellStyle(actStyleThickLine);
             channelColumnSize.put(value.getKey(), column);
             for (int n = 0; n < value.getValue().getSecond().length; n++) {
-                rowTitles.createCell(column).setCellValue(value.getValue().getSecond()[n]);
+                Cell rowTitleCell = rowTitles.createCell(column);
+                rowTitleCell.setCellValue(value.getValue().getSecond()[n]);
+                rowTitleCell.setCellStyle(actStyleThinLine);
                 column++;
             }
+            imgSheet.addMergedRegion(new CellRangeAddress(0, 0, startColumnMerge, column - 1));
+            startColumnMerge = column;
         }
 
         ///
-        /// Write values
+        /// Prepare values
         ///
         TreeMap<Integer, TreeMap<ChannelType, double[]>> rows = new TreeMap<>(); // <ROI <ChannelNr,values>>
 
@@ -426,10 +437,29 @@ public class ExcelExport {
             }
         }
 
+        ///
+        /// Write values
+        ///
         int row = 2;
+
+        ///
+        /// Cell Styles
+        ///
+        CellStyle actStyleThinLineEven = createCellStyleNumberEven(imgSheet, false);
+        CellStyle actStyleThinLineOdd = createCellStyleNumberOdd(imgSheet, false);
+        CellStyle actStyleThickLineEven = createCellStyleNumberEven(imgSheet, true);
+        CellStyle actStyleThickLineOdd = createCellStyleNumberOdd(imgSheet, true);
+
         for (Map.Entry<Integer, TreeMap<ChannelType, double[]>> entry3 : rows.entrySet()) {
             Row currentRow = imgSheet.createRow(row);
-            currentRow.createCell(0).setCellValue(entry3.getKey());
+            Cell number = currentRow.createCell(0);
+            number.setCellValue(entry3.getKey());
+            if (row % 2 == 0) {
+                number.setCellStyle(actStyleThinLineEven);
+            } else {
+                number.setCellStyle(actStyleThinLineOdd);
+            }
+
             TreeMap<ChannelType, double[]> valVec = entry3.getValue();
 
             for (Map.Entry<ChannelType, double[]> valVecEntry : valVec.entrySet()) {
@@ -441,8 +471,25 @@ public class ExcelExport {
                     double[] valVecVal = valVecEntry.getValue();
 
                     if (null != valVecVal) {
+                        // First Column
+                        boolean firstCol = true;
                         for (int c = 0; c < valVecVal.length; c++) {
-                            currentRow.createCell(columnCnt).setCellValue(valVecVal[c]);
+                            Cell valueCell = currentRow.createCell(columnCnt);
+                            valueCell.setCellValue(valVecVal[c]);
+                            if (row % 2 == 0) {
+                                if (false == firstCol) {
+                                    valueCell.setCellStyle(actStyleThinLineEven);
+                                } else {
+                                    valueCell.setCellStyle(actStyleThickLineEven);
+                                }
+                            } else {
+                                if (false == firstCol) {
+                                    valueCell.setCellStyle(actStyleThinLineOdd);
+                                } else {
+                                    valueCell.setCellStyle(actStyleThickLineOdd);
+                                }
+                            }
+                            firstCol = false;
                             columnCnt++;
                         }
                     }

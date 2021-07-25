@@ -9,10 +9,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.sl.draw.binding.CTPath2D;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
+import org.danmayr.imagej.algorithm.statistics.Statistics;
+import org.danmayr.imagej.algorithm.statistics.StatisticsColoc;
 import org.danmayr.imagej.algorithm.structs.Channel;
+import org.danmayr.imagej.algorithm.structs.ParticleInfo;
+import org.danmayr.imagej.algorithm.structs.ParticleInfoColoc;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 import ij.IJ;
@@ -31,8 +36,8 @@ public class ExosomColoc extends Pipeline {
         super(settings);
     }
 
-    final TreeMap<ChannelType, Channel> channels = new TreeMap<ChannelType, Channel>();
-    final Vector<ColocChannelSet> colocChannels = new Vector<>();
+    TreeMap<ChannelType, Channel> channels;
+    Vector<ColocChannelSet> colocChannels = new Vector<>();
     ImagePlus background = null;
 
     File file;
@@ -41,7 +46,7 @@ public class ExosomColoc extends Pipeline {
     protected TreeMap<ChannelType, Channel> startPipeline(File img) {
         file = img;
         background = null;
-        channels.clear();
+        channels = new TreeMap<ChannelType, Channel>();
         colocChannels.clear();
         RoiManager rmWithTetraSpeckBeads = new RoiManager(false);
 
@@ -49,7 +54,7 @@ public class ExosomColoc extends Pipeline {
             background = getBackground().mChannelImg;
         }
 
-        if(null != getTetraSpeckBead()){
+        if (null != getTetraSpeckBead()) {
             FindTetraspeckBeads(rmWithTetraSpeckBeads, getTetraSpeckBead());
         }
 
@@ -81,12 +86,14 @@ public class ExosomColoc extends Pipeline {
                 for (int m = n + 1; m < colocChannels.size(); m++) {
                     ColocChannelSet img0 = colocChannels.get(n);
                     ColocChannelSet img1 = colocChannels.get(m);
-                    Channel coloc01 = CalcColoc("Coloc of " + img0.type.toString() + " with " + img1.type.toString(),
-                            rm, img0.imageAfterThershold, img1.imageAfterThershold, img0.imgeBeforeThershold,
-                            img0.imgeBeforeThershold);
-                    channels.put(ChannelType.getColocEnum(colocEnum), coloc01);
-                    colocAll = coloc01;
+                    Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
+                    pics2Ch.add(img0);
+                    pics2Ch.add(img1);
+                    Channel coloc02 = calculateRoiColoc(
+                            "Coloc of " + img0.type.toString() + " with " + img1.type.toString(), img0, img1);
+                    channels.put(ChannelType.getColocEnum(colocEnum), coloc02);
                     colocEnum++;
+                    colocAll = coloc02;
                 }
 
                 nameOfAllChannels = colocChannels.get(n).type.toString();
@@ -109,23 +116,14 @@ public class ExosomColoc extends Pipeline {
         //
         String name = img.getAbsolutePath().replace(java.io.File.separator, "");
         PerformanceAnalyzer.start("save_ctrl");
-        saveControlImages(name, rm, colocAll);
+        saveControlImages(name, colocAll);
         PerformanceAnalyzer.stop("save_ctrl");
 
-        return channels;
-    }
+        for (Map.Entry<ChannelType, Channel> e : channels.entrySet()) {
+            e.getValue().ClearRoi();
+        }
 
-    //
-    // Calc coloc for two channels
-    //
-    Channel CalcColoc(String name, RoiManager rm, ImagePlus img0, ImagePlus img1, ImagePlus img0Origial,
-            ImagePlus img1Original) {
-        ImagePlus sumImageOriginal = Filter.ANDImages(img0Origial, img1Original);
-        ImagePlus sumImage = Filter.ANDImages(img0, img1);
-        Filter.ApplyThershold(sumImage, AutoThresholder.Method.Yen);
-        Filter.AnalyzeParticles(sumImage, rm, 0, -1, mSettings.mMinCircularity);
-        Channel measColoc01 = Filter.MeasureImage(name, mSettings, sumImageOriginal, sumImage, rm);
-        return measColoc01;
+        return channels;
     }
 
     //
@@ -135,7 +133,10 @@ public class ExosomColoc extends Pipeline {
         ImagePlus sumImageOriginal = pics.get(0).imgeBeforeThershold;
         ImagePlus sumImageThersholded = pics.get(0).imageAfterThershold;
 
+        Channel chPic1 = pics.get(0).ch;
+
         for (int n = 1; n < pics.size(); n++) {
+            Channel chPic2 = pics.get(n).ch;
             sumImageOriginal = Filter.ANDImages(sumImageOriginal, pics.get(n).imgeBeforeThershold);
             sumImageThersholded = Filter.ANDImages(sumImageThersholded, pics.get(n).imageAfterThershold);
         }
@@ -144,6 +145,63 @@ public class ExosomColoc extends Pipeline {
         Channel measColoc = Filter.MeasureImage(name, mSettings, sumImageOriginal, sumImageThersholded, rm);
 
         return measColoc;
+    }
+
+    //
+    // Calculate the coloc by taking a ROI in channel 1 and looking for a ROI in channel 2 which
+    // has an intersection. All the ROIs with intersection are added to the ROI coloc channel
+    //
+    Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2) {
+        String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "intensity " + ch1.type.toString(),
+                "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
+
+        Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
+        TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
+        TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
+
+        int colocNr = 0;
+
+        for (Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()) {
+            for (Map.Entry<Integer, ParticleInfo> particle2 : roiPic2.entrySet()) {
+                Roi result = particle1.getValue().isPartOf(particle2.getValue());
+                if (null != result) {
+                    result.setImage(ch1.imageAfterThershold);
+                    int size = result.getContainedPoints().length;
+
+                    if (size > 0) {
+                        //
+                        // Particles have an intersection!!
+                        //
+
+
+                        //
+                        // Calculate circularity
+                        //
+                        double perimeter = result.getLength();
+                        double circularity = perimeter == 0.0 ? 0.0
+                                : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
+                        if (circularity > 1.0) {
+                            circularity = 1.0;
+                        }
+                        //
+
+                        double[] intensityChannels = { particle1.getValue().areaGrayScale,
+                                particle2.getValue().areaGrayScale };
+                        double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
+
+                        ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
+                                areaChannels, result);
+                        exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
+                                mSettings.mMinCircularity, mSettings.minIntensity);
+                        coloc.addRoi(exosom);
+                        colocNr++;
+                        break;          // We have a match. We can continue with the next particle
+                    }
+                }
+            }
+        }
+        coloc.calcStatistics();
+        return coloc;
     }
 
     ///
@@ -171,11 +229,12 @@ public class ExosomColoc extends Pipeline {
             //
             // Remove TetraSpeckBeads
             //
-            RemoveTetraSpeckBeads(img0Th, img0.type);
+            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
 
             ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, mSettings.mMinCircularity);
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
+            measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
             channels.put(img0.type, measCh0);
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0));
         }
@@ -183,13 +242,13 @@ public class ExosomColoc extends Pipeline {
         ///
         /// Remove tetraspeck bead
         ///
-        void RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved,
-                ChannelType type) {
+        int RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved, ChannelType type) {
+            int removedTetraSpecs = 0;
             for (int n = 0; n < rmWithTetraSpeckBeads.getCount(); n++) {
                 // Calculate center of mass of the ROI for selecting
                 Rectangle boundingBox = rmWithTetraSpeckBeads.getRoi(n).getPolygon().getBounds();
-                int x = boundingBox.getLocation().x + boundingBox.width/2;
-                int y = boundingBox.getLocation().y + boundingBox.height/2;
+                int x = boundingBox.getLocation().x + boundingBox.width / 2;
+                int y = boundingBox.getLocation().y + boundingBox.height / 2;
                 int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
                 // Select only white pixels
                 if (pixelVal > 200) {
@@ -198,8 +257,10 @@ public class ExosomColoc extends Pipeline {
                     thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
                     Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
                     Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
+                    removedTetraSpecs++;
                 }
             }
+            return removedTetraSpecs;
         }
     }
 
@@ -217,9 +278,9 @@ public class ExosomColoc extends Pipeline {
         Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
+        String path = getPath(file) + "_tetraspeck.jpg";
+        tetraSpeckBeads.addControlImagePath(getName(file) + "_tetraspeck.jpg");
         channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
-        
-        String path = getPath(file)+"_tetraspeck.jpg";
         Filter.SaveImageWithOverlay(imageWithTetraSpeckBeads.mChannelImg, rm, path);
     }
 
@@ -243,7 +304,7 @@ public class ExosomColoc extends Pipeline {
     ///
     /// Save control images
     ///
-    void saveControlImages(String name, RoiManager rm, Channel measColoc) {
+    void saveControlImages(String name, Channel measColoc) {
         if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
             // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
             ImagePlus[] imgAry = { null, null, null, null, null, null, null };
@@ -274,14 +335,14 @@ public class ExosomColoc extends Pipeline {
 
             if (null != measColoc) {
                 ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-                Filter.SaveImageWithOverlay(mergedChannel,rm, path + "_merged.jpg");
+                Filter.SaveImageWithOverlay(mergedChannel, measColoc, path + "_merged.jpg");
                 measColoc.addControlImagePath(name + "_merged.jpg");
             }
 
             for (int n = 0; n < imgAry.length; n++) {
                 if (imgAry[n] != null && chAry[n] != null) {
                     String fileName = "_" + chNames[n] + ".jpg";
-                    Filter.SaveImageWithOverlay(imgAry[n], rm, path + fileName);
+                    Filter.SaveImageWithOverlay(imgAry[n], chAry[n], path + fileName);
                     chAry[n].addControlImagePath(name + fileName);
                 }
             }
