@@ -148,8 +148,10 @@ public class ExosomColoc extends Pipeline {
     }
 
     //
-    // Calculate the coloc by taking a ROI in channel 1 and looking for a ROI in channel 2 which
-    // has an intersection. All the ROIs with intersection are added to the ROI coloc channel
+    // Calculate the coloc by taking a ROI in channel 1 and looking for a ROI in
+    // channel 2 which
+    // has an intersection. All the ROIs with intersection are added to the ROI
+    // coloc channel
     //
     Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2) {
         String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "intensity " + ch1.type.toString(),
@@ -173,7 +175,6 @@ public class ExosomColoc extends Pipeline {
                         // Particles have an intersection!!
                         //
 
-
                         //
                         // Calculate circularity
                         //
@@ -195,7 +196,7 @@ public class ExosomColoc extends Pipeline {
                                 mSettings.mMinCircularity, mSettings.minIntensity);
                         coloc.addRoi(exosom);
                         colocNr++;
-                        break;          // We have a match. We can continue with the next particle
+                        break; // We have a match. We can continue with the next particle
                     }
                 }
             }
@@ -247,17 +248,28 @@ public class ExosomColoc extends Pipeline {
             for (int n = 0; n < rmWithTetraSpeckBeads.getCount(); n++) {
                 // Calculate center of mass of the ROI for selecting
                 Rectangle boundingBox = rmWithTetraSpeckBeads.getRoi(n).getPolygon().getBounds();
-                int x = boundingBox.getLocation().x + boundingBox.width / 2;
-                int y = boundingBox.getLocation().y + boundingBox.height / 2;
-                int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
-                // Select only white pixels
-                if (pixelVal > 200) {
-                    Roi roi = Filter.doWand(thesholdPictureWhereTetraSpeckShouldBeRemoved, x, y, 20);
-                    thesholdPictureWhereTetraSpeckShouldBeRemoved.setRoi(roi);
-                    thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
-                    Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                    Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                    removedTetraSpecs++;
+
+                // int x = boundingBox.getLocation().x + boundingBox.width / 2;
+                // int y = boundingBox.getLocation().y + boundingBox.height / 2;
+                boolean found = false;
+                for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x+boundingBox.width; x++) {
+                    for (int y = boundingBox.getLocation().y; y <  boundingBox.getLocation().y+boundingBox.height; y++) {
+                        int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
+                        // Select only white pixels
+
+                        if (pixelVal > 200) {
+                            Roi roi = Filter.doWand(thesholdPictureWhereTetraSpeckShouldBeRemoved, x, y, 20);
+                            thesholdPictureWhereTetraSpeckShouldBeRemoved.setRoi(roi);
+                            thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
+                            Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
+                            Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
+                            removedTetraSpecs++;
+                            break;
+                        }
+                    }
+                    if(true==found){
+                        break;
+                    }
                 }
             }
             return removedTetraSpecs;
