@@ -118,6 +118,7 @@ public class EvColocDialog extends JFrame {
             private JComboBox thersholdMethod;
             private JCheckBox enchanceContrast;
             private JComboBox mZProjection;
+            private JComboBox mPreProcesssingSteps;
 
             ///
             ///
@@ -140,10 +141,13 @@ public class EvColocDialog extends JFrame {
                             JOptionPane.WARNING_MESSAGE);
                 }
 
+                chSet.preProcessing.clear();
+                chSet.preProcessing.add(((ComboItem<ChannelSettings.PreProcessingStep>)mPreProcesssingSteps.getSelectedItem()).value);
+
                 return chSet;
             }
 
-            ///
+            //
             ///
             ///
             public ChannelElements(JPanel panel, GridBagConstraints c, int gridX, int gridY, int chNr) {
@@ -188,13 +192,15 @@ public class EvColocDialog extends JFrame {
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
                 channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY5, "EV (CY5)");
                 channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
-                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5, "EV (CY3 fret CY5)");
+                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5,
+                        "EV (CY3 fret CY5)");
                 channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
                 channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
                 channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
                 channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
-                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD, "TetraSpecks");
+                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD,
+                        "TetraSpecks");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
@@ -265,6 +271,17 @@ public class EvColocDialog extends JFrame {
                 c.gridy++;
                 mZProjection = new JComboBox<String>(zProjection);
                 panel.add(mZProjection, c);
+
+                ////////////////////////////////////////////////////
+
+                t = 0;
+                ComboItem<ChannelSettings.PreProcessingStep>[] preprocessingSteps = new ComboItem[6];
+                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(ChannelSettings.PreProcessingStep.None, "No");
+                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(ChannelSettings.PreProcessingStep.EdgeDetection, "Edge Detection");
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.gridy++;
+                mPreProcesssingSteps = new JComboBox<ComboItem<ChannelSettings.PreProcessingStep>>(preprocessingSteps);
+                panel.add(mPreProcesssingSteps, c);
 
                 ////////////////////////////////////////////////////
                 /*
@@ -355,6 +372,7 @@ public class EvColocDialog extends JFrame {
             l2.setIcon(diamter2);
             this.add(l2, c);
 
+            ////////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy++;
@@ -369,6 +387,22 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter3 = new ImageIcon(getClass().getResource("icons8-normal-distribution-histogram-16.png"));
             l3.setIcon(diamter3);
             this.add(l3, c);
+
+            ////////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel l4 = new JLabel("Pre processing step 1:");
+            l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
+            l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
+            l4.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
+            l4.setSize(new Dimension(200, l4.getSize().height));
+            ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-bring-forward-16.png"));
+            l4.setIcon(diamter4);
+            this.add(l4, c);
 
             /*
              * c.fill = GridBagConstraints.HORIZONTAL; c.gridx = 0; c.gridy++; c.weightx =
@@ -387,14 +421,14 @@ public class EvColocDialog extends JFrame {
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l4 = new JLabel("Preview:");
-            l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
-            l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
-            l4.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
-            l4.setSize(new Dimension(200, l4.getSize().height));
-            ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-eye-16.png"));
-            l4.setIcon(diamter4);
-            this.add(l4, c);
+            JLabel l8 = new JLabel("Preview:");
+            l8.setMinimumSize(new Dimension(200, l8.getMinimumSize().height));
+            l8.setMaximumSize(new Dimension(200, l8.getMaximumSize().height));
+            l8.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
+            l8.setSize(new Dimension(200, l8.getSize().height));
+            ImageIcon diamter5 = new ImageIcon(getClass().getResource("icons8-eye-16.png"));
+            l8.setIcon(diamter5);
+            this.add(l8, c);
 
             JPanel previewButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
@@ -1232,23 +1266,18 @@ public class EvColocDialog extends JFrame {
         // Check channel settings
         //
         // It is not allowed to have two equal channel types
-        /*for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-            for (int m = 0; m < NUMBEROFCHANNELSETTINGS; m++) {
-                if (sett.channelSettings.get(n).mChannelNr >= 0 && sett.channelSettings.get(m).mChannelNr >= 0) {
-                    if (n != m) {
-                        if (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
-
-                            // Only check two different channel
-                            error += "There are two equal channel types!\n";
-                        }
-                        if (sett.channelSettings.get(n).mChannelNr == sett.channelSettings.get(m).mChannelNr) {
-                            // Only check two different channel
-                            error += "There are two equal channel numbers!\n";
-                        }
-                    }
-                }
-            }
-        }*/
+        /*
+         * for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) { for (int m = 0; m <
+         * NUMBEROFCHANNELSETTINGS; m++) { if (sett.channelSettings.get(n).mChannelNr >=
+         * 0 && sett.channelSettings.get(m).mChannelNr >= 0) { if (n != m) { if
+         * (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
+         * 
+         * // Only check two different channel error +=
+         * "There are two equal channel types!\n"; } if
+         * (sett.channelSettings.get(n).mChannelNr ==
+         * sett.channelSettings.get(m).mChannelNr) { // Only check two different channel
+         * error += "There are two equal channel numbers!\n"; } } } } }
+         */
 
         //
         //
