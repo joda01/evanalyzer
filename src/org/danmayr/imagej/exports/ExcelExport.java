@@ -35,6 +35,8 @@ import org.danmayr.imagej.algorithm.structs.Image;
 import org.danmayr.imagej.algorithm.structs.Pair;
 import org.danmayr.imagej.algorithm.structs.ParticleInfo;
 import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.Version;
+
 
 public class ExcelExport {
     ExcelExport() {
@@ -135,6 +137,8 @@ public class ExcelExport {
     private static int WriteSummary(SXSSFSheet summarySheet, AnalyseSettings settings) {
         int row = 0;
         summarySheet.setDefaultColumnWidth(25);
+        row = WriteRow(summarySheet, row, "Used program Version", Version.getVersion());
+
         row = WriteRow(summarySheet, row, "Save Cotrol Pictures", String.valueOf(settings.mSaveDebugImages));
         row = WriteRow(summarySheet, row, "Report Type", String.valueOf(settings.reportType));
 
