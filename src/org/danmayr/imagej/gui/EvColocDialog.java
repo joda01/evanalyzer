@@ -586,6 +586,11 @@ public class EvColocDialog extends JFrame {
 
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 String channelNr = channelSettings.get(n).channel.getSelectedItem().toString();
+                if(Pipeline.ChannelType.BACKGROUND == ((ComboItem<Pipeline.ChannelType>) channelSettings.get(n).channelType.getSelectedItem()).getValue()){
+                    // No preview for background
+                    continue;
+                }
+
 
                 // Remove image
                 if (channelNr == "OFF") {
