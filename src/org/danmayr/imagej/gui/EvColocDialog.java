@@ -292,7 +292,7 @@ public class EvColocDialog extends JFrame {
                 ////////////////////////////////////////////////////
 
                 t = 0;
-                ComboItem<ChannelSettings.PreProcessingStep>[] preprocessingSteps = new ComboItem[6];
+                ComboItem<ChannelSettings.PreProcessingStep>[] preprocessingSteps = new ComboItem[2];
                 preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
                         ChannelSettings.PreProcessingStep.None, "No");
                 preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
@@ -615,7 +615,8 @@ public class EvColocDialog extends JFrame {
                             mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
 
                             Filter.SubtractBackground(mPreviewImage0[n]);
-                            Filter.ApplyGaus(mPreviewImage0[n]);
+                            IJ.run(mPreviewImage0[n], "Convolve...",
+                            "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
                         }
                     }
                 }

@@ -4,7 +4,7 @@ public class Version {
     static String major = "5";
     static String minor = "2";
     static String fix = "0";
-    public static String status = "alpha";   // beta, aplha, release
+    public static String status = "release";   // beta, aplha, release
     static long build  = 1622055908;
 
     public static String getVersion() {
