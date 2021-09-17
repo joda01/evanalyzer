@@ -23,6 +23,7 @@ public class ChannelSettings implements Cloneable{
     public int maxThershold = 65535;
     public String ZProjector = "OFF";
     public Vector<PreProcessingStep> preProcessing = new Vector<PreProcessingStep>();
+    public int marginToCrop = 0;
 
     public Object clone() throws CloneNotSupportedException
     {

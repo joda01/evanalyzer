@@ -148,6 +148,12 @@ abstract public class Pipeline {
       dup = ZProjector.run(dup, chSettings.ZProjector);
     }
 
+    // Crop Image
+    if(chSettings.marginToCrop>0){
+     Filter.cropMarginOfImage(chSettings.marginToCrop, dup);
+    }
+
+    // Find edges
     for (int n = 0; n < chSettings.preProcessing.size(); n++) {
       ChannelSettings.PreProcessingStep preProcess = chSettings.preProcessing.get(n);
       if (preProcess == ChannelSettings.PreProcessingStep.EdgeDetection) {

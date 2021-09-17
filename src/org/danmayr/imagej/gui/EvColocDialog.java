@@ -120,6 +120,12 @@ public class EvColocDialog extends JFrame {
             private JComboBox mZProjection;
             private JComboBox mPreProcesssingSteps;
 
+            SpinnerModel modelCrop = new SpinnerNumberModel(0, // initial value
+                    0, // min
+                    65535, // max
+                    1); // step
+            private JSpinner marginToCrop = new JSpinner(modelCrop);
+
             ///
             ///
             ///
@@ -140,9 +146,10 @@ public class EvColocDialog extends JFrame {
                     JOptionPane.showMessageDialog(new JFrame(), "Min thershold wrong!", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
-
+                chSet.marginToCrop = (Integer)marginToCrop.getValue();
                 chSet.preProcessing.clear();
-                chSet.preProcessing.add(((ComboItem<ChannelSettings.PreProcessingStep>)mPreProcesssingSteps.getSelectedItem()).value);
+                chSet.preProcessing.add(
+                        ((ComboItem<ChannelSettings.PreProcessingStep>) mPreProcesssingSteps.getSelectedItem()).value);
 
                 return chSet;
             }
@@ -273,11 +280,23 @@ public class EvColocDialog extends JFrame {
                 panel.add(mZProjection, c);
 
                 ////////////////////////////////////////////////////
+                marginToCrop.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        refreshPreview();
+                    }
+                });
+                c.gridy++;
+                panel.add(marginToCrop, c);
+
+                ////////////////////////////////////////////////////
 
                 t = 0;
                 ComboItem<ChannelSettings.PreProcessingStep>[] preprocessingSteps = new ComboItem[6];
-                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(ChannelSettings.PreProcessingStep.None, "No");
-                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(ChannelSettings.PreProcessingStep.EdgeDetection, "Edge Detection");
+                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
+                        ChannelSettings.PreProcessingStep.None, "No");
+                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
+                        ChannelSettings.PreProcessingStep.EdgeDetection, "Edge Detection");
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 mPreProcesssingSteps = new JComboBox<ComboItem<ChannelSettings.PreProcessingStep>>(preprocessingSteps);
@@ -395,14 +414,30 @@ public class EvColocDialog extends JFrame {
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l4 = new JLabel("Pre processing step 1:");
+            JLabel l4 = new JLabel("Margin-Crop:");
             l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
             l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
             l4.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
             l4.setSize(new Dimension(200, l4.getSize().height));
-            ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-bring-forward-16.png"));
+            ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-crop-16.png"));
             l4.setIcon(diamter4);
             this.add(l4, c);
+
+            ////////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel l5 = new JLabel("Pre processing step 1:");
+            l5.setMinimumSize(new Dimension(200, l5.getMinimumSize().height));
+            l5.setMaximumSize(new Dimension(200, l5.getMaximumSize().height));
+            l5.setPreferredSize(new Dimension(200, l5.getPreferredSize().height));
+            l5.setSize(new Dimension(200, l5.getSize().height));
+            ImageIcon diamter5 = new ImageIcon(getClass().getResource("icons8-bring-forward-16.png"));
+            l5.setIcon(diamter5);
+            this.add(l5, c);
 
             /*
              * c.fill = GridBagConstraints.HORIZONTAL; c.gridx = 0; c.gridy++; c.weightx =
@@ -426,8 +461,8 @@ public class EvColocDialog extends JFrame {
             l8.setMaximumSize(new Dimension(200, l8.getMaximumSize().height));
             l8.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
             l8.setSize(new Dimension(200, l8.getSize().height));
-            ImageIcon diamter5 = new ImageIcon(getClass().getResource("icons8-eye-16.png"));
-            l8.setIcon(diamter5);
+            ImageIcon diamter55 = new ImageIcon(getClass().getResource("icons8-eye-16.png"));
+            l8.setIcon(diamter55);
             this.add(l8, c);
 
             JPanel previewButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));

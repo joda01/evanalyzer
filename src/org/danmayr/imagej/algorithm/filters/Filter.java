@@ -366,6 +366,15 @@ public class Filter {
         return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null);
     }
 
+    public static void cropMarginOfImage(int marginWidth, ImagePlus img)
+    {
+        ImageProcessor imp = img.getProcessor();
+        imp.setRoi(marginWidth,marginWidth,imp.getWidth()-(marginWidth*2),imp.getHeight()-(marginWidth*2));
+        ImageProcessor cropped = imp.crop();
+        ImagePlus newImg = new ImagePlus(img.getTitle(), cropped);
+        img.setImage(newImg);
+    }
+
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, boolean addToRoi, ResultsTable rt) {
 
