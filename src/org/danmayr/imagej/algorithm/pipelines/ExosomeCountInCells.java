@@ -45,7 +45,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mEditedEvs.clear();
                 mImage = img;
 
-                System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "12");
+                //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "12");
 
                 PerformanceAnalyzer.start("CntInCells:EvSeparation");
                 EvSeparation();
@@ -109,7 +109,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 double[] in = new double[2];
                                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod,
                                                 val.getValue().minThershold, val.getValue().maxThershold, in, true);
-                                Filter.Watershed(evSubtracted);
+                                Filter.Watershed(evSubtracted); // Multi thread problem
                                 ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
                                                 mSettings.mMinCircularity);
 
@@ -249,15 +249,15 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.FillHoles(nucluesEdited);
                         ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, rm, 1000, -1, 0);
                         Filter.FillHoles(nucleusMask);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus", rm);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus.jpg", rm);
                         Filter.Voronoi(nucleusMask);
                         // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_original", rm);
                         Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Yen);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid", rm);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg", rm);
                         ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
                         ImagePlus separatedCells = Filter.XORImages(andImg, cells);
                         ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, rm, 2000, -1, 0);
-                        Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells", rm);
+                        Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells.jpg", rm);
                         IJ.log("Number of cells " + Integer.toString(rm.getCount()));
 
                         //
@@ -275,8 +275,9 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         //
                                         // Contains Cell information
                                         //
-                                        Channel evsInCell = new Channel("evs_in_cell_" + val.getKey().toString(),
-                                                        new CellInfoStatistics());
+                                        String valueNames[] = { "area size", "intensity", "circularity", "valid", "invalid" };
+                                        Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
+                                                        new CellInfoStatistics(),valueNames,0);
 
                                         //
                                         // Measure the cell
@@ -289,7 +290,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 Filter.SetRoiInImage(evImg, rm, n);
                                                 Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
                                                 Channel cell = Filter.createChannelFromMeasurement(
-                                                                "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt,rm);
+                                                                "evs_per_cell_in_" + Integer.toString(n), mSettings, rt, rt,rm);
                                                 cell.calcStatistics();
                                                 Statistics stat = cell.getStatistic();
                                                 CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
@@ -322,7 +323,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                 }
 
                 ///
-                /// \breif check if this particle is valid
+                /// \brief check if this particle is valid
                 ///
                 public boolean isValid() {
                         return true;

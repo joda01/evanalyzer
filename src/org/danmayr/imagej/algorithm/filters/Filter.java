@@ -93,7 +93,7 @@ public class Filter {
     ///
     public static void Watershed(ImagePlus img) {
         // IJ.run(img, "Watershed", "");
-        EDM i = new EDM();
+        EDMThreadSafe i = new EDMThreadSafe();
         i.setup("watershed", img);
         i.run(img.getProcessor());
     }
@@ -103,7 +103,7 @@ public class Filter {
     ///
     public static void Voronoi(ImagePlus img) {
         // IJ.run(img, "Voronoi", "");
-        EDM i = new EDM();
+        EDMThreadSafe i = new EDMThreadSafe();
         i.setup("voronoi", img);
         i.run(img.getProcessor());
     }

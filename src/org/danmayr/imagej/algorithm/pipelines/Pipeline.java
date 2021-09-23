@@ -248,6 +248,7 @@ abstract public class Pipeline {
     name = name.replace("+", "");
     name = name.replace("*", "");
     name = name.replace("~", "");
+    name = name.replace(".", "_");
     name = name.toLowerCase();
 
     return mSettings.mOutputFolder + java.io.File.separator + getName(file);
@@ -262,6 +263,7 @@ abstract public class Pipeline {
     name = name.replace("+", "");
     name = name.replace("*", "");
     name = name.replace("~", "");
+    name = name.replace(".", "_");
     name = name.toLowerCase();
 
     return name;
