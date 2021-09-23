@@ -402,29 +402,35 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 circularitySum += info.circularity;
 
                         }
+                        this.nrOfCells = ch.getRois().size();
                         this.avgAreaSize = areaSizeSum / ch.getRois().size();
                         this.avgGrayScale = grayScaleSum / ch.getRois().size();
                         this.avgCircularity = circularitySum / ch.getRois().size();
                         this.invalid = nrOfInvalid;
                         this.valid = nrOfValid;
+                        this.avgEvsPerCell=(double)this.valid/(double)ch.getRois().size();
+                        this.avgInvalidEvsPerCell=(double)this.invalid/(double)ch.getRois().size();
                 }
 
                 public double[] getValues() {
                         // double[] values = { avgAreaSize, avgGrayScale, avgCircularity, valid, invalid
                         // };
-                        double[] values = { valid, invalid };
+                        double[] values = { nrOfCells,avgEvsPerCell, avgInvalidEvsPerCell };
                         return values;
                 }
 
                 public String[] getTitle() {
                         // String[] title = { "area size", "intensity", "circularity", "valid",
                         // "invalid" };
-                        String[] title = { "valid", "invalid" };
+                        String[] title = { "nr. of cells","avg. evs per cell", "avg. invalid evs per cell" };
                         return title;
                 }
 
+                public int nrOfCells;
                 public int valid;
                 public int invalid;
+                public double avgEvsPerCell;
+                public double avgInvalidEvsPerCell;
                 public double avgAreaSize;
                 public double avgGrayScale;
                 public double avgCircularity;
