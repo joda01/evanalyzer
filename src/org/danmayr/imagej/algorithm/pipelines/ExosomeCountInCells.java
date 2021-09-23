@@ -113,7 +113,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
                                                 mSettings.mMinCircularity);
 
-                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask",
+                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask"+".jpg",
                                                 rm);
                                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
                                                 evSubtractedOriginal, evSubtracted, rm);
@@ -163,7 +163,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         true);
                         Filter.AddThersholdToROI(cellsEdited, rm);
 
-                        Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString(), rm);
+                        Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString()+".jpg", rm);
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellsOriginal, cellsEdited, rm);
                         chCell.setThershold(in[0], in[1]);
                         addReturnChannel(chCell);
@@ -222,7 +222,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
                         ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, mSettings.mMinCircularity);
                         Filter.SaveImage(mask,
-                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask",
+                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask.jpg",
                                         rmEvs);
                         Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell", mSettings,
                                         evChannelImgOriginal, mask, rmEvs);
