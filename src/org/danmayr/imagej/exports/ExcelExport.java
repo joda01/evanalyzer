@@ -150,7 +150,6 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, "Min particle Size", String.valueOf(settings.mMinParticleSize));
         row = WriteRow(summarySheet, row, "Max particle Size", String.valueOf(settings.mMaxParticleSize));
 
-        row = WriteRow(summarySheet, row, "Min Circularity", String.valueOf(settings.mMinCircularity));
         row = WriteRow(summarySheet, row, "Min Intensity", String.valueOf(settings.minIntensity));
         row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
 
@@ -170,6 +169,8 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
+        row = WriteRow(summarySheet, row, chName + " min Circularity", String.valueOf(ch.mMinCircularity));
+
         return row;
     }
 

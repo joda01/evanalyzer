@@ -43,7 +43,6 @@ public class AnalyseSettings {
     public int mSelectedSeries; // series_1  = 0
     public double mMinParticleSize = 0.0;
     public double mMaxParticleSize = 999999999;
-    public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
     public String mOutputFileName="";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();

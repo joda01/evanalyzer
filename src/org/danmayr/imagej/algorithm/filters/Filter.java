@@ -44,6 +44,7 @@ import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.statistics.*;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
+import org.danmayr.imagej.algorithm.ChannelSettings;
 
 public class Filter {
     static int RESULT_FILE_ROI_IDX = 0;
@@ -443,7 +444,7 @@ public class Filter {
     ///
     /// Execute analyze particles before
     ///
-    public static Channel MeasureImage(String channelName, AnalyseSettings settings, ImagePlus imageOrigial,
+    public static Channel MeasureImage(String channelName, AnalyseSettings settings, ChannelSettings chSet, ImagePlus imageOrigial,
             ImagePlus imageThershold, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
@@ -453,7 +454,7 @@ public class Filter {
 
         ResultsTable r1 = measure(imageOrigial, rm);
         ResultsTable r2 = measure(imageThershold, rm);
-        Channel ch = createChannelFromMeasurement(channelName, settings, r1, r2, rm);
+        Channel ch = createChannelFromMeasurement(channelName, settings, chSet,r1, r2, rm);
         return ch;
     }
 
@@ -470,7 +471,7 @@ public class Filter {
         return rt;
     }
 
-    public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
+    public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,ChannelSettings chSet,
             ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm) {
 
         int area = imgThershold.getColumnIndex("Area");
@@ -490,7 +491,7 @@ public class Filter {
 
             ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity, rm.getRoi(i));
             if (null != settings) {
-                exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, settings.mMinCircularity,
+                exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, chSet.mMinCircularity,
                         settings.minIntensity);
             }
             ch.addRoi(exosom);

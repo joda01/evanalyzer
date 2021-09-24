@@ -120,6 +120,12 @@ public class EvColocDialog extends JFrame {
             private JComboBox mZProjection;
             private JComboBox mPreProcesssingSteps;
 
+            SpinnerModel modelCirc = new SpinnerNumberModel(0, // initial value
+                    0, // min
+                    1, // max
+                    0.01); // step
+            private JSpinner minCirculartiy = new JSpinner(modelCirc);
+
             SpinnerModel modelCrop = new SpinnerNumberModel(0, // initial value
                     0, // min
                     65535, // max
@@ -146,10 +152,17 @@ public class EvColocDialog extends JFrame {
                     JOptionPane.showMessageDialog(new JFrame(), "Min thershold wrong!", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
-                chSet.marginToCrop = (Integer)marginToCrop.getValue();
+                chSet.marginToCrop = (Integer) marginToCrop.getValue();
                 chSet.preProcessing.clear();
                 chSet.preProcessing.add(
                         ((ComboItem<ChannelSettings.PreProcessingStep>) mPreProcesssingSteps.getSelectedItem()).value);
+
+                try {
+                    chSet.mMinCircularity = (Double) (minCirculartiy.getValue());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Min circulartiy wrong!", "Dialog",
+                            JOptionPane.WARNING_MESSAGE);
+                }
 
                 return chSet;
             }
@@ -180,11 +193,13 @@ public class EvColocDialog extends JFrame {
                             minTheshold.setEnabled(false);
                             channelType.setEnabled(false);
                             mZProjection.setEnabled(false);
+                            minCirculartiy.setEnabled(false);
                         } else {
                             thersholdMethod.setEnabled(true);
                             minTheshold.setEnabled(true);
                             channelType.setEnabled(true);
                             mZProjection.setEnabled(true);
+                            minCirculartiy.setEnabled(true);
                         }
                         refreshPreview();
                     }
@@ -271,6 +286,10 @@ public class EvColocDialog extends JFrame {
                 });
                 c.gridy++;
                 panel.add(minTheshold, c);
+                ////////////////////////////////////////////////////
+
+                c.gridy++;
+                panel.add(minCirculartiy, c);
 
                 ////////////////////////////////////////////////////
                 String[] zProjection = { "OFF", "max", "min", "avg" };
@@ -310,6 +329,7 @@ public class EvColocDialog extends JFrame {
                  */
 
                 thersholdMethod.setEnabled(false);
+                minCirculartiy.setEnabled(false);
                 minTheshold.setEnabled(false);
                 channelType.setEnabled(false);
                 mZProjection.setEnabled(false);
@@ -390,6 +410,22 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-plus-slash-minus-16.png"));
             l2.setIcon(diamter2);
             this.add(l2, c);
+
+            ////////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel lci = new JLabel("Min circularity:");
+            lci.setMinimumSize(new Dimension(200, lci.getMinimumSize().height));
+            lci.setMaximumSize(new Dimension(200, lci.getMaximumSize().height));
+            lci.setPreferredSize(new Dimension(200, lci.getPreferredSize().height));
+            lci.setSize(new Dimension(200, lci.getSize().height));
+            ImageIcon diamterci = new ImageIcon(getClass().getResource("icons8-belarus-map-16.png"));
+            lci.setIcon(diamterci);
+            this.add(lci, c);
 
             ////////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -586,11 +622,11 @@ public class EvColocDialog extends JFrame {
 
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 String channelNr = channelSettings.get(n).channel.getSelectedItem().toString();
-                if(Pipeline.ChannelType.BACKGROUND == ((ComboItem<Pipeline.ChannelType>) channelSettings.get(n).channelType.getSelectedItem()).getValue()){
+                if (Pipeline.ChannelType.BACKGROUND == ((ComboItem<Pipeline.ChannelType>) channelSettings
+                        .get(n).channelType.getSelectedItem()).getValue()) {
                     // No preview for background
                     continue;
                 }
-
 
                 // Remove image
                 if (channelNr == "OFF") {
@@ -621,7 +657,7 @@ public class EvColocDialog extends JFrame {
 
                             Filter.SubtractBackground(mPreviewImage0[n]);
                             IJ.run(mPreviewImage0[n], "Convolve...",
-                            "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
+                                    "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
                         }
                     }
                 }
@@ -680,7 +716,6 @@ public class EvColocDialog extends JFrame {
 
         private JTextField mMinParticleSize = new JTextField("5");
         private JTextField mMaxParticleSize = new JTextField("9999");
-        private JTextField mMinCircularity = new JTextField("0");
         private JTextField mMinIntensity = new JTextField("0");
 
         public PanelFilter(Container parent) {
@@ -713,21 +748,6 @@ public class EvColocDialog extends JFrame {
             c.gridx = 2;
             c.weightx = 1;
             this.add(mMaxParticleSize, c);
-
-            ////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy++;
-            c.weightx = 0;
-            ImageIcon image = new ImageIcon(getClass().getResource("icons8-belarus-map-16.png"));
-            JLabel circ = new JLabel("Min circularity [0-1]:");
-            circ.setIcon(image);
-            this.add(circ, c);
-
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 1;
-            c.weightx = 1;
-            this.add(mMinCircularity, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -1337,12 +1357,6 @@ public class EvColocDialog extends JFrame {
             sett.mMaxParticleSize = Integer.parseInt(filter.mMaxParticleSize.getText());
         } catch (NumberFormatException ex) {
             error += "Max particle size wrong!\n";
-        }
-
-        try {
-            sett.mMinCircularity = Double.parseDouble(filter.mMinCircularity.getText());
-        } catch (NumberFormatException ex) {
-            error += "Circularity is wrong!\n";
         }
 
         try {

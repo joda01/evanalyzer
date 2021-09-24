@@ -24,6 +24,8 @@ public class ChannelSettings implements Cloneable{
     public String ZProjector = "OFF";
     public Vector<PreProcessingStep> preProcessing = new Vector<PreProcessingStep>();
     public int marginToCrop = 0;
+    public double mMinCircularity = 0.0;
+
 
     public Object clone() throws CloneNotSupportedException
     {
