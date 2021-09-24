@@ -852,7 +852,6 @@ public class ParticleAnalyzerThreadSafe implements PlugInFilter, Measurements {
         double t1 = ip.getMinThreshold();
         double t2 = ip.getMaxThreshold();
         boolean invertedLut = imp.isInvertedLut();
-        invertedLut = true;
         boolean byteImage = ip instanceof ByteProcessor;
         if (ip instanceof ShortProcessor)
             imageType = SHORT;
@@ -870,8 +869,8 @@ public class ParticleAnalyzerThreadSafe implements PlugInFilter, Measurements {
                 return false;
             }
             boolean threshold255 = invertedLut;
-            /*if (Prefs.blackBackground)
-                threshold255 = !threshold255;*/
+            if (Prefs.blackBackground)
+                threshold255 = !threshold255;
             if (threshold255) {
                 level1 = 255;
                 level2 = 255;

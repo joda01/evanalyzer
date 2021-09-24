@@ -45,7 +45,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mEditedEvs.clear();
                 mImage = img;
 
-                System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "12");
+                // System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism",
+                // "12");
 
                 PerformanceAnalyzer.start("CntInCells:EvSeparation");
                 EvSeparation();
@@ -58,6 +59,10 @@ public class ExosomeCountInCells extends ExosomColoc {
                 PerformanceAnalyzer.start("CntInCells:NucleusSeparation");
                 NucleusSeparation(cellArea);
                 PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
+
+                for (Map.Entry<ChannelType, Channel> e : mReturnChannels.entrySet()) {
+                        e.getValue().ClearRoi();
+                }
 
                 return mReturnChannels;
         }
@@ -109,12 +114,12 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 double[] in = new double[2];
                                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod,
                                                 val.getValue().minThershold, val.getValue().maxThershold, in, true);
-                                Filter.Watershed(evSubtracted);
+                                Filter.Watershed(evSubtracted); // Multi thread problem
                                 ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
                                                 mSettings.mMinCircularity);
 
-                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask",
-                                                rm);
+                                Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString() + "_mask"
+                                                + ".jpg", rm);
                                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
                                                 evSubtractedOriginal, evSubtracted, rm);
                                 evCh.setThershold(in[0], in[1]);
@@ -163,7 +168,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         true);
                         Filter.AddThersholdToROI(cellsEdited, rm);
 
-                        Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString(), rm);
+                        Filter.SaveImage(cellsEdited, getPath(mImage) + "_" + set.type.toString() + ".jpg", rm);
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellsOriginal, cellsEdited, rm);
                         chCell.setThershold(in[0], in[1]);
                         addReturnChannel(chCell);
@@ -222,7 +227,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
                         ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, mSettings.mMinCircularity);
                         Filter.SaveImage(mask,
-                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask",
+                                        getPath(mImage) + "_" + val.getValue().type.toString() + "_ev_in_cell_mask.jpg",
                                         rmEvs);
                         Channel evsInCells = Filter.MeasureImage(val.getValue().type.toString() + " in Cell", mSettings,
                                         evChannelImgOriginal, mask, rmEvs);
@@ -237,7 +242,8 @@ public class ExosomeCountInCells extends ExosomColoc {
         ///
         ///
         void NucleusSeparation(ImagePlus cells) {
-                RoiManager rm = new RoiManager(false);
+                RoiManager nucleusRoi = new RoiManager(false);
+                RoiManager cellRoi = new RoiManager(false);
                 ChannelSettings nuclues = getImageOfChannel(ChannelType.NUCLEUS);
                 if (null != nuclues) {
                         ImagePlus nucluesOriginal = nuclues.mChannelImg;
@@ -247,53 +253,65 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.SubtractBackground(nucluesEdited);
                         Filter.ApplyThershold(nucluesEdited, nuclues.mThersholdMethod);
                         Filter.FillHoles(nucluesEdited);
-                        ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, rm, 1000, -1, 0);
+                        ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, nucleusRoi, 1000, -1, 0);
                         Filter.FillHoles(nucleusMask);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus", rm);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus.jpg", nucleusRoi);
                         Filter.Voronoi(nucleusMask);
                         // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_original", rm);
                         Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Yen);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid", rm);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg", nucleusRoi);
                         ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
                         ImagePlus separatedCells = Filter.XORImages(andImg, cells);
-                        ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, rm, 2000, -1, 0);
-                        Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells", rm);
-                        IJ.log("Number of cells " + Integer.toString(rm.getCount()));
+                        ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, cellRoi, 2000, -1, 0);
+                        Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells.jpg", cellRoi);
+                        IJ.log("Number of cells " + Integer.toString(cellRoi.getCount()));
+
+                        Vector<RoiManager> roiOverLay = new Vector<RoiManager>();
+                        roiOverLay.add(nucleusRoi);
+                        roiOverLay.add(cellRoi);
 
                         //
                         // Now analyze cell by cell
                         //
                         // Filter.RoiSave(analyzedCells, rm);
-                        if(true == mSettings.mCountEvsPerCell){
-                                for(Map.Entry<Pipeline.ChannelType,ChannelSettings> val : mEditedEvs.entrySet()){
+                        if (true == mSettings.mCountEvsPerCell) {
+                                for (Map.Entry<Pipeline.ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                                         // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
                                         ImagePlus evImg = val.getValue().mChannelImg;
-                                        //ImagePlus evImgOri =getEvChannels().get(val.getKey());
+                                        // ImagePlus evImgOri =getEvChannels().get(val.getKey());
                                         evImg.show();
                                         ResultsTable rt = new ResultsTable();
 
                                         //
                                         // Contains Cell information
                                         //
-                                        Channel evsInCell = new Channel("evs_in_cell_" + val.getKey().toString(),
-                                                        new CellInfoStatistics());
+                                        String valueNames[] = { "area size", "intensity", "circularity", "valid",
+                                                        "invalid" };
+                                        Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
+                                                        new CellInfoStatistics(), valueNames, 0);
 
                                         //
                                         // Measure the cell
                                         //
-                                        Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, evImg, evImg, rm);
+                                        Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, evImg, evImg,cellRoi);
 
-                                        for (int n = 0; n < rm.getCount(); n++) { // Filter.RoiOpen(evImg, rm); rm.select(n);
+                                        for (int n = 0; n < cellRoi.getCount(); n++) { // Filter.RoiOpen(evImg, rm);
+                                                                                  // rm.select(n);
                                                 rt.reset();
-                                                rm.selectAndMakeVisible(evImg, n);
-                                                Filter.SetRoiInImage(evImg, rm, n);
-                                                Filter.AnalyzeParticlesDoNotAdd(evImg, rm, 0, -1, 0, rt);
+                                                cellRoi.selectAndMakeVisible(evImg, n);
+                                                Filter.SetRoiInImage(evImg, cellRoi, n);
+                                                RoiManager evsInCellroi = new RoiManager(false);
+                                                Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
+                                                roiOverLay.add(evsInCellroi);
                                                 Channel cell = Filter.createChannelFromMeasurement(
-                                                                "evs_in_cell_" + Integer.toString(n), mSettings, rt, rt,rm);
+                                                                "evs_per_cell_in_" + Integer.toString(n), mSettings, rt,
+                                                                rt, cellRoi);
                                                 cell.calcStatistics();
                                                 Statistics stat = cell.getStatistic();
-                                                CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
-                                                cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
+                                                CellInfo info = new CellInfo(n, stat.valid, stat.invalid,
+                                                                cellInfo.getRois().get(n).areaSize,
+                                                                cellInfo.getRois().get(n).areaGrayScale,
+                                                                cellInfo.getRois().get(n).circularity);
                                                 evsInCell.addRoi(info);
                                         }
                                         evsInCell.calcStatistics();
@@ -302,6 +320,9 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                                 }
                         }
+
+                        Filter.SaveImageWithOverlay(analyzedCells,roiOverLay,getPath(mImage) + "_separated_overlay_cells.jpg");
+
                 }
         }
 
@@ -322,7 +343,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                 }
 
                 ///
-                /// \breif check if this particle is valid
+                /// \brief check if this particle is valid
                 ///
                 public boolean isValid() {
                         return true;
@@ -381,29 +402,35 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 circularitySum += info.circularity;
 
                         }
+                        this.nrOfCells = ch.getRois().size();
                         this.avgAreaSize = areaSizeSum / ch.getRois().size();
                         this.avgGrayScale = grayScaleSum / ch.getRois().size();
                         this.avgCircularity = circularitySum / ch.getRois().size();
                         this.invalid = nrOfInvalid;
                         this.valid = nrOfValid;
+                        this.avgEvsPerCell=(double)this.valid/(double)ch.getRois().size();
+                        this.avgInvalidEvsPerCell=(double)this.invalid/(double)ch.getRois().size();
                 }
 
                 public double[] getValues() {
                         // double[] values = { avgAreaSize, avgGrayScale, avgCircularity, valid, invalid
                         // };
-                        double[] values = { valid, invalid };
+                        double[] values = { nrOfCells,avgEvsPerCell, avgInvalidEvsPerCell };
                         return values;
                 }
 
                 public String[] getTitle() {
                         // String[] title = { "area size", "intensity", "circularity", "valid",
                         // "invalid" };
-                        String[] title = { "valid", "invalid" };
+                        String[] title = { "nr. of cells","avg. evs per cell", "avg. invalid evs per cell" };
                         return title;
                 }
 
+                public int nrOfCells;
                 public int valid;
                 public int invalid;
+                public double avgEvsPerCell;
+                public double avgInvalidEvsPerCell;
                 public double avgAreaSize;
                 public double avgGrayScale;
                 public double avgCircularity;

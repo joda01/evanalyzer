@@ -143,6 +143,7 @@ abstract public class Pipeline {
   private ImagePlus preProcessingSteps(ImagePlus imgIn, ChannelSettings chSettings) {
     ImagePlus dup = Filter.duplicateImage(imgIn);
     IJ.run(imgIn, "Set Scale...", "distance=0 known=0 unit=pixel global");
+    Prefs.blackBackground = true;
 
     if (chSettings.ZProjector != "OFF") {
       dup = ZProjector.run(dup, chSettings.ZProjector);
@@ -248,6 +249,7 @@ abstract public class Pipeline {
     name = name.replace("+", "");
     name = name.replace("*", "");
     name = name.replace("~", "");
+    name = name.replace(".", "_");
     name = name.toLowerCase();
 
     return mSettings.mOutputFolder + java.io.File.separator + getName(file);
@@ -262,6 +264,7 @@ abstract public class Pipeline {
     name = name.replace("+", "");
     name = name.replace("*", "");
     name = name.replace("~", "");
+    name = name.replace(".", "_");
     name = name.toLowerCase();
 
     return name;

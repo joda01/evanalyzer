@@ -93,7 +93,7 @@ public class Filter {
     ///
     public static void Watershed(ImagePlus img) {
         // IJ.run(img, "Watershed", "");
-        EDM i = new EDM();
+        EDMThreadSafe i = new EDMThreadSafe();
         i.setup("watershed", img);
         i.run(img.getProcessor());
     }
@@ -103,7 +103,7 @@ public class Filter {
     ///
     public static void Voronoi(ImagePlus img) {
         // IJ.run(img, "Voronoi", "");
-        EDM i = new EDM();
+        EDMThreadSafe i = new EDMThreadSafe();
         i.setup("voronoi", img);
         i.run(img.getProcessor());
     }
@@ -272,9 +272,11 @@ public class Filter {
     }
 
     public static void SaveImageWithOverlay(ImagePlus image, RoiManager rm, String imageName) {
+        Overlay ov = new Overlay();
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(saveImg, rm.getRoisAsArray());
+        paintRoiOverlay(ov, rm.getRoisAsArray());
+        saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
@@ -283,6 +285,17 @@ public class Filter {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
         paintRoiOverlay(saveImg, rm.getRois());
+        saveImg = saveImg.flatten();
+        JpegWriter.save(saveImg, imageName, 100);
+    }
+
+    public static void SaveImageWithOverlay(ImagePlus image, Vector<RoiManager> overlays,String imageName) {
+        Overlay ov = new Overlay();
+        ImagePlus saveImg = Filter.duplicateImage(image);
+        for(int n = 0;n< overlays.size();n++){
+            paintRoiOverlay(ov, overlays.get(n).getRoisAsArray());
+        }
+        saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
@@ -299,17 +312,11 @@ public class Filter {
         image.setOverlay(ov);
     }
 
-    private static void paintRoiOverlay(ImagePlus image, Roi[] rois) {
-        Overlay ov = new Overlay();
-
-      
+    private static void paintRoiOverlay(Overlay ov, Roi[] rois) {
         for (int n = 0; n < rois.length; n++) {
-
             rois[n].setStrokeColor(Color.red);
             ov.add(rois[n]);
         }
-
-        image.setOverlay(ov);
     }
 
 
@@ -359,6 +366,11 @@ public class Filter {
     public static ImagePlus AnalyzeParticlesDoNotAdd(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, ResultsTable rt) {
         return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt);
+    }
+
+    public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
+            double minCircularity, ResultsTable rt) {
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, rt);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
