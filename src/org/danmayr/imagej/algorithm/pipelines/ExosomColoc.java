@@ -134,15 +134,22 @@ public class ExosomColoc extends Pipeline {
         ImagePlus sumImageThersholded = pics.get(0).imageAfterThershold;
 
         Channel chPic1 = pics.get(0).ch;
+        double minCirc = pics.get(0).set.mMinCircularity;
+        ChannelSettings chSet = pics.get(0).set;
 
         for (int n = 1; n < pics.size(); n++) {
             Channel chPic2 = pics.get(n).ch;
             sumImageOriginal = Filter.ANDImages(sumImageOriginal, pics.get(n).imgeBeforeThershold);
             sumImageThersholded = Filter.ANDImages(sumImageThersholded, pics.get(n).imageAfterThershold);
+            // Get the highest circulartiy for particle analyse
+            if(pics.get(n).set.mMinCircularity > minCirc){
+                minCirc = pics.get(n).set.mMinCircularity;
+                chSet = pics.get(n).set;
+            }
         }
         Filter.ApplyThershold(sumImageThersholded, AutoThresholder.Method.Yen);
-        Filter.AnalyzeParticles(sumImageThersholded, rm, 0, -1, mSettings.mMinCircularity);
-        Channel measColoc = Filter.MeasureImage(name, mSettings, sumImageOriginal, sumImageThersholded, rm);
+        Filter.AnalyzeParticles(sumImageThersholded, rm, 0, -1, minCirc);
+        Channel measColoc = Filter.MeasureImage(name, mSettings,chSet, sumImageOriginal, sumImageThersholded, rm);
 
         return measColoc;
     }
@@ -160,6 +167,13 @@ public class ExosomColoc extends Pipeline {
         Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
         TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
         TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
+
+        // Select setting of highest circularity of both channels
+        ChannelSettings chSet = ch1.set.mMinCircularity > ch2.set.mMinCircularity ? ch1.set : ch2.set;
+        
+        double circularityFilter = chSet.mMinCircularity;
+        double minParticleSize = chSet.mMinParticleSize;
+        double maxParticleSize = chSet.mMaxParticleSize;
 
         int colocNr = 0;
 
@@ -192,8 +206,7 @@ public class ExosomColoc extends Pipeline {
 
                         ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
                                 areaChannels, result);
-                        exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
-                                mSettings.mMinCircularity, mSettings.minIntensity);
+                        exosom.validatearticle(minParticleSize, maxParticleSize,circularityFilter, mSettings.minIntensity);
                         coloc.addRoi(exosom);
                         colocNr++;
                         break; // We have a match. We can continue with the next particle
@@ -232,12 +245,12 @@ public class ExosomColoc extends Pipeline {
             //
             int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
 
-            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, mSettings.mMinCircularity);
-            Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0BeforeTh, img0Th, rm);
+            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.mMinCircularity);
+            Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0,img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
             channels.put(img0.type, measCh0);
-            colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0));
+            colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0,img0));
         }
 
         ///
@@ -285,9 +298,9 @@ public class ExosomColoc extends Pipeline {
         Filter.ApplyThershold(thershodlImg, imageWithTetraSpeckBeads.mThersholdMethod,
                 imageWithTetraSpeckBeads.minThershold, imageWithTetraSpeckBeads.maxThershold, retTh, true);
         ResultsTable rt = new ResultsTable();
-        Filter.AnalyzeParticles(thershodlImg, rm, mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
-                mSettings.mMinCircularity, true, rt);
-        Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,
+        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.mMinParticleSize, imageWithTetraSpeckBeads.mMaxParticleSize,
+        imageWithTetraSpeckBeads.mMinCircularity, true, rt,false);
+        Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,imageWithTetraSpeckBeads,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
         String path = getPath(file) + "_tetraspeck.jpg";
@@ -300,17 +313,19 @@ public class ExosomColoc extends Pipeline {
     // Contains the result pictures from the counting
     //
     class ColocChannelSet {
-        ColocChannelSet(ImagePlus bth, ImagePlus ath, ChannelType t, Channel ch) {
+        ColocChannelSet(ImagePlus bth, ImagePlus ath, ChannelType t, Channel ch, ChannelSettings set) {
             this.imgeBeforeThershold = bth;
             this.imageAfterThershold = ath;
             this.type = t;
             this.ch = ch;
+            this.set=set;
         }
 
         ImagePlus imgeBeforeThershold;
         ImagePlus imageAfterThershold;
         ChannelType type;
         Channel ch;
+        ChannelSettings set;
     }
 
     ///

@@ -15,7 +15,12 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"), countInCellExosomes("EV Counting in Cells"), countInCellExosomesWithCellSeparation("EV Counting in Cells with cell separation [BETA]");
+        noSelection("--No selection--"), 
+        calcColoc("EV Colocalization"), 
+        countExosomes("EV Counting"), 
+        countInCellExosomes("EV Counting in Cells"), 
+        countInCellExosomesWithCellSeparation("EV Counting in Cells with cell separation"),
+        countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus("EV Counting in Cells with cell separation + remove nucleus on edge and remove cells without nucleus");
 
         private final String name;
 
@@ -41,13 +46,11 @@ public class AnalyseSettings {
     public String mInputFolder;
     public String mOutputFolder;
     public int mSelectedSeries; // series_1  = 0
-    public double mMinParticleSize = 0.0;
-    public double mMaxParticleSize = 999999999;
-    public double mMinCircularity = 0.0;
     public double minIntensity = 0.0;
     public String mOutputFileName="";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
     public boolean mCountEvsPerCell = false;
+    public boolean mRemoveCellsWithoutNucleus = false;
     public boolean mCalcColoc = false;
 
 }
