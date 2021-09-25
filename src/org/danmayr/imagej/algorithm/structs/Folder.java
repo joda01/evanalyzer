@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
 import org.danmayr.imagej.algorithm.structs.Pair;
+import ij.*;
 
 
 ///
@@ -62,7 +63,10 @@ public class Folder {
                     mValues.put(channel.getKey(), values);
                 }
                 for(int n=0;n<getValues.length;n++){
-                    values[n]+=getValues[n];
+                    if(n < values.length && n < getValues.length)
+                        values[n]+=getValues[n];// Array index out of bound
+                    else
+                        IJ.log("ERR: Values.length: " + values.length + " " + channel.getKey().toString());
                 }
             }
         }

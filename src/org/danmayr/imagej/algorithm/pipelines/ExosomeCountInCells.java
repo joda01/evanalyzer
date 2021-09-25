@@ -398,13 +398,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         return true;
                 }
 
-                ///
-                /// \brief Returns the name of the roi
-                ///
-                public String toString() {
-                        return roiName + ";" + Double.toString(areaSize) + ";" + Double.toString(areaGrayScale) + ";"
-                                        + Double.toString(areaThersholdScale) + ";" + Double.toString(circularity);
-                }
 
                 public int getRoiNr() {
                         return roiName;
