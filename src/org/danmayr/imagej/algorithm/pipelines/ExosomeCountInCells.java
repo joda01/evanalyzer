@@ -22,7 +22,6 @@ import javax.swing.JOptionPane;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
-
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
@@ -188,6 +187,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 e.printStackTrace();
                         }
                         return cellsEdited;
+                } else {
+                        IJ.log("NULL");
                 }
                 return null;
 
@@ -302,7 +303,8 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 Roi result = Filter.and(cellRoi.getRoi(c),
                                                                 nucleusRoiFiltered.getRoi(n));
                                                 if (result != null && result.getContainedPoints().length > 0) {
-                                                        // Cell has  nucles. Add cell to the ROIManager for cell analyzing
+                                                        // Cell has nucles. Add cell to the ROIManager for cell
+                                                        // analyzing
                                                         filteredCells.addRoi(cellRoi.getRoi(c));
                                                         break;
                                                 }
@@ -397,7 +399,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                 public boolean isValid() {
                         return true;
                 }
-
 
                 public int getRoiNr() {
                         return roiName;
