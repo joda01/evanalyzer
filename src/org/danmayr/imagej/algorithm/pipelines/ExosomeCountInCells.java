@@ -278,7 +278,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         // Remove all nucleus on edge
                         //
                         ImagePlus nucleusMaskFiltered = Filter.AnalyzeParticles(nucluesEdited, nucleusRoiFiltered, 1000,
-                                        -1, nuclues.mMinCircularity, true, null, true);
+                                        -1, nuclues.mMinCircularity, true, null, mSettings.mRemoveCellsWithoutNucleus);
                         Filter.FillHoles(nucleusMaskFiltered);
                         Filter.SaveImage(nucleusMaskFiltered, getPath(mImage) + "_nucleus_filtered.jpg",
                                         nucleusRoiFiltered);

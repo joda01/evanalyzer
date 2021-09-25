@@ -498,7 +498,7 @@ public class Filter {
 
             ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity, rm.getRoi(i));
             if (null != settings) {
-                exosom.validatearticle(settings.mMinParticleSize, settings.mMaxParticleSize, chSet.mMinCircularity,
+                exosom.validatearticle(chSet.mMinParticleSize, chSet.mMaxParticleSize, chSet.mMinCircularity,
                         settings.minIntensity);
             }
             ch.addRoi(exosom);

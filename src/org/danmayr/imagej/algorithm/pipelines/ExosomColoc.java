@@ -169,7 +169,11 @@ public class ExosomColoc extends Pipeline {
         TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
         // Select setting of highest circularity of both channels
-        double circularityFilter = ch1.set.mMinCircularity > ch2.set.mMinCircularity ? ch1.set.mMinCircularity : ch2.set.mMinCircularity;
+        ChannelSettings chSet = ch1.set.mMinCircularity > ch2.set.mMinCircularity ? ch1.set : ch2.set;
+        
+        double circularityFilter = chSet.mMinCircularity;
+        double minParticleSize = chSet.mMinParticleSize;
+        double maxParticleSize = chSet.mMaxParticleSize;
 
         int colocNr = 0;
 
@@ -202,8 +206,7 @@ public class ExosomColoc extends Pipeline {
 
                         ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
                                 areaChannels, result);
-                        exosom.validatearticle(mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
-                        circularityFilter, mSettings.minIntensity);
+                        exosom.validatearticle(minParticleSize, maxParticleSize,circularityFilter, mSettings.minIntensity);
                         coloc.addRoi(exosom);
                         colocNr++;
                         break; // We have a match. We can continue with the next particle
@@ -295,7 +298,7 @@ public class ExosomColoc extends Pipeline {
         Filter.ApplyThershold(thershodlImg, imageWithTetraSpeckBeads.mThersholdMethod,
                 imageWithTetraSpeckBeads.minThershold, imageWithTetraSpeckBeads.maxThershold, retTh, true);
         ResultsTable rt = new ResultsTable();
-        Filter.AnalyzeParticles(thershodlImg, rm, mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
+        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.mMinParticleSize, imageWithTetraSpeckBeads.mMaxParticleSize,
         imageWithTetraSpeckBeads.mMinCircularity, true, rt,false);
         Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,imageWithTetraSpeckBeads,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);

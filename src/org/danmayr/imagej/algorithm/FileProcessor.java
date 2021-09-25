@@ -100,6 +100,12 @@ public class FileProcessor extends Thread {
             mAnalyseSettings.mCalcColoc = false;
             pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus)) {
+            mAnalyseSettings.mCountEvsPerCell = true;
+            mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
+            mAnalyseSettings.mCalcColoc = false;
+            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+        }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");
             return;

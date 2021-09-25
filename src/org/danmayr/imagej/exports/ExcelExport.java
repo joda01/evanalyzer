@@ -37,7 +37,6 @@ import org.danmayr.imagej.algorithm.structs.ParticleInfo;
 import org.danmayr.imagej.gui.EvColocDialog;
 import org.danmayr.imagej.Version;
 
-
 public class ExcelExport {
     ExcelExport() {
 
@@ -147,8 +146,6 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, "Input folder", String.valueOf(settings.mInputFolder));
         row = WriteRow(summarySheet, row, "Output folder", String.valueOf(settings.mOutputFolder));
         row = WriteRow(summarySheet, row, "Selected Series", String.valueOf(settings.mSelectedSeries));
-        row = WriteRow(summarySheet, row, "Min particle Size", String.valueOf(settings.mMinParticleSize));
-        row = WriteRow(summarySheet, row, "Max particle Size", String.valueOf(settings.mMaxParticleSize));
 
         row = WriteRow(summarySheet, row, "Min Intensity", String.valueOf(settings.minIntensity));
         row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
@@ -170,6 +167,8 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
         row = WriteRow(summarySheet, row, chName + " min Circularity", String.valueOf(ch.mMinCircularity));
+        row = WriteRow(summarySheet, row, chName + "Min particle Size", String.valueOf(ch.mMinParticleSize));
+        row = WriteRow(summarySheet, row, chName + "Max particle Size", String.valueOf(ch.mMaxParticleSize));
 
         return row;
     }

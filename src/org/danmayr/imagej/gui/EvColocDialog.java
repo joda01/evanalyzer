@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -49,6 +50,11 @@ import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.FileProcessor;
 import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline;
+
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.MaskFormatter;
 
 import ij.*;
 import ij.gui.*;
@@ -107,7 +113,15 @@ public class EvColocDialog extends JFrame {
 
     class PanelChannelSettings extends JPanel {
 
+        private JToggleButton thersholdPreview;
+        private JToggleButton bLockMinCircularity = new JToggleButton();
+        private JToggleButton bLockZprojection = new JToggleButton();
+        private JToggleButton bLockMarginCrop = new JToggleButton();
+        private JToggleButton bLockParticleSize = new JToggleButton();
+
         class ChannelElements {
+            int mNr = 0;
+
             SpinnerModel model = new SpinnerNumberModel(-1, // initial value
                     -1, // min
                     65535, // max
@@ -119,6 +133,7 @@ public class EvColocDialog extends JFrame {
             private JCheckBox enchanceContrast;
             private JComboBox mZProjection;
             private JComboBox mPreProcesssingSteps;
+            private JFormattedTextField mParticleSize;
 
             SpinnerModel modelCirc = new SpinnerNumberModel(0, // initial value
                     0, // min
@@ -131,6 +146,29 @@ public class EvColocDialog extends JFrame {
                     65535, // max
                     1); // step
             private JSpinner marginToCrop = new JSpinner(modelCrop);
+
+            public DocumentListener documentListern = new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    if (bLockParticleSize.isSelected()) {
+                        syncParticleSize(mParticleSize.getText(), mNr);
+                    }
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    if (bLockParticleSize.isSelected()) {
+                        syncParticleSize(mParticleSize.getText(), mNr);
+                    }
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    if (bLockParticleSize.isSelected()) {
+                        syncParticleSize(mParticleSize.getText(), mNr);
+                    }
+                }
+            };
 
             ///
             ///
@@ -164,6 +202,17 @@ public class EvColocDialog extends JFrame {
                             JOptionPane.WARNING_MESSAGE);
                 }
 
+                try {
+                    chSet.mMinParticleSize = Integer.parseInt(mParticleSize.getText(0, 5));
+                    chSet.mMaxParticleSize = Integer.parseInt(mParticleSize.getText(8, 5));
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Particle Size wrong", "Dialog",
+                            JOptionPane.WARNING_MESSAGE);
+                } catch (BadLocationException e) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Particle Size wrong", "Dialog",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+
                 return chSet;
             }
 
@@ -172,6 +221,7 @@ public class EvColocDialog extends JFrame {
             ///
             public ChannelElements(JPanel panel, GridBagConstraints c, int gridX, int gridY, int chNr) {
 
+                this.mNr = chNr;
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridx = gridX;
                 c.gridy = gridY;
@@ -194,12 +244,20 @@ public class EvColocDialog extends JFrame {
                             channelType.setEnabled(false);
                             mZProjection.setEnabled(false);
                             minCirculartiy.setEnabled(false);
+                            minCirculartiy.setEnabled(false);
+                            mPreProcesssingSteps.setEnabled(false);
+                            marginToCrop.setEnabled(false);
+                            mParticleSize.setEnabled(false);
                         } else {
                             thersholdMethod.setEnabled(true);
                             minTheshold.setEnabled(true);
                             channelType.setEnabled(true);
                             mZProjection.setEnabled(true);
                             minCirculartiy.setEnabled(true);
+                            minCirculartiy.setEnabled(true);
+                            mPreProcesssingSteps.setEnabled(true);
+                            marginToCrop.setEnabled(true);
+                            mParticleSize.setEnabled(true);
                         }
                         refreshPreview();
                     }
@@ -289,13 +347,40 @@ public class EvColocDialog extends JFrame {
                 ////////////////////////////////////////////////////
 
                 c.gridy++;
+                minCirculartiy.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        refreshPreview();
+                        if (bLockMinCircularity.isSelected()) {
+                            syncMinCircularitySetting((double) ((JSpinner) e.getSource()).getValue(), mNr);
+                        }
+                    }
+                });
                 panel.add(minCirculartiy, c);
+
+                ////////////////////////////////////////////////////
+
+                c.gridy++;
+
+                mParticleSize = new JFormattedTextField(createFormatter("##### - #####"));
+                mParticleSize.setText("00005 - 99999");
+                mParticleSize.getDocument().addDocumentListener(documentListern);
+                panel.add(mParticleSize, c);
 
                 ////////////////////////////////////////////////////
                 String[] zProjection = { "OFF", "max", "min", "avg" };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 mZProjection = new JComboBox<String>(zProjection);
+                mZProjection.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent e) {
+                        if (bLockZprojection.isSelected()) {
+                            syncZProjection(((JComboBox) e.getSource()).getSelectedIndex(), mNr);
+                        }
+                    }
+                });
+
                 panel.add(mZProjection, c);
 
                 ////////////////////////////////////////////////////
@@ -303,6 +388,9 @@ public class EvColocDialog extends JFrame {
                     @Override
                     public void stateChanged(ChangeEvent e) {
                         refreshPreview();
+                        if (bLockMarginCrop.isSelected()) {
+                            syncMarginCrop((int) ((JSpinner) e.getSource()).getValue(), mNr);
+                        }
                     }
                 });
                 c.gridy++;
@@ -333,10 +421,67 @@ public class EvColocDialog extends JFrame {
                 minTheshold.setEnabled(false);
                 channelType.setEnabled(false);
                 mZProjection.setEnabled(false);
+                minCirculartiy.setEnabled(false);
+                mPreProcesssingSteps.setEnabled(false);
+                marginToCrop.setEnabled(false);
+                mParticleSize.setEnabled(false);
+            }
+
+            private MaskFormatter createFormatter(String s) {
+                MaskFormatter formatter = null;
+                try {
+                    formatter = new MaskFormatter(s);
+                    formatter.setPlaceholderCharacter('_');
+                } catch (java.text.ParseException exc) {
+                    System.err.println("formatter is bad: " + exc.getMessage());
+                    System.exit(-1);
+                }
+                return formatter;
+            }
+
+        }
+
+        void syncMinCircularitySetting(double value, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                if (n != myIdx) {
+                    channelSettings.get(n).minCirculartiy.setValue(value);
+                }
             }
         }
 
-        private JToggleButton thersholdPreview;
+        void syncMarginCrop(int value, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                if (n != myIdx) {
+                    channelSettings.get(n).marginToCrop.setValue(value);
+                }
+            }
+        }
+
+        void syncZProjection(int idx, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                ItemListener[] itm = channelSettings.get(n).mZProjection.getItemListeners().clone();
+                channelSettings.get(n).mZProjection.removeItemListener(itm[0]);
+                if (n != myIdx) {
+                    channelSettings.get(n).mZProjection.setSelectedIndex(idx);
+                }
+                channelSettings.get(n).mZProjection.addItemListener(itm[0]);
+            }
+        }
+
+        void syncParticleSize(String value, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                channelSettings.get(n).mParticleSize.getDocument()
+                        .removeDocumentListener(channelSettings.get(n).documentListern);
+
+                if (n != myIdx) {
+                    channelSettings.get(n).mParticleSize.setText(value);
+                }
+
+                channelSettings.get(n).mParticleSize.getDocument()
+                        .addDocumentListener(channelSettings.get(n).documentListern);
+            }
+        }
+
         public Vector<ChannelElements> channelSettings = new Vector<ChannelElements>();
 
         public PanelChannelSettings(Container parent) {
@@ -349,7 +494,7 @@ public class EvColocDialog extends JFrame {
             c.anchor = GridBagConstraints.WEST;
 
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-                ChannelElements ch = new ChannelElements(this, c, n + 1, 0, n);
+                ChannelElements ch = new ChannelElements(this, c, n + 2, 0, n);
                 channelSettings.add(ch);
             }
 
@@ -386,7 +531,7 @@ public class EvColocDialog extends JFrame {
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0.0;
-            JLabel l1 = new JLabel("Thersholding:");
+            JLabel l1 = new JLabel("Thershold algorithm:");
             l1.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l1.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l1.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
@@ -402,7 +547,8 @@ public class EvColocDialog extends JFrame {
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l2 = new JLabel("Man. thersh. [-1-65535]:");
+            JLabel l2 = new JLabel("Manual thershold:");
+            l2.setToolTipText("Range [-1 to 65535]\nA value of -1 means automatic threshold detection.");
             l2.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l2.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l2.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
@@ -419,6 +565,7 @@ public class EvColocDialog extends JFrame {
             c.weightx = 0.0;
             c.gridwidth = 1;
             JLabel lci = new JLabel("Min circularity:");
+            lci.setToolTipText("Range [0 to 1]\nA value of 1 means perfect circle!");
             lci.setMinimumSize(new Dimension(200, lci.getMinimumSize().height));
             lci.setMaximumSize(new Dimension(200, lci.getMaximumSize().height));
             lci.setPreferredSize(new Dimension(200, lci.getPreferredSize().height));
@@ -426,6 +573,58 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamterci = new ImageIcon(getClass().getResource("icons8-belarus-map-16.png"));
             lci.setIcon(diamterci);
             this.add(lci, c);
+
+            ////////////////////////////////////////////////////////
+            c.gridx = 1;
+            bLockMinCircularity.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+            bLockMinCircularity.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+            bLockMinCircularity.setBorderPainted(false);
+            bLockMinCircularity.setSelected(true);
+            bLockMinCircularity.setOpaque(false);
+            bLockMinCircularity.setContentAreaFilled(false);
+            bLockMinCircularity.setFocusPainted(false);
+            this.add(bLockMinCircularity, c);
+            c.gridx = 0;
+
+            ////////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 1;
+            c.weightx = 0.0;
+            c.gridwidth = 1;
+            JLabel lpt = new JLabel("Particle size range [px]:");
+            lpt.setToolTipText("Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
+            lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
+            lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
+            lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
+            lpt.setSize(new Dimension(200, lpt.getSize().height));
+            ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
+            lpt.setIcon(diamterlpt);
+            this.add(lpt, c);
+
+            ////////////////////////////////////////////////////////
+            c.gridx = 1;
+            bLockParticleSize.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+            bLockParticleSize.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+            bLockParticleSize.setBorderPainted(false);
+            bLockParticleSize.setSelected(true);
+            bLockParticleSize.setOpaque(false);
+            bLockParticleSize.setContentAreaFilled(false);
+            bLockParticleSize.setFocusPainted(false);
+            this.add(bLockParticleSize, c);
+            c.gridx = 0;
+
+            ////////////////////////////////////////////////////
+            // c.fill = GridBagConstraints.HORIZONTAL;
+            // c.gridx = 0;
+            // c.gridy++;
+            // c.weightx = 0;
+            // ImageIcon image1 = new
+            //////////////////////////////////////////////////// ImageIcon(getClass().getResource("icons8-new-moon-16.png"));
+            // JLabel intensity = new JLabel("Min Intensity [0-65535]:");
+            // intensity.setIcon(image1);
+            // this.add(intensity, c);
 
             ////////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -444,13 +643,26 @@ public class EvColocDialog extends JFrame {
             this.add(l3, c);
 
             ////////////////////////////////////////////////////////
+            c.gridx = 1;
+            bLockZprojection.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+            bLockZprojection.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+            bLockZprojection.setBorderPainted(false);
+            bLockZprojection.setSelected(true);
+            bLockZprojection.setOpaque(false);
+            bLockZprojection.setContentAreaFilled(false);
+            bLockZprojection.setFocusPainted(false);
+            this.add(bLockZprojection, c);
+            c.gridx = 0;
+
+            ////////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy++;
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l4 = new JLabel("Margin-Crop:");
+            JLabel l4 = new JLabel("Margin-Crop [px]:");
+            l4.setToolTipText("Range [0 to 65535]\nThe margin of the image will be cropped on each side.");
             l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
             l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
             l4.setPreferredSize(new Dimension(200, l4.getPreferredSize().height));
@@ -458,6 +670,18 @@ public class EvColocDialog extends JFrame {
             ImageIcon diamter4 = new ImageIcon(getClass().getResource("icons8-crop-16.png"));
             l4.setIcon(diamter4);
             this.add(l4, c);
+
+            ////////////////////////////////////////////////////////
+            c.gridx = 1;
+            bLockMarginCrop.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+            bLockMarginCrop.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+            bLockMarginCrop.setBorderPainted(false);
+            bLockMarginCrop.setSelected(true);
+            bLockMarginCrop.setOpaque(false);
+            bLockMarginCrop.setContentAreaFilled(false);
+            bLockMarginCrop.setFocusPainted(false);
+            this.add(bLockMarginCrop, c);
+            c.gridx = 0;
 
             ////////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -549,7 +773,7 @@ public class EvColocDialog extends JFrame {
                 }
             });
             previewButtons.add(nextPreviewImage);
-            c.gridx = NUMBEROFCHANNELSETTINGS;
+            c.gridx = NUMBEROFCHANNELSETTINGS + 1;
             c.weightx = 0;
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.LINE_END;
@@ -714,55 +938,8 @@ public class EvColocDialog extends JFrame {
 
     class PanelFilter extends JPanel {
 
-        private JTextField mMinParticleSize = new JTextField("5");
-        private JTextField mMaxParticleSize = new JTextField("9999");
-        private JTextField mMinIntensity = new JTextField("0");
-
         public PanelFilter(Container parent) {
-            GridBagLayout layout = new GridBagLayout();
-            setLayout(layout);
-            layout.preferredLayoutSize(parent);
-
-            GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(4, 4, 4, 4); // top padding
-            c.anchor = GridBagConstraints.WEST;
-
-            ////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy = 0;
-            c.weightx = 0;
-            JLabel l = new JLabel("Particle size [0-9999]:");
-            ImageIcon diamter = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
-            l.setIcon(diamter);
-            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
-            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
-            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
-            l.setSize(new Dimension(200, l.getSize().height));
-            this.add(l, c);
-
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 1;
-            c.weightx = 1;
-            this.add(mMinParticleSize, c);
-            c.gridx = 2;
-            c.weightx = 1;
-            this.add(mMaxParticleSize, c);
-
-            ////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy++;
-            c.weightx = 0;
-            ImageIcon image1 = new ImageIcon(getClass().getResource("icons8-new-moon-16.png"));
-            JLabel intensity = new JLabel("Min Intensity [0-65535]:");
-            intensity.setIcon(image1);
-            this.add(intensity, c);
-
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 1;
-            c.weightx = 1;
-            this.add(mMinIntensity, c);
+            
         }
     }
 
@@ -1027,9 +1204,10 @@ public class EvColocDialog extends JFrame {
         mainTab.add(l, c);
 
         AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                AnalyseSettings.Function.calcColoc, AnalyseSettings.Function.countExosomes,
+                AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
                 AnalyseSettings.Function.countInCellExosomes,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparation };
+                AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
+                AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus};
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
@@ -1089,23 +1267,23 @@ public class EvColocDialog extends JFrame {
         mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.weightx = 0;
-        mainTab.add(new JLabel("Filter: "), c);
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        c.weightx = 1;
-        mainTab.add(filter, c);
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        //c.gridx = 0;
+        //c.gridy++;
+        //c.weightx = 0;
+        //mainTab.add(new JLabel("Filter: "), c);
+//
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        //c.gridx = 1;
+        //c.weightx = 1;
+        //mainTab.add(filter, c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 3;
-        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        //c.gridx = 0;
+        //c.gridy++;
+        //c.gridwidth = 3;
+        //mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1346,23 +1524,6 @@ public class EvColocDialog extends JFrame {
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
         if (sett.mSelectedFunction.equals(AnalyseSettings.Function.noSelection)) {
             error += PLEASE_SELECT_A_FUNCTION;
-        }
-
-        try {
-            sett.mMinParticleSize = Integer.parseInt(filter.mMinParticleSize.getText());
-        } catch (NumberFormatException ex) {
-            error += "Min particle size wrong!\n";
-        }
-        try {
-            sett.mMaxParticleSize = Integer.parseInt(filter.mMaxParticleSize.getText());
-        } catch (NumberFormatException ex) {
-            error += "Max particle size wrong!\n";
-        }
-
-        try {
-            sett.minIntensity = Integer.parseInt(filter.mMinIntensity.getText());
-        } catch (NumberFormatException ex) {
-            error += "Intensity wrong!\n";
         }
 
         if (error.length() <= 0) {
