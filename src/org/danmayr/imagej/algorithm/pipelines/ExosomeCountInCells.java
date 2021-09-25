@@ -293,7 +293,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, cellRoi, 2000, -1, 0);
                         Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells.jpg", cellRoi);
 
-                        RoiManager filteredCells = new RoiManager();
+                        RoiManager filteredCells = new RoiManager(false);
                         // Only use the cells which have a nucleus
                         for (int c = cellRoi.getCount() - 1; c >= 0; c--) {
                                 for (int n = 0; n < nucleusRoiFiltered.getCount(); n++) {

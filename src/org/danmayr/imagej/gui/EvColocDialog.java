@@ -1224,7 +1224,8 @@ public class EvColocDialog extends JFrame {
                         chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
                     }
                 } else if (AnalyseSettings.Function.countInCellExosomes == type
-                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type) {
+                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type
+                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus == type) {
                     chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
                     chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
                     chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
