@@ -21,6 +21,8 @@ import javax.swing.JOptionPane;
 
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
+
+
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
@@ -221,8 +223,9 @@ public class ExosomeCountInCells extends ExosomColoc {
                         //
                         // Calculate cell original thershold
                         //
-                        Channel cellAreaChannel = Filter.MeasureImage("cell area in" + evChannel.getValue().type.toString(),
-                                        null, cellChannelSettings, evChannelImgOriginal, evChannelImg, cellArea);
+                        Channel cellAreaChannel = Filter.MeasureImage(
+                                        "cell area in" + evChannel.getValue().type.toString(), null,
+                                        cellChannelSettings, evChannelImgOriginal, evChannelImg, cellArea);
                         addReturnChannel(cellAreaChannel);
 
                         //
@@ -246,7 +249,9 @@ public class ExosomeCountInCells extends ExosomColoc {
         ///
         ///
         void NucleusSeparation(ImagePlus cells) {
-                RoiManager nucleusRoi = new RoiManager(false);
+                RoiManager nucleusRoiAll = new RoiManager(false);
+                RoiManager nucleusRoiFiltered = new RoiManager(false); // Noclues on edge are removed
+
                 RoiManager cellRoi = new RoiManager(false);
                 ChannelSettings nuclues = getImageOfChannel(ChannelType.NUCLEUS);
                 if (null != nuclues) {
@@ -257,22 +262,59 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Filter.SubtractBackground(nucluesEdited);
                         Filter.ApplyThershold(nucluesEdited, nuclues.mThersholdMethod);
                         Filter.FillHoles(nucluesEdited);
-                        ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, nucleusRoi, 1000, -1,
+
+                        //
+                        // Find all nuclues
+                        //
+                        ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, nucleusRoiAll, 1000, -1,
                                         nuclues.mMinCircularity);
                         Filter.FillHoles(nucleusMask);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus.jpg", nucleusRoi);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus.jpg", nucleusRoiAll);
+
+                        // Create voronoi grid which is used for cell separation
                         Filter.Voronoi(nucleusMask);
+
+                        //
+                        // Remove all nucleus on edge
+                        //
+                        ImagePlus nucleusMaskFiltered = Filter.AnalyzeParticles(nucluesEdited, nucleusRoiFiltered, 1000,
+                                        -1, nuclues.mMinCircularity, true, null, true);
+                        Filter.FillHoles(nucleusMaskFiltered);
+                        Filter.SaveImage(nucleusMaskFiltered, getPath(mImage) + "_nucleus_filtered.jpg",
+                                        nucleusRoiFiltered);
+
                         // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_original", rm);
                         Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Yen);
-                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg", nucleusRoi);
+                        Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg", nucleusRoiAll);
+
+                        // Cut the cell area with the voronoi grid to get separated cells
                         ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
                         ImagePlus separatedCells = Filter.XORImages(andImg, cells);
                         ImagePlus analyzedCells = Filter.AnalyzeParticles(separatedCells, cellRoi, 2000, -1, 0);
                         Filter.SaveImage(analyzedCells, getPath(mImage) + "_separated_cells.jpg", cellRoi);
+
+                        RoiManager filteredCells = new RoiManager();
+                        // Only use the cells which have a nucleus
+                        for (int c = cellRoi.getCount() - 1; c >= 0; c--) {
+                                for (int n = 0; n < nucleusRoiFiltered.getCount(); n++) {
+                                        if (true == cellRoi.getRoi(c).getBounds()
+                                                        .intersects(nucleusRoiFiltered.getRoi(n).getBounds())) {
+                                                Roi result = Filter.and(cellRoi.getRoi(c),
+                                                                nucleusRoiFiltered.getRoi(n));
+                                                if (result != null && result.getContainedPoints().length > 0) {
+                                                        // Cell has  nucles. Add cell to the ROIManager for cell analyzing
+                                                        filteredCells.addRoi(cellRoi.getRoi(c));
+                                                        break;
+                                                }
+                                        }
+                                }
+                        }
+
+                        cellRoi = filteredCells;
                         IJ.log("Number of cells " + Integer.toString(cellRoi.getCount()));
 
                         Vector<RoiManager> roiOverLay = new Vector<RoiManager>();
-                        roiOverLay.add(nucleusRoi);
+                        roiOverLay.add(nucleusRoiAll);
                         roiOverLay.add(cellRoi);
 
                         //

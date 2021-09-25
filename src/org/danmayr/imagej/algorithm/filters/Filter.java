@@ -361,22 +361,22 @@ public class Filter {
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null,false);
     }
 
     public static ImagePlus AnalyzeParticlesDoNotAdd(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, ResultsTable rt) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt,false);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, ResultsTable rt) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, rt);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, rt,false);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, boolean addToRoi) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null,false);
     }
 
     public static void cropMarginOfImage(int marginWidth, ImagePlus img)
@@ -389,7 +389,7 @@ public class Filter {
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
-            double minCircularity, boolean addToRoi, ResultsTable rt) {
+            double minCircularity, boolean addToRoi, ResultsTable rt, boolean excludeEdgeParticles) {
 
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/ParticleAnalyzer.html
         // ParticleAnalyzer analyzer
@@ -403,6 +403,13 @@ public class Filter {
         } else {
             option &= ~ParticleAnalyzer.ADD_TO_MANAGER;
         }
+
+        if (true == excludeEdgeParticles){
+            option |= ParticleAnalyzer.EXCLUDE_EDGE_PARTICLES;
+        }else{
+            option &= ~ParticleAnalyzer.EXCLUDE_EDGE_PARTICLES;
+        }
+
         if (maxSize < 0) {
             maxSize = 999999;
         }

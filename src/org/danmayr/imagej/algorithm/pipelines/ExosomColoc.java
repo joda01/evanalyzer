@@ -296,7 +296,7 @@ public class ExosomColoc extends Pipeline {
                 imageWithTetraSpeckBeads.minThershold, imageWithTetraSpeckBeads.maxThershold, retTh, true);
         ResultsTable rt = new ResultsTable();
         Filter.AnalyzeParticles(thershodlImg, rm, mSettings.mMinParticleSize, mSettings.mMaxParticleSize,
-        imageWithTetraSpeckBeads.mMinCircularity, true, rt);
+        imageWithTetraSpeckBeads.mMinCircularity, true, rt,false);
         Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,imageWithTetraSpeckBeads,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
