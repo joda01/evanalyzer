@@ -66,7 +66,7 @@ public class Folder {
                     if(n < values.length && n < getValues.length)
                         values[n]+=getValues[n];// Array index out of bound
                     else
-                        IJ.log("ERR: Values.length: " + values.length + " " + channel.getKey().toString());
+                        IJ.log("ERR: Values.length: " + values.length + " " + channel.getKey().toString() + " but should be " + getValues.length);
                 }
             }
         }

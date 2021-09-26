@@ -62,12 +62,12 @@ public class Statistics {
         return title;
     }
 
-    public int valid;
-    public int invalid;
+    public int valid=0;
+    public int invalid=0;
     public int nrOfRemovedParticles = 0;
-    public double avgAreaSize;
-    public double avgGrayScale;
-    public double avgCircularity;
+    public double avgAreaSize=0.0;
+    public double avgGrayScale=0.0;
+    public double avgCircularity=0.0;
     public double minTH = -1;
     public double maxTH = -1;
 }

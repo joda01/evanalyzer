@@ -882,7 +882,7 @@ public class ParticleAnalyzerThreadSafe implements PlugInFilter, Measurements {
             }
             if (!IJ.isMacro()) {
                 int cnt = stats.histogram[0] + stats.histogram[255];
-                IJ.log("ParticleAnalyzer: threshold not set; assumed to be " + (int) level1 + "-" + (int) level2);
+                //IJ.log("ParticleAnalyzer: threshold not set; assumed to be " + (int) level1 + "-" + (int) level2);
             }
         } else {
             level1 = t1;
