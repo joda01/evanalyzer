@@ -57,8 +57,21 @@ abstract public class Pipeline {
     FREE_14("free_14", ChannelColor.GRAY, false, 22), FREE_15("free_15", ChannelColor.GRAY, false, 23),
     FREE_16("free_16", ChannelColor.GRAY, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, 25),
     FREE_18("free_18", ChannelColor.GRAY, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, 27),
-    FREE_20("free_20", ChannelColor.GRAY, false, 28), TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, 29),
-    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 30), EV_CY3FCY5("cy3fcy5", ChannelColor.YELLOW, true, 31),;
+    FREE_20("free_20", ChannelColor.GRAY, false, 28),
+
+    FREE_21("free_20", ChannelColor.GRAY, false, 21 + 8), FREE_22("free_20", ChannelColor.GRAY, false, 22 + 8),
+    FREE_23("free_20", ChannelColor.GRAY, false, 23 + 8), FREE_24("free_20", ChannelColor.GRAY, false, 24 + 8),
+    FREE_25("free_20", ChannelColor.GRAY, false, 25 + 8), FREE_26("free_20", ChannelColor.GRAY, false, 26 + 8),
+    FREE_27("free_20", ChannelColor.GRAY, false, 27 + 8), FREE_28("free_20", ChannelColor.GRAY, false, 28 + 8),
+    FREE_29("free_20", ChannelColor.GRAY, false, 29 + 8), FREE_30("free_20", ChannelColor.GRAY, false, 30 + 8),
+    FREE_31("free_20", ChannelColor.GRAY, false, 31 + 8), FREE_32("free_20", ChannelColor.GRAY, false, 32 + 8),
+    FREE_33("free_20", ChannelColor.GRAY, false, 33 + 8), FREE_34("free_20", ChannelColor.GRAY, false, 34 + 8),
+    FREE_35("free_20", ChannelColor.GRAY, false, 35 + 8), FREE_36("free_20", ChannelColor.GRAY, false, 36 + 8),
+    FREE_37("free_20", ChannelColor.GRAY, false, 37 + 8), FREE_38("free_20", ChannelColor.GRAY, false, 38 + 8),
+    FREE_39("free_20", ChannelColor.GRAY, false, 39 + 8), FREE_40("free_20", ChannelColor.GRAY, false, 40 + 8),
+    FREE_41("free_20", ChannelColor.GRAY, false, 41 + 8), FREE_42("free_20", ChannelColor.GRAY, false, 42 + 8),
+    TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, 51),
+    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 52), EV_CY3FCY5("cy3fcy5", ChannelColor.YELLOW, true, 53),;
 
     private ChannelType(String name, ChannelColor chColor, boolean evChannel, int i) {
       mName = name;
@@ -150,8 +163,8 @@ abstract public class Pipeline {
     }
 
     // Crop Image
-    if(chSettings.marginToCrop>0){
-     Filter.cropMarginOfImage(chSettings.marginToCrop, dup);
+    if (chSettings.marginToCrop > 0) {
+      Filter.cropMarginOfImage(chSettings.marginToCrop, dup);
     }
 
     // Find edges

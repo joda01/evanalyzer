@@ -21,7 +21,6 @@ import javax.swing.JOptionPane;
 
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
-
 import org.danmayr.imagej.algorithm.filters.Filter;
 
 import org.danmayr.imagej.algorithm.AnalyseSettings;
@@ -241,7 +240,9 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         "cell area in" + evChannel.getValue().type.toString(), null,
                                         cellChannelSettings, evChannelImgOriginal, evChannelImg, cellArea);
 
-                        addReturnChannel(cellAreaChannel, getNextFreeType());
+                        ChannelType cellAreaEvType = ChannelType.getColocEnum(evChannel.getValue().type.idx);
+
+                        addReturnChannel(cellAreaChannel, cellAreaEvType);
 
                         //
                         //
@@ -255,7 +256,11 @@ public class ExosomeCountInCells extends ExosomColoc {
                          */
                         Channel evsInCells = Filter.MeasureImage(evChannel.getValue().type.toString() + " in Cell",
                                         mSettings, evChannel.getValue(), evChannelImgOriginal, mask, rmEvs);
-                        addReturnChannel(evsInCells, getNextFreeType());
+
+                        ChannelType inCellEvType = ChannelType.getColocEnum(
+                                        evChannel.getValue().type.idx + ChannelType.getFirstFreeChannel());
+
+                        addReturnChannel(evsInCells, inCellEvType);
 
                         Filter.ClearRoiInImage(evChannelImgOriginal);
                         Filter.ClearRoiInImage(evChannelImg);
@@ -385,7 +390,10 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 evsInCell.addRoi(info);
                                         }
                                         evsInCell.calcStatistics();
-                                        addReturnChannel(evsInCell, getNextFreeType());
+
+                                        ChannelType inCellEvType = ChannelType.getColocEnum(
+                                                        val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
+                                        addReturnChannel(evsInCell, inCellEvType);
                                         evImg.hide();
 
                                 }
@@ -398,18 +406,10 @@ public class ExosomeCountInCells extends ExosomColoc {
         }
 
         void addReturnChannel(Channel ch, ChannelType type) {
-                IJ.log("Add Return channl " + type.toString());
-
-                mReturnChannels.put(type, ch);
-        }
-
-        ChannelType getNextFreeType() {
                 synchronized (this) {
-                        ChannelType nextCh = ChannelType.getColocEnum(mReturnChannels.size());
-                        if (false == mReturnChannels.containsKey(nextCh)) {
-                                mReturnChannels.put(nextCh, null);
-                        }
-                        return nextCh;
+                        IJ.log("ADD: " + type.toString());
+                        ch.addControlImagePath(getPath(mImage) + "_separated_overlay_cells.jpg");
+                        mReturnChannels.put(type, ch);
                 }
         }
 
