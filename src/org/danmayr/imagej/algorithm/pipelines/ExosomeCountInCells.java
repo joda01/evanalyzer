@@ -130,7 +130,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings,
                                                 val.getValue(), evSubtractedOriginal, evSubtracted, rm);
                                 evCh.setThershold(in[0], in[1]);
-                                addReturnChannel(evCh, val.getKey());
+                                addReturnChannel(evCh, val.getKey(),"");
                                 try {
                                         ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
                                         setNew.mChannelImg = evSubtracted;
@@ -183,7 +183,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellChannelSetting, cellsOriginal,
                                         cellsEdited, rm);
                         chCell.setThershold(in[0], in[1]);
-                        addReturnChannel(chCell, ChannelType.CELL);
+                        addReturnChannel(chCell, ChannelType.CELL,"");
 
                         ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
@@ -241,7 +241,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                         ChannelType cellAreaEvType = ChannelType.getColocEnum(evChannel.getValue().type.idx);
 
-                        addReturnChannel(cellAreaChannel, cellAreaEvType);
+                        addReturnChannel(cellAreaChannel, cellAreaEvType,"");
 
                         //
                         //
@@ -259,7 +259,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         ChannelType inCellEvType = ChannelType.getColocEnum(
                                         evChannel.getValue().type.idx + ChannelType.getFirstFreeChannel());
 
-                        addReturnChannel(evsInCells, inCellEvType);
+                        addReturnChannel(evsInCells, inCellEvType,"");
 
                         Filter.ClearRoiInImage(evChannelImgOriginal);
                         Filter.ClearRoiInImage(evChannelImg);
@@ -339,11 +339,6 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                         cellRoi = filteredCells;
 
-                        Vector<RoiOverlaySettings> roiOverLay = new Vector<RoiOverlaySettings>();
-                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiAll, Color.BLACK, false));
-                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiFiltered, Color.RED, false));
-                        roiOverLay.add(new RoiOverlaySettings(cellRoi, Color.RED, true));
-
                         //
                         // Now analyze cell by cell
                         //
@@ -370,6 +365,14 @@ public class ExosomeCountInCells extends ExosomColoc {
                                         Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, val.getValue(),
                                                         evImg, evImg, cellRoi);
 
+                                        //
+                                        // Prepare overlays
+                                        //
+                                        Vector<RoiOverlaySettings> roiOverLay = new Vector<RoiOverlaySettings>();
+                                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiAll, Color.BLACK, false));
+                                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiFiltered, Color.RED, false));
+                                        roiOverLay.add(new RoiOverlaySettings(cellRoi, Color.RED, true));
+
                                         for (int n = 0; n < cellRoi.getCount(); n++) { // Filter.RoiOpen(evImg, rm);
                                                                                        // rm.select(n);
                                                 rt.reset();
@@ -390,22 +393,23 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 evsInCell.addRoi(info);
                                         }
                                         evsInCell.calcStatistics();
+                                        evImg.hide();
 
                                         ChannelType inCellEvType = ChannelType.getColocEnum(
                                                         val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
-                                        addReturnChannel(evsInCell, inCellEvType);
-                                        evImg.hide();
+                                        String fileName = getName(mImage) + "_" + val.getKey().toString()
+                                                        + "_separated_overlay_cells.jpg";
+                                        Filter.SaveImageWithOverlay(analyzedCells, roiOverLay, getPath(mImage) + "_"
+                                                        + val.getKey().toString() + "_separated_overlay_cells.jpg");
+                                        addReturnChannel(evsInCell, inCellEvType, fileName);
 
                                 }
                         }
 
-                        Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
-                                        getPath(mImage) + "_separated_overlay_cells.jpg");
-
                 }
         }
 
-        void addReturnChannel(Channel ch, ChannelType type) {
+        void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
                 synchronized (this) {
                         ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
                         mReturnChannels.put(type, ch);
