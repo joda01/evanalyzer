@@ -276,7 +276,7 @@ public class Filter {
         Overlay ov = new Overlay();
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(ov, rm.getRoisAsArray());
+        paintRoiOverlay(ov, rm.getRoisAsArray(), Color.red, false);
         saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
@@ -290,21 +290,21 @@ public class Filter {
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    public static void SaveImageWithOverlay(ImagePlus image, Vector<RoiManager> overlays,String imageName) {
+    public static void SaveImageWithOverlay(ImagePlus image, Vector<RoiOverlaySettings> overlays, String imageName) {
         Overlay ov = new Overlay();
         ImagePlus saveImg = Filter.duplicateImage(image);
-        for(int n = 0;n< overlays.size();n++){
-            paintRoiOverlay(ov, overlays.get(n).getRoisAsArray());
+        for (int n = 0; n < overlays.size(); n++) {
+            paintRoiOverlay(ov, overlays.get(n).m.getRoisAsArray(), overlays.get(n).c, overlays.get(n).nr);
         }
         saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    private static void paintRoiOverlay(ImagePlus image,TreeMap<Integer, ParticleInfo> rois) {
+    private static void paintRoiOverlay(ImagePlus image, TreeMap<Integer, ParticleInfo> rois) {
         Overlay ov = new Overlay();
 
-        for(Map.Entry<Integer, ParticleInfo> e : rois.entrySet()){
+        for (Map.Entry<Integer, ParticleInfo> e : rois.entrySet()) {
             Roi ro = e.getValue().getRoi();
             ro.setStrokeColor(Color.red);
             ov.add(ro);
@@ -313,24 +313,25 @@ public class Filter {
         image.setOverlay(ov);
     }
 
-    private static void paintRoiOverlay(Overlay ov, Roi[] rois) {
+    static int fontSize = 15;
+    static Font font = new Font("SansSerif", Font.PLAIN, fontSize);
+
+    private static void paintRoiOverlay(Overlay ov, Roi[] rois, Color c, boolean printNr) {
         for (int n = 0; n < rois.length; n++) {
-            rois[n].setStrokeColor(Color.red);
+            rois[n].setStrokeColor(c);
             ov.add(rois[n]);
+
+            if (true == printNr) {
+                Rectangle rec = rois[n].getBounds();
+                double x1 = rec.getX() + 0.5 * rec.getWidth();
+                double y1 = rec.getY() + 0.5 * rec.getHeight();
+                TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n), font);
+                lbl.setStrokeColor(Color.black);
+                lbl.setFillColor(Color.white);
+                ov.add(lbl);
+            }
         }
     }
-
-
-      // int fontSize = 12;
-        // Font font = new Font("SansSerif", Font.PLAIN, fontSize);
-    // Text
-    /*
-     * Rectangle rec = rois[n].getBounds(); double p; if (fontSize < 16) { p = 10; }
-     * else if (fontSize < 24) { p = 12; } else { p = 20; } double x1 = rec.getX() +
-     * rec.getWidth() + 5; double y1 = rec.getY() + 0.5 * rec.getHeight() + p;
-     * TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n + 1), font);
-     * lbl.setStrokeColor(Color.red); lbl.setFillColor(Color.black); //ov.add(lbl);
-     */
 
     public static void InvertImage(ImagePlus image) {
         // IJ.run(image, "Invert", "");
@@ -361,28 +362,27 @@ public class Filter {
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null,false);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, null, false);
     }
 
     public static ImagePlus AnalyzeParticlesDoNotAdd(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, ResultsTable rt) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt,false);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, false, rt, false);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, ResultsTable rt) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, rt,false);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, true, rt, false);
     }
 
     public static ImagePlus AnalyzeParticles(ImagePlus image, RoiManager rm, double minSize, double maxSize,
             double minCircularity, boolean addToRoi) {
-        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null,false);
+        return AnalyzeParticles(image, rm, minSize, maxSize, minCircularity, addToRoi, null, false);
     }
 
-    public static void cropMarginOfImage(int marginWidth, ImagePlus img)
-    {
+    public static void cropMarginOfImage(int marginWidth, ImagePlus img) {
         ImageProcessor imp = img.getProcessor();
-        imp.setRoi(marginWidth,marginWidth,imp.getWidth()-(marginWidth*2),imp.getHeight()-(marginWidth*2));
+        imp.setRoi(marginWidth, marginWidth, imp.getWidth() - (marginWidth * 2), imp.getHeight() - (marginWidth * 2));
         ImageProcessor cropped = imp.crop();
         ImagePlus newImg = new ImagePlus(img.getTitle(), cropped);
         img.setImage(newImg);
@@ -404,9 +404,9 @@ public class Filter {
             option &= ~ParticleAnalyzer.ADD_TO_MANAGER;
         }
 
-        if (true == excludeEdgeParticles){
+        if (true == excludeEdgeParticles) {
             option |= ParticleAnalyzer.EXCLUDE_EDGE_PARTICLES;
-        }else{
+        } else {
             option &= ~ParticleAnalyzer.EXCLUDE_EDGE_PARTICLES;
         }
 
@@ -451,8 +451,8 @@ public class Filter {
     ///
     /// Execute analyze particles before
     ///
-    public static Channel MeasureImage(String channelName, AnalyseSettings settings, ChannelSettings chSet, ImagePlus imageOrigial,
-            ImagePlus imageThershold, RoiManager rm) {
+    public static Channel MeasureImage(String channelName, AnalyseSettings settings, ChannelSettings chSet,
+            ImagePlus imageOrigial, ImagePlus imageThershold, RoiManager rm) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
         // import ij.plugin.frame.RoiManager
@@ -461,7 +461,7 @@ public class Filter {
 
         ResultsTable r1 = measure(imageOrigial, rm);
         ResultsTable r2 = measure(imageThershold, rm);
-        Channel ch = createChannelFromMeasurement(channelName, settings, chSet,r1, r2, rm);
+        Channel ch = createChannelFromMeasurement(channelName, settings, chSet, r1, r2, rm);
         return ch;
     }
 
@@ -478,8 +478,8 @@ public class Filter {
         return rt;
     }
 
-    public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,ChannelSettings chSet,
-            ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm) {
+    public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
+            ChannelSettings chSet, ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm) {
 
         int area = imgThershold.getColumnIndex("Area");
         int mean = imgThershold.getColumnIndex("Mean");
@@ -496,7 +496,8 @@ public class Filter {
             double circularity = imgOriginal.getValueAsDouble(circ, i);
             int roiNr = i;
 
-            ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity, rm.getRoi(i));
+            ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity,
+                    rm.getRoi(i));
             if (null != settings) {
                 exosom.validatearticle(chSet.mMinParticleSize, chSet.mMaxParticleSize, chSet.mMinCircularity,
                         settings.minIntensity);

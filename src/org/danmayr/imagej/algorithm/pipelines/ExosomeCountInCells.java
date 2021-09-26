@@ -6,6 +6,7 @@ import ij.gui.*;
 import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
 
+import java.awt.Color;
 import java.io.File;
 import java.time.LocalTime;
 import java.util.*;
@@ -22,7 +23,7 @@ import javax.swing.JOptionPane;
 import org.danmayr.imagej.algorithm.structs.*;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.filters.Filter;
-
+import org.danmayr.imagej.algorithm.filters.RoiOverlaySettings;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.statistics.*;
@@ -44,8 +45,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                 mReturnChannels = new TreeMap<ChannelType, Channel>();
                 mEditedEvs.clear();
                 mImage = img;
-
-                IJ.log("----------------");
 
                 // System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism",
                 // "12");
@@ -271,8 +270,8 @@ public class ExosomeCountInCells extends ExosomColoc {
         ///
         ///
         void NucleusSeparation(ImagePlus cells) {
-                RoiManager nucleusRoiAll = new RoiManager(false);
-                RoiManager nucleusRoiFiltered = new RoiManager(false); // Noclues on edge are removed
+                RoiManager nucleusRoiAll = new RoiManager(false); // All nucleus
+                RoiManager nucleusRoiFiltered = new RoiManager(false); // Nuclues with all nucleus removed on edge
 
                 RoiManager cellRoi = new RoiManager(false);
                 ChannelSettings nuclues = getImageOfChannel(ChannelType.NUCLEUS);
@@ -340,9 +339,10 @@ public class ExosomeCountInCells extends ExosomColoc {
 
                         cellRoi = filteredCells;
 
-                        Vector<RoiManager> roiOverLay = new Vector<RoiManager>();
-                        roiOverLay.add(nucleusRoiAll);
-                        roiOverLay.add(cellRoi);
+                        Vector<RoiOverlaySettings> roiOverLay = new Vector<RoiOverlaySettings>();
+                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiAll, Color.BLACK, false));
+                        roiOverLay.add(new RoiOverlaySettings(nucleusRoiFiltered, Color.RED, false));
+                        roiOverLay.add(new RoiOverlaySettings(cellRoi, Color.RED, true));
 
                         //
                         // Now analyze cell by cell
@@ -377,7 +377,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                                                 Filter.SetRoiInImage(evImg, cellRoi, n);
                                                 RoiManager evsInCellroi = new RoiManager(false);
                                                 Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
-                                                roiOverLay.add(evsInCellroi);
+                                                roiOverLay.add(new RoiOverlaySettings(evsInCellroi, Color.RED, false));
                                                 Channel cell = Filter.createChannelFromMeasurement(
                                                                 "evs_per_cell_in_" + Integer.toString(n), mSettings,
                                                                 val.getValue(), rt, rt, cellRoi);
@@ -407,8 +407,7 @@ public class ExosomeCountInCells extends ExosomColoc {
 
         void addReturnChannel(Channel ch, ChannelType type) {
                 synchronized (this) {
-                        IJ.log("ADD: " + type.toString());
-                        ch.addControlImagePath(getPath(mImage) + "_separated_overlay_cells.jpg");
+                        ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
                         mReturnChannels.put(type, ch);
                 }
         }
