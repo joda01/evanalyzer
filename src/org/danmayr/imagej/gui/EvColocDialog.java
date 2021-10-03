@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.prefs.Preferences;
 import java.awt.BorderLayout;
+import javax.swing.*;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -44,12 +45,15 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.danmayr.imagej.EvColoc;
 import org.danmayr.imagej.Version;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.FileProcessor;
 import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline;
+import org.danmayr.imagej.updater.Updater;
+
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -59,11 +63,13 @@ import javax.swing.text.MaskFormatter;
 import ij.*;
 import ij.gui.*;
 import ij.process.*;
+import org.danmayr.imagej.updater.*;
+import java.awt.event.*;
 
 ///
 ///
 ///
-public class EvColocDialog extends JFrame {
+public class EvColocDialog extends JFrame implements UpdateListener {
 
     private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
     private static final int NUMBEROFCHANNELSETTINGS = 5;
@@ -110,6 +116,7 @@ public class EvColocDialog extends JFrame {
             return label;
         }
     }
+
 
     class PanelChannelSettings extends JPanel {
 
@@ -594,7 +601,8 @@ public class EvColocDialog extends JFrame {
             c.weightx = 0.0;
             c.gridwidth = 1;
             JLabel lpt = new JLabel("Particle size range [px]:");
-            lpt.setToolTipText("Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
+            lpt.setToolTipText(
+                    "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
             lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
             lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
             lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
@@ -939,7 +947,7 @@ public class EvColocDialog extends JFrame {
     class PanelFilter extends JPanel {
 
         public PanelFilter(Container parent) {
-            
+
         }
     }
 
@@ -1033,6 +1041,7 @@ public class EvColocDialog extends JFrame {
     PanelChannelSettings chSettings = new PanelChannelSettings(this);
     PanelFilter filter = new PanelFilter(this);
     PanelReport reportSettings = new PanelReport(this);
+    JButton bUpdate;
 
     ///
     /// Constructor
@@ -1040,6 +1049,23 @@ public class EvColocDialog extends JFrame {
     public JTabbedPane tabbedPane = new JTabbedPane();
 
     public EvColocDialog() {
+
+
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e); 
+                EvColoc.stopAutoUpdate();
+            }
+    
+            @Override
+            public void windowOpened(WindowEvent e) {
+                super.windowOpened(e); 
+            }
+        });
+    
+
+
 
         BorderLayout boorderL = new BorderLayout();
         this.setLayout(boorderL);
@@ -1058,6 +1084,7 @@ public class EvColocDialog extends JFrame {
         // this.setAlwaysOnTop(true);
         this.setResizable(false);
         setTitle("Exosome analyzer " + Version.getVersion());
+        Updater.registerUpdateListener(this);
     }
 
     ///
@@ -1207,7 +1234,7 @@ public class EvColocDialog extends JFrame {
                 AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
                 AnalyseSettings.Function.countInCellExosomes,
                 AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus};
+                AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 1;
         c.weightx = 1;
@@ -1268,23 +1295,23 @@ public class EvColocDialog extends JFrame {
         mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.weightx = 0;
-        //mainTab.add(new JLabel("Filter: "), c);
-//
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 1;
-        //c.weightx = 1;
-        //mainTab.add(filter, c);
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.weightx = 0;
+        // mainTab.add(new JLabel("Filter: "), c);
+        //
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 1;
+        // c.weightx = 1;
+        // mainTab.add(filter, c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.gridwidth = 3;
-        //mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.gridwidth = 3;
+        // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1321,7 +1348,7 @@ public class EvColocDialog extends JFrame {
         c.gridx = 0;
         c.gridy = 0;
         c.weightx = 1;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         mProgressbar.setStringPainted(true);
         mProgressbar.setString("0");
         p.add(mProgressbar, c);
@@ -1379,14 +1406,14 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         c.weightx = 1;
         p.add(mMenu, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         c.weightx = 1;
         int size = NewsTickerText.mNewsTicker.length - 1;
         int rand = 0 + (int) (Math.random() * ((size - 0) + 1));
@@ -1397,7 +1424,7 @@ public class EvColocDialog extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         p.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////
@@ -1413,6 +1440,41 @@ public class EvColocDialog extends JFrame {
         c.gridwidth = 1;
         p.add(logo, c);
 
+        ////////////////////////////////////////
+        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
+        bUpdate.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if(newesetUpdate != null){
+                    Object[] options = {"Install update","No, thanks"};
+                    int n = JOptionPane.showOptionDialog(new JFrame(), "Actual version: v" + Version.getVersion()+"\nNew version: "+newesetUpdate.version+"\n\n"+"Release notes:\n"+newesetUpdate.releaseText,
+                    "Update", JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[1]);
+                    if(n == 0){
+                        try{
+                            Updater.installNewsetUpdate();
+                            JOptionPane.showMessageDialog(new JFrame(), "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
+                            "Update", JOptionPane.INFORMATION_MESSAGE);
+                            EvColoc.restart();
+
+                        }catch(IOException ex){
+                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
+                            "Update", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                }else{
+                    JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()+"\nEverything up to date :) ...",
+                    "Update", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+        bUpdate.setText("Update");
+        bUpdate.setVisible(false);
+        c.gridx = 2;
+        c.weightx = 0;
+        c.gridwidth = 1;
+        p.add(bUpdate, c);
+
+        ////////////////////////////////////////
         JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
         about.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -1424,12 +1486,38 @@ public class EvColocDialog extends JFrame {
             }
         });
         about.setText("About");
-        c.gridx = 2;
+        c.gridx = 3;
         c.weightx = 0;
         c.gridwidth = 1;
         p.add(about, c);
 
         return p;
+    }
+
+
+
+
+    Release newesetUpdate =null;
+
+    @Override
+    public void newUpdateAvailable(Release r, UpdateListener.State s) {
+
+        if(s == UpdateListener.State.NEW_UPDATE_AVAILABLE){
+            bUpdate.setVisible(true);
+            bUpdate.setEnabled(true);
+            bUpdate.setContentAreaFilled(true);
+            bUpdate.setText("Update to " + r.version);
+            newesetUpdate = r;
+        }else if(s == UpdateListener.State.NO_INTERNET_CONNECTION){
+            bUpdate.setVisible(true);
+            bUpdate.setText("No Internet connection!");
+            bUpdate.setEnabled(false);
+            bUpdate.setContentAreaFilled(false);
+            newesetUpdate = null;
+        }else{
+            bUpdate.setVisible(false);
+            newesetUpdate = null;
+        }
     }
 
     JTextArea mLog = new JTextArea();

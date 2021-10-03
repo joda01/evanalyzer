@@ -14,5 +14,9 @@
         "fijii/plugins/bio-formats_plugins-6.6.0.jar",
         "libs/fijii/plugins/bio-formats_plugins-6.6.0.jar"
     ],
-    "java.dependency.packagePresentation": "flat"
+    "java.dependency.packagePresentation": "flat",
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.outputPath": "bin"
 }

@@ -24,10 +24,17 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - name: Build plugin
+        env:
+          GITHUB_TOKEN: ${{ secrets.EXOSOME_ANALYZER_GITHUB_REST_KEY }}
         run: |
           ls -l
           echo Hello, world!
-          cd ./src
+          echo "$GITHUB_TOKEN" > ./bin/github_auth_token.txt
           ./build.sh
           echo Finished!
-
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Store artifact
+          path: ./bin/ExosomeAnalyzer.jar
+          retention-days: 30
