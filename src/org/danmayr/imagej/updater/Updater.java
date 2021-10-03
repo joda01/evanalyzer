@@ -54,8 +54,8 @@ public class Updater {
         try {
             InputStream is = getClass().getClassLoader().getResourceAsStream("github_auth_token.txt");
             byte[] read = new byte[256];
-            is.read(read);
-            String token = new String(read);
+            int size = is.read(read);
+            String token = new String(read,size);
             github_auth_token = token;
         } catch (IOException ex) {
             ex.printStackTrace();
