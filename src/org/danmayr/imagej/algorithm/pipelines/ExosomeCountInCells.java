@@ -65,8 +65,6 @@ public class ExosomeCountInCells extends ExosomColoc {
                         e.getValue().ClearRoi();
                 }
 
-                IJ.log("Return value size " + mReturnChannels.size());
-
                 return mReturnChannels;
         }
 

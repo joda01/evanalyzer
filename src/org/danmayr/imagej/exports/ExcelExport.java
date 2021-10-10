@@ -167,8 +167,11 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
         row = WriteRow(summarySheet, row, chName + " min Circularity", String.valueOf(ch.mMinCircularity));
-        row = WriteRow(summarySheet, row, chName + "Min particle Size", String.valueOf(ch.mMinParticleSize));
-        row = WriteRow(summarySheet, row, chName + "Max particle Size", String.valueOf(ch.mMaxParticleSize));
+        row = WriteRow(summarySheet, row, chName + " Min particle Size", String.valueOf(ch.mMinParticleSize));
+        row = WriteRow(summarySheet, row, chName + " Max particle Size", String.valueOf(ch.mMaxParticleSize));
+        row = WriteRow(summarySheet, row, chName + " Margin crop", String.valueOf(ch.marginToCrop));
+        row = WriteRow(summarySheet, row, chName + " Z-Projection ", String.valueOf(ch.ZProjector));
+        row = WriteRow(summarySheet, row, chName + " Preprocessing ", String.valueOf(ch.preProcessing));
 
         return row;
     }
