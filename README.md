@@ -32,4 +32,4 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 
 ## Screenshot
 
-![myimage-alt-tag](./doc/screeshot.png)
+![myimage-alt-tag](./doc/screenshot.png)
