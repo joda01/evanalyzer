@@ -100,7 +100,8 @@ public class FileProcessor extends Thread {
             mAnalyseSettings.mCalcColoc = false;
             pipeline = new ExosomeCountInCells(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus)) {
+        if (mAnalyseSettings.mSelectedFunction
+                .equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus)) {
             mAnalyseSettings.mCountEvsPerCell = true;
             mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
             mAnalyseSettings.mCalcColoc = false;
@@ -201,7 +202,8 @@ public class FileProcessor extends Thread {
                     break;
                 }
                 File file = mLoadedImages.elementAt(0).getFirst();
-                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(file, mLoadedImages.elementAt(0).getSecond());
+                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(file,
+                        mLoadedImages.elementAt(0).getSecond());
                 mResuls.addImage(file.getParent(), file.getName(), images);
 
                 for (int n = 0; n < mLoadedImages.elementAt(0).getSecond().length; n++) {
@@ -229,8 +231,7 @@ public class FileProcessor extends Thread {
             Thread t1 = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(idx),
-                            mAnalyseSettings.mSelectedSeries, false);
+                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(idx), mAnalyseSettings.mSelectedSeries, false);
                     mLoadedImages.add(new Pair(fileList.get(idx), imagesLoaded));
                 }
             });
@@ -250,7 +251,9 @@ public class FileProcessor extends Thread {
             for (final File file : files) {
                 if (file.isDirectory()) {
                     findFiles(file.listFiles(), foundFiles);
-                } else if (file.getName().endsWith(".vsi")) {
+                } else if (file.getName().toLowerCase().endsWith(".vsi")
+                        || file.getName().toLowerCase().endsWith(".tiff")
+                        || file.getName().toLowerCase().endsWith(".tif")) {
                     foundFiles.add(file);
                 }
             }

@@ -54,7 +54,6 @@ import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline;
 import org.danmayr.imagej.updater.Updater;
 
-
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -116,7 +115,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             return label;
         }
     }
-
 
     class PanelChannelSettings extends JPanel {
 
@@ -1050,28 +1048,25 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
     public EvColocDialog() {
 
-
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                super.windowClosing(e); 
+                super.windowClosing(e);
                 EvColoc.stopAutoUpdate();
             }
-    
+
             @Override
             public void windowOpened(WindowEvent e) {
-                super.windowOpened(e); 
+                super.windowOpened(e);
             }
         });
-    
-
-
 
         BorderLayout boorderL = new BorderLayout();
         this.setLayout(boorderL);
 
-        tabbedPane.addTab("main", CreateMainTab());
-        tabbedPane.addTab("log", createLogPanel());
+        tabbedPane.addTab("Analyzer", CreateMainTab());
+        tabbedPane.addTab("Settings", createSettingsTab());
+        tabbedPane.addTab("Logging", createLogPanel());
 
         this.add(tabbedPane, BorderLayout.CENTER);
         this.add(createFooter(), BorderLayout.SOUTH);
@@ -1082,9 +1077,47 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         pack();
 
         // this.setAlwaysOnTop(true);
-        this.setResizable(false);
+        // this.setResizable(false);
         setTitle("Exosome analyzer " + Version.getVersion());
         Updater.registerUpdateListener(this);
+    }
+
+    ///
+    ///
+    ///
+    public JPanel createSettingsTab() {
+        JPanel borderLayoutPanel=new JPanel(new BorderLayout());
+        JPanel gridBagLayoutPanel = new JPanel(new GridBagLayout());
+        borderLayoutPanel.add(gridBagLayoutPanel, BorderLayout.NORTH);
+
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(4, 4, 4, 4); // top padding
+
+
+
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        c.weightx = 0;
+        gridBagLayoutPanel.add(new JLabel("Report settings: "), c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        c.weightx = 1;
+        gridBagLayoutPanel.add(reportSettings, c);
+
+        ////////////////////////////////////////////////////
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        //c.gridx = 0;
+        //c.gridy++;
+        //c.gridwidth = 3;
+        //gridBagLayoutPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+
+
+        return borderLayoutPanel;
     }
 
     ///
@@ -1288,11 +1321,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mainTab.add(chSettings, c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 3;
-        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        //c.fill = GridBagConstraints.HORIZONTAL;
+        //c.gridx = 0;
+        //c.gridy++;
+        //c.gridwidth = 3;
+        //mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         // c.fill = GridBagConstraints.HORIZONTAL;
@@ -1314,22 +1347,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.weightx = 0;
-        mainTab.add(new JLabel("Report settings: "), c);
 
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        mainTab.add(reportSettings, c);
-
-        ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 3;
-        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         return mainTab;
     }
@@ -1445,25 +1463,30 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         bUpdate.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                if(newesetUpdate != null){
-                    Object[] options = {"Install update","No, thanks"};
-                    int n = JOptionPane.showOptionDialog(new JFrame(), "Actual version: v" + Version.getVersion()+"\nNew version: "+newesetUpdate.version+"\n\n"+"Release notes:\n"+newesetUpdate.releaseText,
-                    "Update", JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[1]);
-                    if(n == 0){
-                        try{
+                if (newesetUpdate != null) {
+                    Object[] options = { "Install update", "No, thanks" };
+                    int n = JOptionPane.showOptionDialog(new JFrame(),
+                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
+                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
+                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
+                            options[1]);
+                    if (n == 0) {
+                        try {
                             Updater.installNewsetUpdate();
-                            JOptionPane.showMessageDialog(new JFrame(), "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
-                            "Update", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(new JFrame(),
+                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
+                                    "Update", JOptionPane.INFORMATION_MESSAGE);
                             EvColoc.restart();
 
-                        }catch(IOException ex){
+                        } catch (IOException ex) {
                             JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
-                            "Update", JOptionPane.WARNING_MESSAGE);
+                                    "Update", JOptionPane.WARNING_MESSAGE);
                         }
                     }
-                }else{
-                    JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()+"\nEverything up to date :) ...",
-                    "Update", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(new JFrame(),
+                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
@@ -1480,7 +1503,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
-                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 - 2021 J. Danmayr",
+                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 - 2021 Joachim Danmayr",
                         "About", JOptionPane.INFORMATION_MESSAGE);
 
             }
@@ -1494,27 +1517,24 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         return p;
     }
 
-
-
-
-    Release newesetUpdate =null;
+    Release newesetUpdate = null;
 
     @Override
     public void newUpdateAvailable(Release r, UpdateListener.State s) {
 
-        if(s == UpdateListener.State.NEW_UPDATE_AVAILABLE){
+        if (s == UpdateListener.State.NEW_UPDATE_AVAILABLE) {
             bUpdate.setVisible(true);
             bUpdate.setEnabled(true);
             bUpdate.setContentAreaFilled(true);
             bUpdate.setText("Update to " + r.version);
             newesetUpdate = r;
-        }else if(s == UpdateListener.State.NO_INTERNET_CONNECTION){
+        } else if (s == UpdateListener.State.NO_INTERNET_CONNECTION) {
             bUpdate.setVisible(true);
             bUpdate.setText("No Internet connection!");
             bUpdate.setEnabled(false);
             bUpdate.setContentAreaFilled(false);
             newesetUpdate = null;
-        }else{
+        } else {
             bUpdate.setVisible(false);
             newesetUpdate = null;
         }
@@ -1616,7 +1636,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         }
 
         if (error.length() <= 0) {
-            tabbedPane.setSelectedIndex(1);
+            tabbedPane.setSelectedIndex(2);
             mActAnalyzer = new FileProcessor(this, sett);
             mActAnalyzer.start();
         } else {
