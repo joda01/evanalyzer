@@ -84,6 +84,10 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     private JButton mbOutputFolder;
     private JButton mbStart;
     private JButton mCancle;
+
+    private JButton mbSaveSettings;
+    private JButton mbOpenSettings;
+
     private JButton mClose;
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
@@ -221,6 +225,10 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 return chSet;
             }
 
+            public void loadChannelSettings(ChannelSettings set) {
+
+            }
+
             //
             ///
             ///
@@ -271,7 +279,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[11];
+                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[12];
                 channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
                 channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
                 channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
@@ -279,12 +287,13 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
                 channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5,
                         "EV (CY3 fret CY5)");
-                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
-                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
-                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
+                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_BRIGHTFIELD, "CELL BRIGHTFIELD");
+                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_FLUORESCENCE, "CELL FLUORESCENCE");
+                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
+                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
-                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
-                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD,
+                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
+                channels0[11] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD,
                         "TetraSpecks");
 
                 c.fill = GridBagConstraints.HORIZONTAL;
@@ -295,7 +304,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                     public void itemStateChanged(ItemEvent e) {
                         Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
                                 .getValue();
-                        if (Pipeline.ChannelType.CELL == type) {
+                        if (Pipeline.ChannelType.CELL_BRIGHTFIELD == type || Pipeline.ChannelType.CELL_FLUORESCENCE == type) {
                             // Select MinError
                             thersholdMethod.setSelectedIndex(4);
                         } else if (Pipeline.ChannelType.NUCLEUS == type) {
@@ -1086,16 +1095,12 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     ///
     ///
     public JPanel createSettingsTab() {
-        JPanel borderLayoutPanel=new JPanel(new BorderLayout());
+        JPanel borderLayoutPanel = new JPanel(new BorderLayout());
         JPanel gridBagLayoutPanel = new JPanel(new GridBagLayout());
         borderLayoutPanel.add(gridBagLayoutPanel, BorderLayout.NORTH);
 
-
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
-
-
-
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1110,12 +1115,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         gridBagLayoutPanel.add(reportSettings, c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.gridwidth = 3;
-        //gridBagLayoutPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c);
-
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.gridwidth = 3;
+        // gridBagLayoutPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         return borderLayoutPanel;
     }
@@ -1135,11 +1139,99 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         c.insets = new Insets(4, 4, 4, 4); // top padding
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 3;
-        JLabel titl = new JLabel("Version " + Version.getVersion());
+        JPanel topMenu = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // mMenu.setBackground(Color.WHITE);
+
+        mbSaveSettings = new JButton();
+        mbSaveSettings = new JButton(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
+        mbSaveSettings.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+            }
+        });
+        mbSaveSettings.setText("Save");
+        topMenu.add(mbSaveSettings);
+
+        mbOpenSettings = new JButton();
+        mbOpenSettings = new JButton(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
+        mbOpenSettings.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+            }
+        });
+        mbOpenSettings.setText("Open");
+        topMenu.add(mbOpenSettings);
+
+
+        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
+        bUpdate.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (newesetUpdate != null) {
+                    Object[] options = { "Install update", "No, thanks" };
+                    int n = JOptionPane.showOptionDialog(new JFrame(),
+                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
+                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
+                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
+                            options[1]);
+                    if (n == 0) {
+                        try {
+                            Updater.installNewsetUpdate();
+                            JOptionPane.showMessageDialog(new JFrame(),
+                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
+                                    "Update", JOptionPane.INFORMATION_MESSAGE);
+                            EvColoc.restart();
+
+                        } catch (IOException ex) {
+                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
+                                    "Update", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(new JFrame(),
+                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+        bUpdate.setText("Update");
+        bUpdate.setVisible(false);
+        c.gridx = 2;
+        c.weightx = 0;
+        c.gridwidth = 1;
+        topMenu.add(bUpdate, c);
+
+        ////////////////////////////////////////
+        JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
+        about.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
+                        + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                        "About", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+        });
+        about.setText("About");
+        c.gridx = 3;
+        c.weightx = 0;
+        c.gridwidth = 1;
+        topMenu.add(about, c);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*JLabel titl = new JLabel("Version " + Version.getVersion());
         titl.setHorizontalTextPosition(SwingConstants.CENTER);
         titl.setOpaque(true);
         if (Version.status == "alpha") {
@@ -1149,7 +1241,21 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         } else {
             titl.setBackground(Color.CYAN);
         }
-        mainTab.add(titl, c);
+        topMenu.add(titl, c);*/
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0;
+        c.gridwidth = 3;
+        mainTab.add(topMenu, c);
+
+        ////////////////////////////////////////////////////
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy++;
+        c.gridwidth = 3;
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1250,60 +1356,62 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.weightx = 0;
-        JLabel l = new JLabel("Function:");
-        l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
-        l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
-        l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
-        l.setSize(new Dimension(200, l.getSize().height));
-        ImageIcon li = new ImageIcon(getClass().getResource("icons8-lambda-16.png"));
-        l.setIcon(li);
-        mainTab.add(l, c);
+        {
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l = new JLabel("Function:");
+            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
+            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
+            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l.setSize(new Dimension(200, l.getSize().height));
+            ImageIcon li = new ImageIcon(getClass().getResource("icons8-lambda-16.png"));
+            l.setIcon(li);
+            mainTab.add(l, c);
 
-        AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
-                AnalyseSettings.Function.countInCellExosomes,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        c.weightx = 1;
-        mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
-        mFunctionSelection.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                AnalyseSettings.Function type = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
-                // Calc coloc
-                if (AnalyseSettings.Function.calcColoc == type) {
-                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
-                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
-                    for (int n = 2; n < chSettings.channelSettings.size(); n++) {
-                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
-                    }
-                } else if (AnalyseSettings.Function.countInCellExosomes == type
-                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type
-                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus == type) {
-                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
-                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
-                    chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
-                    chSettings.channelSettings.get(3).channel.setSelectedItem("C=4");
+            AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
+                    AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
+                    AnalyseSettings.Function.countInCellExosomes,
+                    AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
+                    AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
+            mFunctionSelection.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    AnalyseSettings.Function type = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
+                    // Calc coloc
+                    if (AnalyseSettings.Function.calcColoc == type) {
+                        chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
+                        chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
+                        for (int n = 2; n < chSettings.channelSettings.size(); n++) {
+                            chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                        }
+                    } else if (AnalyseSettings.Function.countInCellExosomes == type
+                            || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type
+                            || AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus == type) {
+                        chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
+                        chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
+                        chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
+                        chSettings.channelSettings.get(3).channel.setSelectedItem("C=4");
 
-                    chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
-                    chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
-                    chSettings.channelSettings.get(2).channelType.setSelectedIndex(7);
-                    chSettings.channelSettings.get(3).channelType.setSelectedIndex(6);
+                        chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
+                        chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
+                        chSettings.channelSettings.get(2).channelType.setSelectedIndex(7);
+                        chSettings.channelSettings.get(3).channelType.setSelectedIndex(6);
 
-                } else if (AnalyseSettings.Function.noSelection == type) {
-                    for (int n = 0; n < chSettings.channelSettings.size(); n++) {
-                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                    } else if (AnalyseSettings.Function.noSelection == type) {
+                        for (int n = 0; n < chSettings.channelSettings.size(); n++) {
+                            chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                        }
                     }
                 }
-            }
-        });
-        mainTab.add(mFunctionSelection, c);
+            });
+            mainTab.add(mFunctionSelection, c);
+        }
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1321,11 +1429,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mainTab.add(chSettings, c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.gridwidth = 3;
-        //mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.gridwidth = 3;
+        // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         // c.fill = GridBagConstraints.HORIZONTAL;
@@ -1347,7 +1455,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-
 
         return mainTab;
     }
@@ -1459,61 +1566,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         p.add(logo, c);
 
         ////////////////////////////////////////
-        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
-        bUpdate.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (newesetUpdate != null) {
-                    Object[] options = { "Install update", "No, thanks" };
-                    int n = JOptionPane.showOptionDialog(new JFrame(),
-                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
-                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
-                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-                            options[1]);
-                    if (n == 0) {
-                        try {
-                            Updater.installNewsetUpdate();
-                            JOptionPane.showMessageDialog(new JFrame(),
-                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
-                                    "Update", JOptionPane.INFORMATION_MESSAGE);
-                            EvColoc.restart();
-
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
-                                    "Update", JOptionPane.WARNING_MESSAGE);
-                        }
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(new JFrame(),
-                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
-        bUpdate.setText("Update");
-        bUpdate.setVisible(false);
-        c.gridx = 2;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        p.add(bUpdate, c);
-
-        ////////////////////////////////////////
-        JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
-        about.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
-                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 - 2021 Joachim Danmayr",
-                        "About", JOptionPane.INFORMATION_MESSAGE);
-
-            }
-        });
-        about.setText("About");
-        c.gridx = 3;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        p.add(about, c);
-
+       
         return p;
     }
 

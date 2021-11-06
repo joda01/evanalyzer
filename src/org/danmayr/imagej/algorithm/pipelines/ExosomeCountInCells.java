@@ -151,27 +151,39 @@ public class ExosomeCountInCells extends ExosomColoc {
                 //
                 // Detect Cell Area
                 //
-                ChannelSettings cellChannelSetting = getImageOfChannel(ChannelType.CELL);
+                ChannelSettings cellChannelSetting = getCellChannel();
                 if (null != cellChannelSetting) {
                         RoiManager rm = new RoiManager(false);
 
                         ImagePlus cellsOriginal = cellChannelSetting.mChannelImg;
                         ImagePlus cellsEdited = Filter.duplicateImage(cellsOriginal);
 
+                        // For labeled cells -->
+                        if(cellChannelSetting.type == )
+                        Filter.FindEdges(cellsEdited);
+                        Filter.SubtractBackground(cellsEdited);
+                        //<--
+                        
                         Filter.FindEdges(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
-                        Filter.ApplyThershold(cellsEdited, cellChannelSetting.mThersholdMethod);
+                        double[] in = new double[2];
+                        Filter.ApplyThershold(cellsEdited, cellChannelSetting.mThersholdMethod,cellChannelSetting.minThershold, cellChannelSetting.maxThershold, in, true);
+                        Filter.Smooth(cellsEdited);
+                        Filter.Smooth(cellsEdited);
+                        Filter.Smooth(cellsEdited);
+                        Filter.Smooth(cellsEdited);
+                        Filter.Smooth(cellsEdited);
+                        Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
                         Filter.Smooth(cellsEdited);
 
+
                         // Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
                         // Filter.FillHoles(cellsEdited);
-                        double[] in = new double[2];
-                        Filter.ApplyThershold(cellsEdited, cellChannelSetting.mThersholdMethod,
-                                        cellChannelSetting.minThershold, cellChannelSetting.maxThershold, in, true);
+                        Filter.ApplyThershold(cellsEdited,AutoThresholder.Method.Li ,3,255,null,true);
                         Filter.AddThersholdToROI(cellsEdited, rm);
 
                         /*
@@ -181,7 +193,7 @@ public class ExosomeCountInCells extends ExosomColoc {
                         Channel chCell = Filter.MeasureImage("Cell Area", null, cellChannelSetting, cellsOriginal,
                                         cellsEdited, rm);
                         chCell.setThershold(in[0], in[1]);
-                        addReturnChannel(chCell, ChannelType.CELL,"");
+                        addReturnChannel(chCell, cellChannelSetting.type,"");
 
                         ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
                         for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {

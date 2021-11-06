@@ -3,6 +3,8 @@ package org.danmayr.imagej.algorithm;
 import java.util.Vector;
 
 import org.danmayr.imagej.algorithm.pipelines.*;
+import org.json.*;
+
 
 public class AnalyseSettings {
 
@@ -49,8 +51,46 @@ public class AnalyseSettings {
     public double minIntensity = 0.0;
     public String mOutputFileName="";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
+    
+    /// Autofilled
     public boolean mCountEvsPerCell = false;
     public boolean mRemoveCellsWithoutNucleus = false;
     public boolean mCalcColoc = false;
+
+    public void saveSettings(String fileName) {
+        JSONObject obj = new JSONObject();
+        
+        obj.put("ctrl_images", mSaveDebugImages);
+        obj.put("report_type", reportType);
+        obj.put("function", mSelectedFunction);
+        obj.put("series", mSelectedSeries);
+        obj.put("min_intensity", minIntensity);
+
+        JSONArray ary = new JSONArray();
+        for(int n=0;n<channelSettings.size();n++){
+            ary.put(channelSettings.get(n).saveSettings());
+        }
+        obj.put("channels", ary);
+
+    }
+
+    public void loadSettings(String fileName) {
+        JSONObject obj = new JSONObject();
+        
+        mSaveDebugImages = CotrolPicture.valueOf(obj.getString("ctrl_images"));  
+        reportType = ReportType.valueOf(obj.getString("report_type"));
+        mSelectedFunction = Function.valueOf(obj.getString("function"));
+        mSelectedSeries = obj.getInt("series");
+        minIntensity = obj.getInt("min_intensity");
+        mSelectedSeries = obj.getInt("series");
+
+        JSONArray ary = obj.getJSONArray("channels");
+
+        channelSettings.removeAllElements();
+        for(int n=0;n<ary.length();n++){
+            ChannelSettings ch = new ChannelSettings();
+            ch.loadSettings(ary.getJSONObject(n));
+        }
+    }
 
 }
