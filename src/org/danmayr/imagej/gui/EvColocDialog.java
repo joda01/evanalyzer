@@ -77,6 +77,8 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
     private String mNameOfLastGeneratedReportFile = new String("");
 
+    private JMenuBar mMenuBar = new JMenuBar();
+
     private JTextField mInputFolder = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
 
@@ -287,8 +289,10 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
                 channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5,
                         "EV (CY3 fret CY5)");
-                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_BRIGHTFIELD, "CELL BRIGHTFIELD");
-                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_FLUORESCENCE, "CELL FLUORESCENCE");
+                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_BRIGHTFIELD,
+                        "CELL BRIGHTFIELD");
+                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL_FLUORESCENCE,
+                        "CELL FLUORESCENCE");
                 channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
                 channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
                         "Negative Control");
@@ -304,7 +308,8 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                     public void itemStateChanged(ItemEvent e) {
                         Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
                                 .getValue();
-                        if (Pipeline.ChannelType.CELL_BRIGHTFIELD == type || Pipeline.ChannelType.CELL_FLUORESCENCE == type) {
+                        if (Pipeline.ChannelType.CELL_BRIGHTFIELD == type
+                                || Pipeline.ChannelType.CELL_FLUORESCENCE == type) {
                             // Select MinError
                             thersholdMethod.setSelectedIndex(4);
                         } else if (Pipeline.ChannelType.NUCLEUS == type) {
@@ -1077,6 +1082,44 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         tabbedPane.addTab("Settings", createSettingsTab());
         tabbedPane.addTab("Logging", createLogPanel());
 
+        //
+        // File Menu
+        //
+        JMenu fileMenu = new JMenu("File");
+        {
+            JMenuItem it1 = new JMenuItem("Open");
+            JMenuItem it2 = new JMenuItem("Save");
+            fileMenu.add(it1);
+            fileMenu.add(it2);
+        }
+
+        //
+        // Help menu
+        //
+        JMenu helpMenu = new JMenu("Help");
+        {
+            JMenuItem it1 = new JMenuItem("Update");
+            JMenuItem it2 = new JMenuItem("About");
+            it2.setIcon(new ImageIcon(getClass().getResource("icons8-info-16.png")));
+            it2.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
+                            + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                            "About", JOptionPane.INFORMATION_MESSAGE);
+
+                }
+            });
+
+            helpMenu.add(it1);
+            helpMenu.add(it2);
+        }
+
+        mMenuBar.add(fileMenu);
+        mMenuBar.add(helpMenu);
+
+        this.setJMenuBar(mMenuBar);
+
         this.add(tabbedPane, BorderLayout.CENTER);
         this.add(createFooter(), BorderLayout.SOUTH);
 
@@ -1138,118 +1181,13 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
 
-        ////////////////////////////////////////////////////
-        JPanel topMenu = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        // mMenu.setBackground(Color.WHITE);
-
-        mbSaveSettings = new JButton();
-        mbSaveSettings = new JButton(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
-        mbSaveSettings.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-            }
-        });
-        mbSaveSettings.setText("Save");
-        topMenu.add(mbSaveSettings);
-
-        mbOpenSettings = new JButton();
-        mbOpenSettings = new JButton(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
-        mbOpenSettings.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-            }
-        });
-        mbOpenSettings.setText("Open");
-        topMenu.add(mbOpenSettings);
-
-
-        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
-        bUpdate.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (newesetUpdate != null) {
-                    Object[] options = { "Install update", "No, thanks" };
-                    int n = JOptionPane.showOptionDialog(new JFrame(),
-                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
-                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
-                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-                            options[1]);
-                    if (n == 0) {
-                        try {
-                            Updater.installNewsetUpdate();
-                            JOptionPane.showMessageDialog(new JFrame(),
-                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
-                                    "Update", JOptionPane.INFORMATION_MESSAGE);
-                            EvColoc.restart();
-
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
-                                    "Update", JOptionPane.WARNING_MESSAGE);
-                        }
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(new JFrame(),
-                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
-        bUpdate.setText("Update");
-        bUpdate.setVisible(false);
-        c.gridx = 2;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        topMenu.add(bUpdate, c);
-
-        ////////////////////////////////////////
-        JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
-        about.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
-                        + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
-                        "About", JOptionPane.INFORMATION_MESSAGE);
-
-            }
-        });
-        about.setText("About");
-        c.gridx = 3;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        topMenu.add(about, c);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /*JLabel titl = new JLabel("Version " + Version.getVersion());
-        titl.setHorizontalTextPosition(SwingConstants.CENTER);
-        titl.setOpaque(true);
-        if (Version.status == "alpha") {
-            titl.setBackground(Color.RED);
-        } else if (Version.status == "beta") {
-            titl.setBackground(Color.YELLOW);
-        } else {
-            titl.setBackground(Color.CYAN);
-        }
-        topMenu.add(titl, c);*/
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.weightx = 0;
-        c.gridwidth = 3;
-        mainTab.add(topMenu, c);
-
+        /*
+         * JLabel titl = new JLabel("Version " + Version.getVersion());
+         * titl.setHorizontalTextPosition(SwingConstants.CENTER); titl.setOpaque(true);
+         * if (Version.status == "alpha") { titl.setBackground(Color.RED); } else if
+         * (Version.status == "beta") { titl.setBackground(Color.YELLOW); } else {
+         * titl.setBackground(Color.CYAN); } topMenu.add(titl, c);
+         */
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
@@ -1566,7 +1504,45 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         p.add(logo, c);
 
         ////////////////////////////////////////
-       
+
+        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
+        bUpdate.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (newesetUpdate != null) {
+                    Object[] options = { "Install update", "No, thanks" };
+                    int n = JOptionPane.showOptionDialog(new JFrame(),
+                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
+                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
+                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
+                            options[1]);
+                    if (n == 0) {
+                        try {
+                            Updater.installNewsetUpdate();
+                            JOptionPane.showMessageDialog(new JFrame(),
+                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
+                                    "Update", JOptionPane.INFORMATION_MESSAGE);
+                            EvColoc.restart();
+
+                        } catch (IOException ex) {
+                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
+                                    "Update", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(new JFrame(),
+                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+        bUpdate.setText("Update");
+        bUpdate.setVisible(false);
+        c.gridx = 2;
+        c.weightx = 0;
+        c.gridwidth = 1;
+        p.add(bUpdate, c);
+
         return p;
     }
 
