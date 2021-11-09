@@ -174,12 +174,15 @@ public class ExosomeCountInCells extends ExosomColoc {
             Filter.Smooth(cellsEdited);
             Filter.Smooth(cellsEdited);
             Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
-            Filter.Smooth(cellsEdited);
+
+            if (cellChannelSetting.type == ChannelType.CELL_FLUORESCENCE) {
+                Filter.Smooth(cellsEdited);
+                Filter.Smooth(cellsEdited);
+                Filter.Smooth(cellsEdited);
+                Filter.Smooth(cellsEdited);
+                Filter.Smooth(cellsEdited);
+                Filter.Smooth(cellsEdited);
+            }
 
             // Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
             // Filter.FillHoles(cellsEdited);
