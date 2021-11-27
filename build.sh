@@ -6,6 +6,6 @@ cd ../bin
 jar -cmvf META-INF/MANIFEST.MF ExosomeAnalyzer.jar plugins.config ./org/* Main.class github_auth_token.txt
 
 cd ../src
-jar -fu ../bin/ExosomeAnalyzer.jar org/danmayr/imagej/Version.java org/danmayr/imagej/gui/*.png
+jar -fu ../bin/ExosomeAnalyzer.jar org/danmayr/imagej/Version.java org/danmayr/imagej/gui/*.png templates/*.json
 
 

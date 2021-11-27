@@ -56,7 +56,7 @@ public class FileProcessor extends Thread {
      */
     public void run() {
         int n = Runtime.getRuntime().availableProcessors();
-        IJ.log("Available Processors: " + n);
+        //IJ.log("Available Processors: " + n);
 
         mStopping = false;
         // Close all open windows

@@ -11,8 +11,11 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TreeMap;
@@ -45,7 +48,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 
 import org.danmayr.imagej.EvColoc;
 import org.danmayr.imagej.Version;
@@ -1103,33 +1105,42 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         JMenu fileMenu = new JMenu("File");
         {
             JMenuItem it1 = new JMenuItem("Open");
-
+            it1.setIcon(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
             it1.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     AnalyseSettings sett = new AnalyseSettings();
                     String file = OpenJsonFileChooser(false);
                     if (file.length() > 0) {
-                        sett.loadSettings(file);
+                        sett.loadSettingsFromFile(file);
                         loadAnalyzeSettings(sett);
                     }
                 }
             });
-            JMenuItem it2 = new JMenuItem("Save");
-            it2.addActionListener(new java.awt.event.ActionListener() {
+
+            JMenu template = new JMenu("Template");
+            template.setIcon(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
+            template.add(generateTemplateMenuItem("coloc.json","Coloc"));
+            template.add(generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json","In Cell counting"));
+
+
+            JMenuItem save = new JMenuItem("Save");
+            save.setIcon(new ImageIcon(getClass().getResource("icons8-update-16.png")));
+            save.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     AnalyseSettings sett = getAnalyzeSettings(false);
                     if (sett != null) {
                         String file = OpenJsonFileChooser(true);
                         if (file.length() > 0) {
-                            sett.saveSettings(file);
+                            sett.saveSettings(file, "title", "note");
                         }
                     }
                 }
             });
+            fileMenu.add(save);
             fileMenu.add(it1);
-            fileMenu.add(it2);
+            fileMenu.add(template);
         }
 
         //
@@ -1790,8 +1801,45 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             }
             prefs.put("LAST_USED_SETTINGS_FOLDER", selectedFile);
             returnFile = selectedFile;
-            IJ.log(returnFile);
         }
         return returnFile;
     }
+
+    JMenuItem generateTemplateMenuItem(String filename, String title) {
+        JMenuItem it2 = new JMenuItem(title);
+        it2.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                AnalyseSettings sett = new AnalyseSettings();
+                String content = LoadTemplate(filename);
+                if (content.length() > 0) {
+                    sett.loadSettingsFromJson(content);
+                    loadAnalyzeSettings(sett);
+                }
+            }
+        });
+        return it2;
+    }
+
+    String LoadTemplate(String filename) {
+        String retString = "";
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("templates/"+filename);
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String strCurrentLine;
+            while ((strCurrentLine = br.readLine()) != null) {
+                retString += strCurrentLine;
+            }
+
+        } catch (IOException ex) {
+            IJ.log("Can not load token!");
+            ex.printStackTrace();
+
+        } catch (NullPointerException ex) {
+            IJ.log("Nullptr Exception! "+ex.getMessage());
+        }
+        return retString;
+    }
+
 }
