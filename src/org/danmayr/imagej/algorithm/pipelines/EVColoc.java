@@ -13,12 +13,14 @@ import org.apache.poi.sl.draw.binding.CTPath2D;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
+import org.danmayr.imagej.algorithm.filters.RoiOverlaySettings;
 import org.danmayr.imagej.algorithm.statistics.Statistics;
 import org.danmayr.imagej.algorithm.statistics.StatisticsColoc;
 import org.danmayr.imagej.algorithm.structs.Channel;
 import org.danmayr.imagej.algorithm.structs.ParticleInfo;
 import org.danmayr.imagej.algorithm.structs.ParticleInfoColoc;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
+import java.awt.Color;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -205,7 +207,7 @@ public class EVColoc extends Pipeline {
                         double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
 
                         ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
-                                areaChannels, result);
+                                areaChannels, result,0);
                         exosom.validatearticle(minParticleSize, maxParticleSize,circularityFilter, mSettings.minIntensity);
                         coloc.addRoi(exosom);
                         colocNr++;
@@ -362,14 +364,15 @@ public class EVColoc extends Pipeline {
 
             if (null != measColoc) {
                 ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-                Filter.SaveImageWithOverlay(mergedChannel, measColoc, path + "_merged.jpg");
+                Filter.SaveImageWithOverlay(mergedChannel, measColoc, path + "_merged.jpg",Color.red,false);
                 measColoc.addControlImagePath(name + "_merged.jpg");
             }
+            
 
             for (int n = 0; n < imgAry.length; n++) {
                 if (imgAry[n] != null && chAry[n] != null) {
                     String fileName = "_" + chNames[n] + ".jpg";
-                    Filter.SaveImageWithOverlay(imgAry[n], chAry[n], path + fileName);
+                    Filter.SaveImageWithOverlay(imgAry[n], chAry[n], path + fileName,Color.red,false);
                     chAry[n].addControlImagePath(name + fileName);
                 }
             }

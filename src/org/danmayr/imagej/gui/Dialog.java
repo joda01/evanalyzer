@@ -641,7 +641,7 @@ public class Dialog extends JFrame implements UpdateListener {
                 lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
                 lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
                 lpt.setSize(new Dimension(200, lpt.getSize().height));
-                ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
+                ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-move-from-center-16.png"));
                 lpt.setIcon(diamterlpt);
                 this.add(lpt, c);
 

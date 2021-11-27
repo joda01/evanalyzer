@@ -282,10 +282,10 @@ public class Filter {
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName) {
+    public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName,Color c, boolean printNr) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(saveImg, rm.getRois());
+        paintRoiOverlay(saveImg, rm.getRois(),c,printNr);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
@@ -301,16 +301,34 @@ public class Filter {
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    private static void paintRoiOverlay(ImagePlus image, TreeMap<Integer, ParticleInfo> rois) {
+    private static void paintRoiOverlay(ImagePlus image, TreeMap<Integer, ParticleInfo> rois,Color c, boolean printNr) {
         Overlay ov = new Overlay();
+        paintRoiOverlay(ov,rois,c,printNr);
+        image.setOverlay(ov);
+    }
 
+    private static void paintRoiOverlay(Overlay ov, TreeMap<Integer, ParticleInfo> rois, Color c, boolean printNr) {
         for (Map.Entry<Integer, ParticleInfo> e : rois.entrySet()) {
             Roi ro = e.getValue().getRoi();
-            ro.setStrokeColor(Color.red);
+            ro.setStrokeColor(c);
             ov.add(ro);
-        }
 
-        image.setOverlay(ov);
+            Roi ro2 = e.getValue().getSnapArea();
+            if(ro2 !=null){
+                ro2.setStrokeColor(c);
+                ov.add(ro2);
+            }
+
+            if (true == printNr) {
+                Rectangle rec = ro.getBounds();
+                double x1 = rec.getX() + 0.5 * rec.getWidth();
+                double y1 = rec.getY() + 0.5 * rec.getHeight();
+                TextRoi lbl = new TextRoi(x1, y1, ""+e.getKey(), font);
+                lbl.setStrokeColor(Color.black);
+                lbl.setFillColor(Color.white);
+                ov.add(lbl);
+            }
+        }
     }
 
     static int fontSize = 15;
@@ -497,7 +515,7 @@ public class Filter {
             int roiNr = i;
 
             ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity,
-                    rm.getRoi(i));
+                    rm.getRoi(i),chSet.snapAreaSize);
             if (null != settings) {
                 exosom.validatearticle(chSet.mMinParticleSize, chSet.mMaxParticleSize, chSet.mMinCircularity,
                         settings.minIntensity);
