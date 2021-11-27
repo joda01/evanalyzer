@@ -36,17 +36,17 @@ import org.danmayr.imagej.algorithm.*;
 import org.danmayr.imagej.algorithm.filters.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
-import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.gui.Dialog;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 public class FileProcessor extends Thread {
 
-    EvColocDialog mDialog;
+    Dialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
     FolderResults mResuls = new FolderResults();
 
-    public FileProcessor(final EvColocDialog dialog, final AnalyseSettings analyseSettings) {
+    public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
     }
@@ -80,32 +80,32 @@ public class FileProcessor extends Thread {
         // Analyse images
         Pipeline pipeline = null;
 
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countExosomes)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countEVs)) {
             mAnalyseSettings.mCalcColoc = false;
             mAnalyseSettings.mCountEvsPerCell = false;
-            pipeline = new ExosomColoc(mAnalyseSettings);
+            pipeline = new EVColoc(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
             mAnalyseSettings.mCalcColoc = true;
             mAnalyseSettings.mCountEvsPerCell = false;
-            pipeline = new ExosomColoc(mAnalyseSettings);
+            pipeline = new EVColoc(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomes)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellEVs)) {
             mAnalyseSettings.mCountEvsPerCell = false;
             mAnalyseSettings.mCalcColoc = false;
-            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+            pipeline = new EVCountInCells(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparation)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellEVsWithCellSeparation)) {
             mAnalyseSettings.mCountEvsPerCell = true;
             mAnalyseSettings.mCalcColoc = false;
-            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+            pipeline = new EVCountInCells(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction
-                .equals(AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus)) {
+                .equals(AnalyseSettings.Function.countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus)) {
             mAnalyseSettings.mCountEvsPerCell = true;
             mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
             mAnalyseSettings.mCalcColoc = false;
-            pipeline = new ExosomeCountInCells(mAnalyseSettings);
+            pipeline = new EVCountInCells(mAnalyseSettings);
         }
         if (null == pipeline) {
             mDialog.finishedAnalyse("");

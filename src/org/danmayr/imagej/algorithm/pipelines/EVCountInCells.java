@@ -29,14 +29,14 @@ import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.statistics.*;
 import org.danmayr.imagej.algorithm.pipelines.*;
 
-public class ExosomeCountInCells extends ExosomColoc {
+public class EVCountInCells extends EVColoc {
 
     File mImage;
     static int MAX_THERSHOLD = 255;
     TreeMap<ChannelType, Channel> mReturnChannels;
     TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
 
-    public ExosomeCountInCells(AnalyseSettings settings) {
+    public EVCountInCells(AnalyseSettings settings) {
         super(settings);
     }
 

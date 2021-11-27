@@ -14,20 +14,20 @@ import ij.plugin.*;
 import ij.plugin.frame.*;
 
 import java.awt.*;
-import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.gui.Dialog;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.updater.Updater;
 
-public class EvColoc implements PlugIn {
+public class EVAnalyzer implements PlugIn {
 
 	static Updater up;
-	EvColocDialog dialog;
+	Dialog dialog;
 
 	@Override
 	public void run(String arg) {
 
 		up = new Updater();
-		dialog = new EvColocDialog();
+		dialog = new Dialog();
 		PerformanceAnalyzer.setGui(dialog);
 		dialog.toFront();
 		dialog.setVisible(true);
@@ -44,7 +44,7 @@ public class EvColoc implements PlugIn {
 
 		// set the plugins.dir property to make the plugin appear in the Plugins menu
 		// see: https://stackoverflow.com/a/7060464/1207769
-		Class<?> clazz = EvColoc.class;
+		Class<?> clazz = EVAnalyzer.class;
 		// java.net.URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
 		// System.setProperty("plugins.dir", file.getAbsolutePath());
 
@@ -68,7 +68,7 @@ public class EvColoc implements PlugIn {
 					String[] params = new String[3];
 					params[0] = path + File.separator + execNames[n];
 					params[1] = "-run";
-					params[2] = "Exosoms";
+					params[2] = "EVAnalyzer";
 					Runtime.getRuntime().exec(params);
 					break;
 				}

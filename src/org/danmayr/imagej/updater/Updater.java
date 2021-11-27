@@ -131,10 +131,10 @@ public class Updater {
 
         Pair<Integer, Release> hiVer = getHighestVersion();
 
-        Files.copy(Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version + ".upd"),
-                Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(Paths.get("plugins/evanalyzer_updates/EVAnalyzer" + hiVer.getSecond().version + ".upd"),
+                Paths.get("plugins/evanalyzer_updates/EVAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
 
-        String cmds = "cmd /c timeout 10 && copy plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar plugins/ExosomeAnalyzer.jar && del plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar";
+        String cmds = "cmd /c timeout 10 && copy plugins/evanalyzer_updates/EVAnalyzer.jar plugins/EVAnalyzer.jar && del plugins/evanalyzer_updates/EVAnalyzer.jar";
 
         Runtime.getRuntime().exec( cmds );
 
@@ -149,8 +149,8 @@ public class Updater {
 
         System.exit(0);
 
-        Files.copy(Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version + ".upd"),
-                Paths.get("plugins/ExosomeAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(Paths.get("plugins/evanalyzer_updates/EVAnalyzer" + hiVer.getSecond().version + ".upd"),
+                Paths.get("plugins/EVAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static long downloadNewstUpdate() {
@@ -162,17 +162,17 @@ public class Updater {
             if (hiVer.getSecond() != null) {
                 try {
                     File tempFile = new File(
-                            "plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version + ".upd");
+                            "plugins/evanalyzer_updates/EVAnalyzer" + hiVer.getSecond().version + ".upd");
                     if (tempFile.exists()) {
                         downloadSize = tempFile.length();
                     } else {
-                        File theDir = new File("plugins/exosome_analyzer_updates");
+                        File theDir = new File("plugins/evanalyzer_updates");
                         if (!theDir.exists()) {
                             theDir.mkdirs();
                         }
 
                         downloadSize = download(releases.get(hiVer.getSecond().version).downloadUrlJar,
-                                "plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version
+                                "plugins/evanalyzer_updates/EVAnalyzer" + hiVer.getSecond().version
                                         + ".upd");
                     }
                 } catch (MalformedURLException e) {
@@ -226,7 +226,7 @@ public class Updater {
         Map<String, Release> releases = new HashMap<String, Release>();
 
         try {
-            URL url = new URL("https://api.github.com/repos/joda01/exosome_analyzer/releases");
+            URL url = new URL("https://api.github.com/repos/joda01/evanalyzer/releases");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
 
@@ -323,10 +323,4 @@ public class Updater {
             return 0;
         }
     }
-
-    /*
-     * 
-     * curl -H "Accept: application/vnd.github.v3+json"
-     * https://api.github.com/repos/joda01/exosome_analyzer/releases
-     */
 }

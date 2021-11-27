@@ -34,7 +34,7 @@ import org.danmayr.imagej.algorithm.structs.FolderResults;
 import org.danmayr.imagej.algorithm.structs.Image;
 import org.danmayr.imagej.algorithm.structs.Pair;
 import org.danmayr.imagej.algorithm.structs.ParticleInfo;
-import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.gui.Dialog;
 import org.danmayr.imagej.Version;
 
 public class ExcelExport {
@@ -43,7 +43,7 @@ public class ExcelExport {
     }
 
     public static String Export(String outputFolder, String reportFileName, FolderResults results,
-            AnalyseSettings.ReportType reportType, AnalyseSettings settings, EvColocDialog mDialog) {
+            AnalyseSettings.ReportType reportType, AnalyseSettings settings, Dialog mDialog) {
 
         mDialog.setProgressBarValue(0, "generating report ...");
 

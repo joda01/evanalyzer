@@ -28,11 +28,11 @@ import ij.plugin.Colors;
 import ij.plugin.frame.RoiManager;
 import ij.process.AutoThresholder;
 
-public class ExosomColoc extends Pipeline {
+public class EVColoc extends Pipeline {
 
     static int MAX_THERSHOLD = 255;
 
-    public ExosomColoc(AnalyseSettings settings) {
+    public EVColoc(AnalyseSettings settings) {
         super(settings);
     }
 

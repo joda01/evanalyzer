@@ -16,7 +16,7 @@
             "name": "Launch EvColoc",
             "request": "launch",
             "mainClass": "org.danmayr.imagej.EvColoc",
-            "projectName": "exosome_analyzer_b9db20d7"
+            "projectName": "evanalyzer_b9db20d7"
         }
     ]
 }

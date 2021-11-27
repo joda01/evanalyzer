@@ -1,18 +1,18 @@
-# Exosome Analyzer
+# EVAnalyzer
 
 ## Description
-Exosome Analyzer is a Fiji ImageJ plugin designed for analyzing microscope pictures of Exosomes. This plugin can be used for:
-*  Counting the number of exosomes.
-*  Calculating the colocalization of exosomes and other particles.
-*  Detect biological cells and counting exosomes updatekn from cells.
+EVAnalyzer is a Fiji ImageJ plugin designed for analyzing microscope pictures of EVs. This plugin can be used for:
+*  Counting the number of EVs.
+*  Calculating the colocalization of evs and other particles.
+*  Detect biological cells and counting EVs updatekn from cells.
 *  Analysis of a large amount of images automatically.
 *  Generating XLSX (Excel) reports with automatic statistics generation.
 
 
 ## Installation
 *  Download and instal Fiji from [Fiji](https://imagej.net/Fiji/Downloads).
-*  Copy the file ```ExosomeAnalyzer.jar``` to the folder ```Plugins``` of your Fiji installation.
-*  Copy the content of the [jars.zip](https://github.com/joda01/exosome_analyzer/raw/master/bin/jars.zip) folder in the ```jars``` folder of your Fiji installation.
+*  Copy the file ```EVAnalyzer.jar``` to the folder ```Plugins``` of your Fiji installation.
+*  Copy the content of the [jars.zip](https://github.com/joda01/evanalyzer/raw/master/bin/jars.zip) folder in the ```jars``` folder of your Fiji installation.
 *  Restart Fiji.
 *  You will find the plugin the menu: Plugins -> Analyze -> Exosoms
 

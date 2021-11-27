@@ -49,7 +49,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.danmayr.imagej.EvColoc;
+import org.danmayr.imagej.EVAnalyzer;
 import org.danmayr.imagej.Version;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
@@ -72,7 +72,7 @@ import java.awt.event.*;
 ///
 ///
 ///
-public class EvColocDialog extends JFrame implements UpdateListener {
+public class Dialog extends JFrame implements UpdateListener {
 
     private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
     private static final int NUMBEROFCHANNELSETTINGS = 5;
@@ -1077,13 +1077,13 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     ///
     public JTabbedPane tabbedPane = new JTabbedPane();
 
-    public EvColocDialog() {
+    public Dialog() {
 
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-                EvColoc.stopAutoUpdate();
+                EVAnalyzer.stopAutoUpdate();
             }
 
             @Override
@@ -1154,7 +1154,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             it2.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
+                    JOptionPane.showMessageDialog(new JFrame(), "EVAnalyzer v" + Version.getVersion()
                             + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
                             "About", JOptionPane.INFORMATION_MESSAGE);
 
@@ -1180,7 +1180,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
         // this.setAlwaysOnTop(true);
         // this.setResizable(false);
-        setTitle("Exosome analyzer " + Version.getVersion());
+        setTitle("EVAnalyzer " + Version.getVersion());
         Updater.registerUpdateListener(this);
     }
 
@@ -1359,10 +1359,10 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             mainTab.add(l, c);
 
             AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                    AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
-                    AnalyseSettings.Function.countInCellExosomes,
-                    AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
-                    AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
+                    AnalyseSettings.Function.countEVs, AnalyseSettings.Function.calcColoc,
+                    AnalyseSettings.Function.countInCellEVs,
+                    AnalyseSettings.Function.countInCellEVsWithCellSeparation,
+                    AnalyseSettings.Function.countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus };
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -1552,7 +1552,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                             JOptionPane.showMessageDialog(new JFrame(),
                                     "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
                                     "Update", JOptionPane.INFORMATION_MESSAGE);
-                            EvColoc.restart();
+                            EVAnalyzer.restart();
 
                         } catch (IOException ex) {
                             JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
@@ -1561,7 +1561,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                     }
                 } else {
                     JOptionPane.showMessageDialog(new JFrame(),
-                            "Exosome Analyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
+                            "EVAnalyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             }

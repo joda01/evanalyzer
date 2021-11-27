@@ -2,16 +2,16 @@ package org.danmayr.imagej.performance_analyzer;
 
 import java.util.TreeMap;
 
-import org.danmayr.imagej.gui.EvColocDialog;
+import org.danmayr.imagej.gui.Dialog;
 
 import ij.IJ;
 
 public class PerformanceAnalyzer {
 
     static TreeMap<String, Entry> mEntry = new TreeMap<>();
-    static EvColocDialog mDialog = null;
+    static Dialog mDialog = null;
 
-    public static void setGui(EvColocDialog dialog) {
+    public static void setGui(Dialog dialog) {
         mDialog = dialog;
     }
 

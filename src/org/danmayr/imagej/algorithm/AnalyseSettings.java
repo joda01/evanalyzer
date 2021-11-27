@@ -22,10 +22,10 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("EV Colocalization"), countExosomes("EV Counting"),
-        countInCellExosomes("EV Counting in Cells"),
-        countInCellExosomesWithCellSeparation("EV Counting in Cells with cell separation"),
-        countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus(
+        noSelection("--No selection--"), calcColoc("EV Colocalization"), countEVs("EV Counting"),
+        countInCellEVs("EV Counting in Cells"),
+        countInCellEVsWithCellSeparation("EV Counting in Cells with cell separation"),
+        countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus(
                 "EV Counting in Cells with cell separation + remove nucleus on edge and remove cells without nucleus");
 
         private final String name;

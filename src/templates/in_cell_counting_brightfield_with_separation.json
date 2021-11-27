@@ -84,7 +84,7 @@
     }
   ],
   "ctrl_images": "WithControlPicture",
-  "function": "countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus",
+  "function": "countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus",
   "min_intensity": 0,
   "report_type": "FullReport",
   "series": 0
