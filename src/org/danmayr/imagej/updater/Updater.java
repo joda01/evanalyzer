@@ -52,13 +52,23 @@ public class Updater {
 
     public void loadTokenFromFile() {
         try {
+
             InputStream is = getClass().getClassLoader().getResourceAsStream("github_auth_token.txt");
-            byte[] read = new byte[256];
-            int size = is.read(read);
-            String token = new String(read,size);
-            github_auth_token = token;
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String line = new String("");
+            while ((line = br.readLine()) != null) {
+                if (line.length() > 2) {
+                    github_auth_token = new String(line);
+                }
+            }
+
         } catch (IOException ex) {
+            IJ.log("Can not load token!");
             ex.printStackTrace();
+
+        } catch (NullPointerException ex) {
+            IJ.log("Nullptr Exception!");
         }
     }
 
@@ -118,7 +128,27 @@ public class Updater {
     }
 
     public static void installNewsetUpdate() throws IOException {
+
         Pair<Integer, Release> hiVer = getHighestVersion();
+
+        Files.copy(Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version + ".upd"),
+                Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
+
+        String cmds = "cmd /c timeout 10 && copy plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar plugins/ExosomeAnalyzer.jar && del plugins/exosome_analyzer_updates/ExosomeAnalyzer.jar";
+
+        Runtime.getRuntime().exec( cmds );
+
+
+        IJ.log("Updating");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        System.exit(0);
+
         Files.copy(Paths.get("plugins/exosome_analyzer_updates/ExosomeAnalyzer_" + hiVer.getSecond().version + ".upd"),
                 Paths.get("plugins/ExosomeAnalyzer.jar"), StandardCopyOption.REPLACE_EXISTING);
     }
@@ -148,16 +178,20 @@ public class Updater {
                 } catch (MalformedURLException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    IJ.log("downloadNewstUpdate:MalformedURLException: " + e.getMessage());
                     downloadSize = -1;
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    IJ.log("downloadNewstUpdate:IOException: " + e.getMessage());
                     downloadSize = -1;
                 }
             } else {
+                IJ.log("hiVer.getSecond()==null");
                 downloadSize = -1;
             }
         } else {
+            IJ.log("hiVer.releases==null");
             downloadSize = -1;
         }
         return downloadSize;
@@ -265,13 +299,15 @@ public class Updater {
             } catch (JSONException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                IJ.log("JSONException: " + e.getMessage());
             }
 
         } catch (ProtocolException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            IJ.log("ProtocolException: " + e.getMessage());
         } catch (IOException e) {
-
+            IJ.log("IOException 2: " + e.getMessage());
         }
 
         return releases;
@@ -282,6 +318,8 @@ public class Updater {
             return Files.copy(in, Paths.get(targetFileName), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception ex) {
             ex.printStackTrace();
+            IJ.log("download: " + ex.getMessage());
+
             return 0;
         }
     }

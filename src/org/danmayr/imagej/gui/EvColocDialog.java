@@ -11,8 +11,11 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TreeMap;
@@ -44,6 +47,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.danmayr.imagej.EvColoc;
 import org.danmayr.imagej.Version;
@@ -77,6 +81,8 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
     private String mNameOfLastGeneratedReportFile = new String("");
 
+    private JMenuBar mMenuBar = new JMenuBar();
+
     private JTextField mInputFolder = new JTextField(30);
     private JTextField mOutputFolder = new JTextField(30);
 
@@ -84,6 +90,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     private JButton mbOutputFolder;
     private JButton mbStart;
     private JButton mCancle;
+
     private JButton mClose;
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
@@ -93,29 +100,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     private JPanel mMenu;
     private JLabel mLNewsTicker = new JLabel("Science news ...");
 
-    public class ComboItem<T> {
-        private T value;
-        private String label;
-
-        public ComboItem(T value, String label) {
-            this.value = value;
-            this.label = label;
-        }
-
-        public T getValue() {
-            return this.value;
-        }
-
-        public String getLabel() {
-            return this.label;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
     class PanelChannelSettings extends JPanel {
 
         private JToggleButton thersholdPreview;
@@ -123,6 +107,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         private JToggleButton bLockZprojection = new JToggleButton();
         private JToggleButton bLockMarginCrop = new JToggleButton();
         private JToggleButton bLockParticleSize = new JToggleButton();
+        private JToggleButton bLockSnapArea = new JToggleButton();
 
         class ChannelElements {
             int mNr = 0;
@@ -132,6 +117,12 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                     65535, // max
                     1); // step
             private JSpinner minTheshold = new JSpinner(model);
+
+            SpinnerModel model2 = new SpinnerNumberModel(0, // initial value
+                    0, // min
+                    65535, // max
+                    1); // step
+            private JSpinner snapAreaSize = new JSpinner(model2);
             private JComboBox channelType;
             private JComboBox channel;
             private JComboBox thersholdMethod;
@@ -182,12 +173,13 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
                 ChannelSettings chSet = new ChannelSettings();
                 chSet.mChannelNr = channel.getSelectedIndex() - 1;
-                chSet.type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem()).getValue();
-                chSet.mThersholdMethod = ((ComboItem<AutoThresholder.Method>) thersholdMethod.getSelectedItem())
-                        .getValue();
+                chSet.mChannelIndex = this.mNr;
+                chSet.type = (Pipeline.ChannelType) channelType.getSelectedItem();
+                chSet.mThersholdMethod = (AutoThresholder.Method) thersholdMethod.getSelectedItem();
                 chSet.enhanceContrast = false;
                 chSet.maxThershold = 65535;
                 chSet.ZProjector = mZProjection.getSelectedItem().toString();
+                chSet.snapAreaSize = (Integer) snapAreaSize.getValue();
 
                 try {
                     chSet.minThershold = (Integer) (minTheshold.getValue());
@@ -197,8 +189,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 }
                 chSet.marginToCrop = (Integer) marginToCrop.getValue();
                 chSet.preProcessing.clear();
-                chSet.preProcessing.add(
-                        ((ComboItem<ChannelSettings.PreProcessingStep>) mPreProcesssingSteps.getSelectedItem()).value);
+                chSet.preProcessing.add((ChannelSettings.PreProcessingStep) mPreProcesssingSteps.getSelectedItem());
 
                 try {
                     chSet.mMinCircularity = (Double) (minCirculartiy.getValue());
@@ -219,6 +210,29 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 }
 
                 return chSet;
+            }
+
+            public void loadChannelSettings(ChannelSettings set) {
+
+                bLockSnapArea.setSelected(false);
+                bLockMarginCrop.setSelected(false);
+                bLockMinCircularity.setSelected(false);
+                bLockParticleSize.setSelected(false);
+                bLockSnapArea.setSelected(false);
+                bLockZprojection.setSelected(false);
+
+                channel.setSelectedIndex(set.mChannelNr + 1);
+                channelType.setSelectedItem(set.type);
+                thersholdMethod.setSelectedItem(set.mThersholdMethod);
+                minTheshold.setValue(set.minThershold);
+                mZProjection.setSelectedItem(set.ZProjector);
+                minCirculartiy.setValue(set.mMinCircularity);
+                mPreProcesssingSteps.setSelectedItem(set.preProcessing.get(0));
+                marginToCrop.setValue(set.marginToCrop);
+
+                String formatted = String.format("%05d - %05d", (int) set.mMinParticleSize, (int) set.mMaxParticleSize);
+                mParticleSize.setValue(formatted);
+                snapAreaSize.setValue(set.snapAreaSize);
             }
 
             //
@@ -253,6 +267,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                             mPreProcesssingSteps.setEnabled(false);
                             marginToCrop.setEnabled(false);
                             mParticleSize.setEnabled(false);
+                            snapAreaSize.setEnabled(false);
                         } else {
                             thersholdMethod.setEnabled(true);
                             minTheshold.setEnabled(true);
@@ -263,6 +278,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                             mPreProcesssingSteps.setEnabled(true);
                             marginToCrop.setEnabled(true);
                             mParticleSize.setEnabled(true);
+                            snapAreaSize.setEnabled(true);
                         }
                         refreshPreview();
                     }
@@ -271,41 +287,20 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 panel.add(channel, c);
 
                 ////////////////////////////////////////////////////
-                ComboItem<Pipeline.ChannelType>[] channels0 = new ComboItem[11];
-                channels0[0] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_DAPI, "EV (DAPI)");
-                channels0[1] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_GFP, "EV (GFP)");
-                channels0[2] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3, "EV (CY3)");
-                channels0[3] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY5, "EV (CY5)");
-                channels0[4] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY7, "EV (CY7)");
-                channels0[5] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.EV_CY3FCY5,
-                        "EV (CY3 fret CY5)");
-                channels0[6] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.CELL, "CELL");
-                channels0[7] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NUCLEUS, "NUCLEUS");
-                channels0[8] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.NEGATIVE_CONTROL,
-                        "Negative Control");
-                channels0[9] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.BACKGROUND, "Background");
-                channels0[10] = new ComboItem<Pipeline.ChannelType>(Pipeline.ChannelType.TETRASPECK_BEAD,
-                        "TetraSpecks");
+                Pipeline.ChannelType[] channels0 = { Pipeline.ChannelType.EV_DAPI, Pipeline.ChannelType.EV_GFP,
+                        Pipeline.ChannelType.EV_CY3, Pipeline.ChannelType.EV_CY5, Pipeline.ChannelType.EV_CY7,
+                        Pipeline.ChannelType.EV_CY3FCY5, Pipeline.ChannelType.CELL_BRIGHTFIELD,
+                        Pipeline.ChannelType.CELL_FLUORESCENCE, Pipeline.ChannelType.NUCLEUS,
+                        Pipeline.ChannelType.NEGATIVE_CONTROL, Pipeline.ChannelType.BACKGROUND,
+                        Pipeline.ChannelType.TETRASPECK_BEAD };
 
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
-                channelType = new JComboBox<ComboItem<Pipeline.ChannelType>>(channels0);
+                channelType = new JComboBox<Pipeline.ChannelType>(channels0);
                 channelType.addItemListener(new ItemListener() {
                     @Override
                     public void itemStateChanged(ItemEvent e) {
-                        Pipeline.ChannelType type = ((ComboItem<Pipeline.ChannelType>) channelType.getSelectedItem())
-                                .getValue();
-                        if (Pipeline.ChannelType.CELL == type) {
-                            // Select MinError
-                            thersholdMethod.setSelectedIndex(4);
-                        } else if (Pipeline.ChannelType.NUCLEUS == type) {
-                            // Select triangle
-                            thersholdMethod.setSelectedIndex(5);
-                        } else {
-                            // Select LI
-                            thersholdMethod.setSelectedIndex(0);
-                        }
-
+                        Pipeline.ChannelType type = (Pipeline.ChannelType) channelType.getSelectedItem();
                         if (Pipeline.ChannelType.BACKGROUND == type) {
                             thersholdMethod.setVisible(false);
                             minTheshold.setVisible(false);
@@ -319,18 +314,12 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                int t = 0;
-                ComboItem<AutoThresholder.Method>[] thersholds = new ComboItem[6];
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Li, "LI");
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.MaxEntropy,
-                        "MaxEntropy");
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Moments, "Moments");
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Otsu, "Otsu");
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.MinError, "MinError");
-                thersholds[t++] = new ComboItem<AutoThresholder.Method>(AutoThresholder.Method.Triangle, "Triangle");
+                AutoThresholder.Method[] thersholds = { AutoThresholder.Method.Li, AutoThresholder.Method.MaxEntropy,
+                        AutoThresholder.Method.Moments, AutoThresholder.Method.Otsu, AutoThresholder.Method.MinError,
+                        AutoThresholder.Method.Triangle };
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
-                thersholdMethod = new JComboBox<ComboItem<AutoThresholder.Method>>(thersholds);
+                thersholdMethod = new JComboBox<AutoThresholder.Method>(thersholds);
                 thersholdMethod.addItemListener(new ItemListener() {
                     @Override
                     public void itemStateChanged(ItemEvent e) {
@@ -366,11 +355,22 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 ////////////////////////////////////////////////////
 
                 c.gridy++;
-
                 mParticleSize = new JFormattedTextField(createFormatter("##### - #####"));
                 mParticleSize.setText("00005 - 99999");
                 mParticleSize.getDocument().addDocumentListener(documentListern);
                 panel.add(mParticleSize, c);
+
+                ////////////////////////////////////////////////////
+                snapAreaSize.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        if (bLockSnapArea.isSelected()) {
+                            syncSnapAreaSize((int) ((JSpinner) e.getSource()).getValue(), mNr);
+                        }
+                    }
+                });
+                c.gridy++;
+                panel.add(snapAreaSize, c);
 
                 ////////////////////////////////////////////////////
                 String[] zProjection = { "OFF", "max", "min", "avg" };
@@ -402,16 +402,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 panel.add(marginToCrop, c);
 
                 ////////////////////////////////////////////////////
+                ChannelSettings.PreProcessingStep[] preprocessingSteps = { ChannelSettings.PreProcessingStep.None,
+                        ChannelSettings.PreProcessingStep.EdgeDetection };
 
-                t = 0;
-                ComboItem<ChannelSettings.PreProcessingStep>[] preprocessingSteps = new ComboItem[2];
-                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
-                        ChannelSettings.PreProcessingStep.None, "No");
-                preprocessingSteps[t++] = new ComboItem<ChannelSettings.PreProcessingStep>(
-                        ChannelSettings.PreProcessingStep.EdgeDetection, "Edge Detection");
-                c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
-                mPreProcesssingSteps = new JComboBox<ComboItem<ChannelSettings.PreProcessingStep>>(preprocessingSteps);
+                mPreProcesssingSteps = new JComboBox<ChannelSettings.PreProcessingStep>(preprocessingSteps);
                 panel.add(mPreProcesssingSteps, c);
 
                 ////////////////////////////////////////////////////
@@ -430,6 +425,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 mPreProcesssingSteps.setEnabled(false);
                 marginToCrop.setEnabled(false);
                 mParticleSize.setEnabled(false);
+                snapAreaSize.setEnabled(false);
             }
 
             private MaskFormatter createFormatter(String s) {
@@ -484,6 +480,14 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
                 channelSettings.get(n).mParticleSize.getDocument()
                         .addDocumentListener(channelSettings.get(n).documentListern);
+            }
+        }
+
+        void syncSnapAreaSize(int value, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                if (n != myIdx) {
+                    channelSettings.get(n).snapAreaSize.setValue(value);
+                }
             }
         }
 
@@ -592,34 +596,67 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             c.gridx = 0;
 
             ////////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy++;
-            c.weightx = 1;
-            c.weightx = 0.0;
-            c.gridwidth = 1;
-            JLabel lpt = new JLabel("Particle size range [px]:");
-            lpt.setToolTipText(
-                    "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
-            lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
-            lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
-            lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
-            lpt.setSize(new Dimension(200, lpt.getSize().height));
-            ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
-            lpt.setIcon(diamterlpt);
-            this.add(lpt, c);
+            {
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.gridx = 0;
+                c.gridy++;
+                c.weightx = 1;
+                c.weightx = 0.0;
+                c.gridwidth = 1;
+                JLabel lpt = new JLabel("Particle size range [px]:");
+                lpt.setToolTipText(
+                        "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
+                lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
+                lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
+                lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
+                lpt.setSize(new Dimension(200, lpt.getSize().height));
+                ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
+                lpt.setIcon(diamterlpt);
+                this.add(lpt, c);
 
+                ////////////////////////////////////////////////////////
+                c.gridx = 1;
+                bLockParticleSize.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+                bLockParticleSize.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+                bLockParticleSize.setBorderPainted(false);
+                bLockParticleSize.setSelected(true);
+                bLockParticleSize.setOpaque(false);
+                bLockParticleSize.setContentAreaFilled(false);
+                bLockParticleSize.setFocusPainted(false);
+                this.add(bLockParticleSize, c);
+                c.gridx = 0;
+            }
             ////////////////////////////////////////////////////////
-            c.gridx = 1;
-            bLockParticleSize.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
-            bLockParticleSize.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
-            bLockParticleSize.setBorderPainted(false);
-            bLockParticleSize.setSelected(true);
-            bLockParticleSize.setOpaque(false);
-            bLockParticleSize.setContentAreaFilled(false);
-            bLockParticleSize.setFocusPainted(false);
-            this.add(bLockParticleSize, c);
-            c.gridx = 0;
+            {
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.gridx = 0;
+                c.gridy++;
+                c.weightx = 1;
+                c.weightx = 0.0;
+                c.gridwidth = 1;
+                JLabel lpt = new JLabel("Snap area size [px]:");
+                lpt.setToolTipText(
+                        "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
+                lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
+                lpt.setMaximumSize(new Dimension(200, lpt.getMaximumSize().height));
+                lpt.setPreferredSize(new Dimension(200, lpt.getPreferredSize().height));
+                lpt.setSize(new Dimension(200, lpt.getSize().height));
+                ImageIcon diamterlpt = new ImageIcon(getClass().getResource("icons8-diameter-16.png"));
+                lpt.setIcon(diamterlpt);
+                this.add(lpt, c);
+
+                ////////////////////////////////////////////////////////
+                c.gridx = 1;
+                bLockSnapArea.setIcon(new ImageIcon(getClass().getResource("icons8-entsperren-16.png")));
+                bLockSnapArea.setSelectedIcon(new ImageIcon(getClass().getResource("icons8-sperren-16.png")));
+                bLockSnapArea.setBorderPainted(false);
+                bLockSnapArea.setSelected(true);
+                bLockSnapArea.setOpaque(false);
+                bLockSnapArea.setContentAreaFilled(false);
+                bLockSnapArea.setFocusPainted(false);
+                this.add(bLockSnapArea, c);
+                c.gridx = 0;
+            }
 
             ////////////////////////////////////////////////////
             // c.fill = GridBagConstraints.HORIZONTAL;
@@ -852,8 +889,8 @@ public class EvColocDialog extends JFrame implements UpdateListener {
 
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 String channelNr = channelSettings.get(n).channel.getSelectedItem().toString();
-                if (Pipeline.ChannelType.BACKGROUND == ((ComboItem<Pipeline.ChannelType>) channelSettings
-                        .get(n).channelType.getSelectedItem()).getValue()) {
+                if (Pipeline.ChannelType.BACKGROUND == (Pipeline.ChannelType) channelSettings.get(n).channelType
+                        .getSelectedItem()) {
                     // No preview for background
                     continue;
                 }
@@ -915,8 +952,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 } catch (NumberFormatException ex) {
                 }
                 double[] th = new double[2];
-                Filter.ApplyThershold(imgPrev,
-                        ((ComboItem<AutoThresholder.Method>) elem.thersholdMethod.getSelectedItem()).getValue(),
+                Filter.ApplyThershold(imgPrev, ((AutoThresholder.Method) elem.thersholdMethod.getSelectedItem()),
                         lowThershold, 65535, th, false);
 
             } else {
@@ -997,12 +1033,9 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             l.setSize(new Dimension(200, l.getSize().height));
             this.add(l, c);
 
-            ComboItem<AnalyseSettings.ReportType>[] reportTypes = new ComboItem[2];
-            reportTypes[0] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FullReport,
-                    "Full report");
-            reportTypes[1] = new ComboItem<AnalyseSettings.ReportType>(AnalyseSettings.ReportType.FastReport,
-                    "Fast report");
-            mComboReportGenerator = new JComboBox<ComboItem<AnalyseSettings.ReportType>>(reportTypes);
+            AnalyseSettings.ReportType[] reportTypes = { AnalyseSettings.ReportType.FullReport,
+                    AnalyseSettings.ReportType.FastReport };
+            mComboReportGenerator = new JComboBox<AnalyseSettings.ReportType>(reportTypes);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -1022,12 +1055,10 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             l1.setSize(new Dimension(200, l1.getSize().height));
             this.add(l1, c);
 
-            ComboItem<AnalyseSettings.CotrolPicture>[] ctrlPictures = new ComboItem[2];
-            ctrlPictures[0] = new ComboItem<AnalyseSettings.CotrolPicture>(
-                    AnalyseSettings.CotrolPicture.WithControlPicture, "Generate control pictures");
-            ctrlPictures[1] = new ComboItem<AnalyseSettings.CotrolPicture>(
-                    AnalyseSettings.CotrolPicture.WithoutControlPicture, "No control pictures");
-            mControlPictures = new JComboBox<ComboItem<AnalyseSettings.CotrolPicture>>(ctrlPictures);
+            AnalyseSettings.CotrolPicture[] ctrlPictures = { AnalyseSettings.CotrolPicture.WithControlPicture,
+                    AnalyseSettings.CotrolPicture.WithoutControlPicture };
+
+            mControlPictures = new JComboBox<AnalyseSettings.CotrolPicture>(ctrlPictures);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -1068,6 +1099,77 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         tabbedPane.addTab("Settings", createSettingsTab());
         tabbedPane.addTab("Logging", createLogPanel());
 
+        //
+        // File Menu
+        //
+        JMenu fileMenu = new JMenu("File");
+        {
+            JMenuItem it1 = new JMenuItem("Open");
+            it1.setIcon(new ImageIcon(getClass().getResource("icons8-opened-folder-16.png")));
+            it1.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    AnalyseSettings sett = new AnalyseSettings();
+                    String file = OpenJsonFileChooser(false);
+                    if (file.length() > 0) {
+                        sett.loadSettingsFromFile(file);
+                        loadAnalyzeSettings(sett);
+                    }
+                }
+            });
+
+            JMenu template = new JMenu("Template");
+            template.setIcon(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
+            template.add(generateTemplateMenuItem("coloc.json","Coloc"));
+            template.add(generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json","In Cell counting"));
+
+
+            JMenuItem save = new JMenuItem("Save");
+            save.setIcon(new ImageIcon(getClass().getResource("icons8-update-16.png")));
+            save.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    AnalyseSettings sett = getAnalyzeSettings(false);
+                    if (sett != null) {
+                        String file = OpenJsonFileChooser(true);
+                        if (file.length() > 0) {
+                            sett.saveSettings(file, "title", "note");
+                        }
+                    }
+                }
+            });
+            fileMenu.add(save);
+            fileMenu.add(it1);
+            fileMenu.add(template);
+        }
+
+        //
+        // Help menu
+        //
+        JMenu helpMenu = new JMenu("Help");
+        {
+            JMenuItem it1 = new JMenuItem("Help");
+            JMenuItem it2 = new JMenuItem("About");
+            it2.setIcon(new ImageIcon(getClass().getResource("icons8-info-16.png")));
+            it2.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
+                            + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                            "About", JOptionPane.INFORMATION_MESSAGE);
+
+                }
+            });
+
+            helpMenu.add(it1);
+            helpMenu.add(it2);
+        }
+
+        mMenuBar.add(fileMenu);
+        mMenuBar.add(helpMenu);
+
+        this.setJMenuBar(mMenuBar);
+
         this.add(tabbedPane, BorderLayout.CENTER);
         this.add(createFooter(), BorderLayout.SOUTH);
 
@@ -1086,16 +1188,12 @@ public class EvColocDialog extends JFrame implements UpdateListener {
     ///
     ///
     public JPanel createSettingsTab() {
-        JPanel borderLayoutPanel=new JPanel(new BorderLayout());
+        JPanel borderLayoutPanel = new JPanel(new BorderLayout());
         JPanel gridBagLayoutPanel = new JPanel(new GridBagLayout());
         borderLayoutPanel.add(gridBagLayoutPanel, BorderLayout.NORTH);
 
-
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
-
-
-
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1110,12 +1208,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         gridBagLayoutPanel.add(reportSettings, c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.gridwidth = 3;
-        //gridBagLayoutPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c);
-
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.gridwidth = 3;
+        // gridBagLayoutPanel.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         return borderLayoutPanel;
     }
@@ -1134,22 +1231,19 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
 
+        /*
+         * JLabel titl = new JLabel("Version " + Version.getVersion());
+         * titl.setHorizontalTextPosition(SwingConstants.CENTER); titl.setOpaque(true);
+         * if (Version.status == "alpha") { titl.setBackground(Color.RED); } else if
+         * (Version.status == "beta") { titl.setBackground(Color.YELLOW); } else {
+         * titl.setBackground(Color.CYAN); } topMenu.add(titl, c);
+         */
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy = 0;
+        c.gridy++;
         c.gridwidth = 3;
-        JLabel titl = new JLabel("Version " + Version.getVersion());
-        titl.setHorizontalTextPosition(SwingConstants.CENTER);
-        titl.setOpaque(true);
-        if (Version.status == "alpha") {
-            titl.setBackground(Color.RED);
-        } else if (Version.status == "beta") {
-            titl.setBackground(Color.YELLOW);
-        } else {
-            titl.setBackground(Color.CYAN);
-        }
-        mainTab.add(titl, c);
+        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1250,60 +1344,42 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.weightx = 0;
-        JLabel l = new JLabel("Function:");
-        l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
-        l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
-        l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
-        l.setSize(new Dimension(200, l.getSize().height));
-        ImageIcon li = new ImageIcon(getClass().getResource("icons8-lambda-16.png"));
-        l.setIcon(li);
-        mainTab.add(l, c);
+        {
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l = new JLabel("Function:");
+            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
+            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
+            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l.setSize(new Dimension(200, l.getSize().height));
+            ImageIcon li = new ImageIcon(getClass().getResource("icons8-lambda-16.png"));
+            l.setIcon(li);
+            mainTab.add(l, c);
 
-        AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
-                AnalyseSettings.Function.countInCellExosomes,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
-                AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 1;
-        c.weightx = 1;
-        mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
-        mFunctionSelection.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                AnalyseSettings.Function type = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
-                // Calc coloc
-                if (AnalyseSettings.Function.calcColoc == type) {
-                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
-                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
-                    for (int n = 2; n < chSettings.channelSettings.size(); n++) {
-                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
-                    }
-                } else if (AnalyseSettings.Function.countInCellExosomes == type
-                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparation == type
-                        || AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus == type) {
-                    chSettings.channelSettings.get(0).channel.setSelectedItem("C=0");
-                    chSettings.channelSettings.get(1).channel.setSelectedItem("C=1");
-                    chSettings.channelSettings.get(2).channel.setSelectedItem("C=3");
-                    chSettings.channelSettings.get(3).channel.setSelectedItem("C=4");
-
-                    chSettings.channelSettings.get(0).channelType.setSelectedIndex(0);
-                    chSettings.channelSettings.get(1).channelType.setSelectedIndex(1);
-                    chSettings.channelSettings.get(2).channelType.setSelectedIndex(7);
-                    chSettings.channelSettings.get(3).channelType.setSelectedIndex(6);
-
-                } else if (AnalyseSettings.Function.noSelection == type) {
-                    for (int n = 0; n < chSettings.channelSettings.size(); n++) {
-                        chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+            AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
+                    AnalyseSettings.Function.countExosomes, AnalyseSettings.Function.calcColoc,
+                    AnalyseSettings.Function.countInCellExosomes,
+                    AnalyseSettings.Function.countInCellExosomesWithCellSeparation,
+                    AnalyseSettings.Function.countInCellExosomesWithCellSeparationExcludeCellsWithoutNucleus };
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
+            mFunctionSelection.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    AnalyseSettings.Function type = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
+                    if (AnalyseSettings.Function.noSelection == type) {
+                        for (int n = 0; n < chSettings.channelSettings.size(); n++) {
+                            chSettings.channelSettings.get(n).channel.setSelectedItem("OFF");
+                        }
                     }
                 }
-            }
-        });
-        mainTab.add(mFunctionSelection, c);
+            });
+            mainTab.add(mFunctionSelection, c);
+        }
 
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1321,11 +1397,11 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mainTab.add(chSettings, c);
 
         ////////////////////////////////////////////////////
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        //c.gridx = 0;
-        //c.gridy++;
-        //c.gridwidth = 3;
-        //mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
+        // c.fill = GridBagConstraints.HORIZONTAL;
+        // c.gridx = 0;
+        // c.gridy++;
+        // c.gridwidth = 3;
+        // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
         // c.fill = GridBagConstraints.HORIZONTAL;
@@ -1347,7 +1423,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         // mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
-
 
         return mainTab;
     }
@@ -1380,7 +1455,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         mbStart.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                startAnalyse();
+                startAnalyse(getAnalyzeSettings(true));
             }
         });
         mbStart.setText("Start");
@@ -1459,6 +1534,7 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         p.add(logo, c);
 
         ////////////////////////////////////////
+
         bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
         bUpdate.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
@@ -1496,23 +1572,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         c.weightx = 0;
         c.gridwidth = 1;
         p.add(bUpdate, c);
-
-        ////////////////////////////////////////
-        JButton about = new JButton(new ImageIcon(getClass().getResource("icons8-info-16.png")));
-        about.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                JOptionPane.showMessageDialog(new JFrame(), "Exosome Analyzer v" + Version.getVersion()
-                        + ".\n\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under MIT.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n (c) 2020 - 2021 Joachim Danmayr",
-                        "About", JOptionPane.INFORMATION_MESSAGE);
-
-            }
-        });
-        about.setText("About");
-        c.gridx = 3;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        p.add(about, c);
 
         return p;
     }
@@ -1581,26 +1640,26 @@ public class EvColocDialog extends JFrame implements UpdateListener {
                 Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " " + lable + "");
     }
 
-    ///
-    /// Start analyzing
-    ///
-    public void startAnalyse() {
-        mbStart.setEnabled(false);
-        mCancle.setEnabled(true);
-        mOpenResult.setEnabled(false);
+    //
+    // Get analyze settings
+    //
+    AnalyseSettings getAnalyzeSettings(boolean inputFolderNeeded) {
         String error = "";
         AnalyseSettings sett = new AnalyseSettings();
-        sett.mInputFolder = mInputFolder.getText();
-        File parentFile = new File(sett.mInputFolder);
-        if (false == parentFile.exists()) {
-            error = "Please select an existing input folder!\n";
-        }
 
-        sett.mOutputFolder = mOutputFolder.getText();
-        if (sett.mOutputFolder.length() <= 0) {
-            error = "Please select an output folder!\n";
+        if (true == inputFolderNeeded) {
+            sett.mInputFolder = mInputFolder.getText();
+            File parentFile = new File(sett.mInputFolder);
+            if (false == parentFile.exists()) {
+                error = "Please select an existing input folder!\n";
+            }
+
+            sett.mOutputFolder = mOutputFolder.getText();
+            if (sett.mOutputFolder.length() <= 0) {
+                error = "Please select an output folder!\n";
+            }
+            sett.mSelectedSeries = mSeries.getSelectedIndex();
         }
-        sett.mSelectedSeries = mSeries.getSelectedIndex();
 
         //
         // Assign channel settings
@@ -1611,23 +1670,6 @@ public class EvColocDialog extends JFrame implements UpdateListener {
         }
 
         //
-        // Check channel settings
-        //
-        // It is not allowed to have two equal channel types
-        /*
-         * for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) { for (int m = 0; m <
-         * NUMBEROFCHANNELSETTINGS; m++) { if (sett.channelSettings.get(n).mChannelNr >=
-         * 0 && sett.channelSettings.get(m).mChannelNr >= 0) { if (n != m) { if
-         * (sett.channelSettings.get(n).type == sett.channelSettings.get(m).type) {
-         * 
-         * // Only check two different channel error +=
-         * "There are two equal channel types!\n"; } if
-         * (sett.channelSettings.get(n).mChannelNr ==
-         * sett.channelSettings.get(m).mChannelNr) { // Only check two different channel
-         * error += "There are two equal channel numbers!\n"; } } } } }
-         */
-
-        //
         //
         //
         sett.mSelectedFunction = (AnalyseSettings.Function) mFunctionSelection.getSelectedItem();
@@ -1635,20 +1677,50 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             error += PLEASE_SELECT_A_FUNCTION;
         }
 
+        sett.mSaveDebugImages = (AnalyseSettings.CotrolPicture) reportSettings.mControlPictures.getSelectedItem();
+        sett.reportType = (AnalyseSettings.ReportType) reportSettings.mComboReportGenerator.getSelectedItem();
+        sett.mOutputFileName = reportSettings.mReportFileName.getText();
+
         if (error.length() <= 0) {
+
+        } else {
+            JOptionPane.showMessageDialog(new JFrame(), error, "Dialog", JOptionPane.WARNING_MESSAGE);
+            sett = null;
+            // finishedAnalyse(mNameOfLastGeneratedReportFile);
+        }
+        return sett;
+    }
+
+    //
+    // Load analyze settings
+    //
+    void loadAnalyzeSettings(AnalyseSettings sett) {
+        mSeries.setSelectedIndex(sett.mSelectedSeries);
+        mFunctionSelection.setSelectedItem(sett.mSelectedFunction);
+        reportSettings.mControlPictures.setSelectedItem(sett.mSaveDebugImages);
+        reportSettings.mComboReportGenerator.setSelectedItem(sett.reportType);
+
+        for (int n = 0; n < sett.channelSettings.size(); n++) {
+            int chIdx = sett.channelSettings.get(n).mChannelIndex;
+            chSettings.channelSettings.get(chIdx).loadChannelSettings(sett.channelSettings.get(chIdx));
+        }
+    }
+
+    ///
+    /// Start analyzing
+    ///
+    public void startAnalyse(AnalyseSettings sett) {
+        if (null != sett) {
+            mbStart.setEnabled(false);
+            mCancle.setEnabled(true);
+            mOpenResult.setEnabled(false);
             tabbedPane.setSelectedIndex(2);
             mActAnalyzer = new FileProcessor(this, sett);
             mActAnalyzer.start();
         } else {
-            JOptionPane.showMessageDialog(new JFrame(), error, "Dialog", JOptionPane.WARNING_MESSAGE);
-            finishedAnalyse(mNameOfLastGeneratedReportFile);
+            finishedAnalyse("");
         }
 
-        sett.mSaveDebugImages = ((ComboItem<AnalyseSettings.CotrolPicture>) reportSettings.mControlPictures
-                .getSelectedItem()).getValue();
-        sett.reportType = ((ComboItem<AnalyseSettings.ReportType>) reportSettings.mComboReportGenerator
-                .getSelectedItem()).getValue();
-        sett.mOutputFileName = reportSettings.mReportFileName.getText();
     }
 
     public void cancleAnalyse() {
@@ -1702,4 +1774,72 @@ public class EvColocDialog extends JFrame implements UpdateListener {
             }
         }
     }
+
+    public String OpenJsonFileChooser(boolean save) {
+        String returnFile = "";
+        Preferences prefs = Preferences.userRoot().node(getClass().getName());
+        String lastOpenFolder = prefs.get("LAST_USED_SETTINGS_FOLDER", ".");
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new java.io.File(lastOpenFolder));
+        chooser.setDialogTitle("select settings file");
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON setting files", "json");
+        chooser.addChoosableFileFilter(filter);
+        int result;
+        if (false == save) {
+            result = chooser.showOpenDialog(this);
+        } else {
+            result = chooser.showSaveDialog(this);
+        }
+        if (result != JFileChooser.CANCEL_OPTION) {
+            String selectedFile = chooser.getSelectedFile().getAbsolutePath();
+            if (!selectedFile.endsWith(".json") && !selectedFile.endsWith(".JSON")) {
+                selectedFile = selectedFile + ".json";
+            }
+            prefs.put("LAST_USED_SETTINGS_FOLDER", selectedFile);
+            returnFile = selectedFile;
+        }
+        return returnFile;
+    }
+
+    JMenuItem generateTemplateMenuItem(String filename, String title) {
+        JMenuItem it2 = new JMenuItem(title);
+        it2.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                AnalyseSettings sett = new AnalyseSettings();
+                String content = LoadTemplate(filename);
+                if (content.length() > 0) {
+                    sett.loadSettingsFromJson(content);
+                    loadAnalyzeSettings(sett);
+                }
+            }
+        });
+        return it2;
+    }
+
+    String LoadTemplate(String filename) {
+        String retString = "";
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("templates/"+filename);
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String strCurrentLine;
+            while ((strCurrentLine = br.readLine()) != null) {
+                retString += strCurrentLine;
+            }
+
+        } catch (IOException ex) {
+            IJ.log("Can not load token!");
+            ex.printStackTrace();
+
+        } catch (NullPointerException ex) {
+            IJ.log("Nullptr Exception! "+ex.getMessage());
+        }
+        return retString;
+    }
+
 }

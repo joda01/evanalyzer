@@ -43,40 +43,55 @@ abstract public class Pipeline {
   private static Map<Integer, ChannelType> map = new HashMap<Integer, ChannelType>();
 
   public enum ChannelType {
-    EV_DAPI("dapi", ChannelColor.BLUE, true, 0), EV_GFP("gfp", ChannelColor.GREEN, true, 1),
-    EV_CY3("cy3", ChannelColor.RED, true, 2), EV_CY5("cy5", ChannelColor.MAGENTA, true, 3),
-    EV_CY7("cy7", ChannelColor.YELLOW, true, 4), CELL("cell", ChannelColor.GRAY, false, 5),
-    NUCLEUS("nucleus", ChannelColor.CYAN, false, 6), NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false, 7),
-    BACKGROUND("background", ChannelColor.GRAY, false, 8), FREE_01("free_1", ChannelColor.GRAY, false, 9),
-    FREE_02("free_2", ChannelColor.GRAY, false, 10), FREE_03("free_3", ChannelColor.GRAY, false, 11),
-    FREE_04("free_4", ChannelColor.GRAY, false, 12), FREE_05("free_5", ChannelColor.GRAY, false, 13),
-    FREE_06("free_6", ChannelColor.GRAY, false, 14), FREE_07("free_7", ChannelColor.GRAY, false, 15),
-    FREE_08("free_8", ChannelColor.GRAY, false, 16), FREE_09("free_9", ChannelColor.GRAY, false, 17),
-    FREE_10("free_10", ChannelColor.GRAY, false, 18), FREE_11("free_11", ChannelColor.GRAY, false, 19),
-    FREE_12("free_12", ChannelColor.GRAY, false, 20), FREE_13("free_13", ChannelColor.GRAY, false, 21),
-    FREE_14("free_14", ChannelColor.GRAY, false, 22), FREE_15("free_15", ChannelColor.GRAY, false, 23),
-    FREE_16("free_16", ChannelColor.GRAY, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, 25),
-    FREE_18("free_18", ChannelColor.GRAY, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, 27),
-    FREE_20("free_20", ChannelColor.GRAY, false, 28),
+    EV_DAPI("dapi", ChannelColor.BLUE, true, false, 0), EV_GFP("gfp", ChannelColor.GREEN, true, false, 1),
+    EV_CY3("cy3", ChannelColor.RED, true, false, 2), EV_CY5("cy5", ChannelColor.MAGENTA, true, false, 3),
+    EV_CY7("cy7", ChannelColor.YELLOW, true, false, 4),
+    CELL_BRIGHTFIELD("cell_brightfield", ChannelColor.GRAY, false, true, 5),
+    NUCLEUS("nucleus", ChannelColor.CYAN, false, false, 6),
+    NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false, false, 7),
+    BACKGROUND("background", ChannelColor.GRAY, false, false, 8), FREE_01("free_1", ChannelColor.GRAY, false, false, 9),
+    FREE_02("free_2", ChannelColor.GRAY, false, false, 10), FREE_03("free_3", ChannelColor.GRAY, false, false, 11),
+    FREE_04("free_4", ChannelColor.GRAY, false, false, 12), FREE_05("free_5", ChannelColor.GRAY, false, false, 13),
+    FREE_06("free_6", ChannelColor.GRAY, false, false, 14), FREE_07("free_7", ChannelColor.GRAY, false, false, 15),
+    FREE_08("free_8", ChannelColor.GRAY, false, false, 16), FREE_09("free_9", ChannelColor.GRAY, false, false, 17),
+    FREE_10("free_10", ChannelColor.GRAY, false, false, 18), FREE_11("free_11", ChannelColor.GRAY, false, false, 19),
+    FREE_12("free_12", ChannelColor.GRAY, false, false, 20), FREE_13("free_13", ChannelColor.GRAY, false, false, 21),
+    FREE_14("free_14", ChannelColor.GRAY, false, false, 22), FREE_15("free_15", ChannelColor.GRAY, false, false, 23),
+    FREE_16("free_16", ChannelColor.GRAY, false, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, false, 25),
+    FREE_18("free_18", ChannelColor.GRAY, false, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, false, 27),
+    FREE_20("free_20", ChannelColor.GRAY, false, false, 28),
+    FREE_21("free_20", ChannelColor.GRAY, false, false, 21 + 8),
+    FREE_22("free_20", ChannelColor.GRAY, false, false, 22 + 8),
+    FREE_23("free_20", ChannelColor.GRAY, false, false, 23 + 8),
+    FREE_24("free_20", ChannelColor.GRAY, false, false, 24 + 8),
+    FREE_25("free_20", ChannelColor.GRAY, false, false, 25 + 8),
+    FREE_26("free_20", ChannelColor.GRAY, false, false, 26 + 8),
+    FREE_27("free_20", ChannelColor.GRAY, false, false, 27 + 8),
+    FREE_28("free_20", ChannelColor.GRAY, false, false, 28 + 8),
+    FREE_29("free_20", ChannelColor.GRAY, false, false, 29 + 8),
+    FREE_30("free_20", ChannelColor.GRAY, false, false, 30 + 8),
+    FREE_31("free_20", ChannelColor.GRAY, false, false, 31 + 8),
+    FREE_32("free_20", ChannelColor.GRAY, false, false, 32 + 8),
+    FREE_33("free_20", ChannelColor.GRAY, false, false, 33 + 8),
+    FREE_34("free_20", ChannelColor.GRAY, false, false, 34 + 8),
+    FREE_35("free_20", ChannelColor.GRAY, false, false, 35 + 8),
+    FREE_36("free_20", ChannelColor.GRAY, false, false, 36 + 8),
+    FREE_37("free_20", ChannelColor.GRAY, false, false, 37 + 8),
+    FREE_38("free_20", ChannelColor.GRAY, false, false, 38 + 8),
+    FREE_39("free_20", ChannelColor.GRAY, false, false, 39 + 8),
+    FREE_40("free_20", ChannelColor.GRAY, false, false, 40 + 8),
+    FREE_41("free_20", ChannelColor.GRAY, false, false, 41 + 8),
+    FREE_42("free_20", ChannelColor.GRAY, false, false, 42 + 8),
+    TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, false, 51),
+    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, false, 52),
+    EV_CY3FCY5("cy3fcy5", ChannelColor.YELLOW, true, false, 53),
+    CELL_FLUORESCENCE("cell_fluorescence", ChannelColor.GRAY, false, true, 54),;
 
-    FREE_21("free_20", ChannelColor.GRAY, false, 21 + 8), FREE_22("free_20", ChannelColor.GRAY, false, 22 + 8),
-    FREE_23("free_20", ChannelColor.GRAY, false, 23 + 8), FREE_24("free_20", ChannelColor.GRAY, false, 24 + 8),
-    FREE_25("free_20", ChannelColor.GRAY, false, 25 + 8), FREE_26("free_20", ChannelColor.GRAY, false, 26 + 8),
-    FREE_27("free_20", ChannelColor.GRAY, false, 27 + 8), FREE_28("free_20", ChannelColor.GRAY, false, 28 + 8),
-    FREE_29("free_20", ChannelColor.GRAY, false, 29 + 8), FREE_30("free_20", ChannelColor.GRAY, false, 30 + 8),
-    FREE_31("free_20", ChannelColor.GRAY, false, 31 + 8), FREE_32("free_20", ChannelColor.GRAY, false, 32 + 8),
-    FREE_33("free_20", ChannelColor.GRAY, false, 33 + 8), FREE_34("free_20", ChannelColor.GRAY, false, 34 + 8),
-    FREE_35("free_20", ChannelColor.GRAY, false, 35 + 8), FREE_36("free_20", ChannelColor.GRAY, false, 36 + 8),
-    FREE_37("free_20", ChannelColor.GRAY, false, 37 + 8), FREE_38("free_20", ChannelColor.GRAY, false, 38 + 8),
-    FREE_39("free_20", ChannelColor.GRAY, false, 39 + 8), FREE_40("free_20", ChannelColor.GRAY, false, 40 + 8),
-    FREE_41("free_20", ChannelColor.GRAY, false, 41 + 8), FREE_42("free_20", ChannelColor.GRAY, false, 42 + 8),
-    TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, 51),
-    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, 52), EV_CY3FCY5("cy3fcy5", ChannelColor.YELLOW, true, 53),;
-
-    private ChannelType(String name, ChannelColor chColor, boolean evChannel, int i) {
+    private ChannelType(String name, ChannelColor chColor, boolean evChannel, boolean cellChannel, int i) {
       mName = name;
       mChColor = chColor;
       mIsEvChannel = evChannel;
+      mIsCellChannel = cellChannel;
       this.idx = i;
     }
 
@@ -106,16 +121,22 @@ abstract public class Pipeline {
       return mIsEvChannel;
     }
 
+    public boolean isCellChannel() {
+      return mIsCellChannel;
+    }
+
     int idx;
     private final String mName;
     private final ChannelColor mChColor;
     private final boolean mIsEvChannel;
+    private final boolean mIsCellChannel;
   }
 
   protected AnalyseSettings mSettings;
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
+  ChannelSettings cellChannel = new ChannelSettings();
 
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
@@ -137,6 +158,8 @@ abstract public class Pipeline {
           imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
           if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
             evChannel.put(mSettings.channelSettings.get(n).type, chSet);
+          } else if (true == mSettings.channelSettings.get(n).type.isCellChannel()) {
+            cellChannel = chSet;
           }
         }
       }
@@ -190,6 +213,13 @@ abstract public class Pipeline {
   ///
   TreeMap<ChannelType, ChannelSettings> getEvChannels() {
     return evChannel;
+  }
+
+  ///
+  ///
+  ///
+  ChannelSettings getCellChannel() {
+    return cellChannel;
   }
 
   ///
