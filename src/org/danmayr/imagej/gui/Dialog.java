@@ -56,7 +56,6 @@ import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.FileProcessor;
 import org.danmayr.imagej.algorithm.filters.Filter;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline;
-import org.danmayr.imagej.updater.Updater;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -67,13 +66,12 @@ import java.awt.*;
 import ij.*;
 import ij.gui.*;
 import ij.process.*;
-import org.danmayr.imagej.updater.*;
 import java.awt.event.*;
 
 ///
 ///
 ///
-public class Dialog extends JFrame implements UpdateListener {
+public class Dialog extends JFrame {
 
     private static final String PLEASE_SELECT_A_FUNCTION = "Please select a function!\n";
     private static final int NUMBEROFCHANNELSETTINGS = 5;
@@ -156,7 +154,7 @@ public class Dialog extends JFrame implements UpdateListener {
             SpinnerModel modelCrop = new SpinnerNumberModel(0, // initial value
                     0, // min
                     65535, // max
-                    1); // step
+                    0.1); // step
             private JSpinner marginToCrop = new JSpinner(modelCrop);
 
             ///
@@ -1081,8 +1079,6 @@ public class Dialog extends JFrame implements UpdateListener {
     PanelChannelSettings chSettings = new PanelChannelSettings(this);
     PanelFilter filter = new PanelFilter(this);
     PanelReport reportSettings = new PanelReport(this);
-    JButton bUpdate;
-
     ///
     /// Constructor
     ///
@@ -1094,7 +1090,6 @@ public class Dialog extends JFrame implements UpdateListener {
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-                EVAnalyzer.stopAutoUpdate();
             }
 
             @Override
@@ -1129,7 +1124,7 @@ public class Dialog extends JFrame implements UpdateListener {
                 }
             });
 
-            JMenu template = new JMenu("Template");
+            JMenu template = new JMenu("Presets");
             template.setIcon(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
             template.add(generateTemplateMenuItem("coloc_two_ch.json", "Colocalization 2 Channels"));
             template.add(generateTemplateMenuItem("coloc_three_ch.json", "Colocalization 3 Channels"));
@@ -1193,7 +1188,6 @@ public class Dialog extends JFrame implements UpdateListener {
         // this.setAlwaysOnTop(true);
         // this.setResizable(false);
         setTitle("EVAnalyzer " + Version.getVersion());
-        Updater.registerUpdateListener(this);
     }
 
     ///
@@ -1552,70 +1546,7 @@ public class Dialog extends JFrame implements UpdateListener {
         c.gridwidth = 1;
         p.add(logo, c);
 
-        ////////////////////////////////////////
-
-        bUpdate = new JButton(new ImageIcon(getClass().getResource("icons8-update-16.png")));
-        bUpdate.addActionListener(new java.awt.event.ActionListener() {
-            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (newesetUpdate != null) {
-                    Object[] options = { "Install update", "No, thanks" };
-                    int n = JOptionPane.showOptionDialog(new JFrame(),
-                            "Actual version: v" + Version.getVersion() + "\nNew version: " + newesetUpdate.version
-                                    + "\n\n" + "Release notes:\n" + newesetUpdate.releaseText,
-                            "Update", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-                            options[1]);
-                    if (n == 0) {
-                        try {
-                            Updater.installNewsetUpdate();
-                            JOptionPane.showMessageDialog(new JFrame(),
-                                    "Update successful!\nRestarting ImageJ after clicking okay!\nMac users have to restart manually :P ... I do not know how to handle an auto restart on Mac OS ;)",
-                                    "Update", JOptionPane.INFORMATION_MESSAGE);
-                            EVAnalyzer.restart();
-
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Update  not successful! \n" + ex.getMessage(),
-                                    "Update", JOptionPane.WARNING_MESSAGE);
-                        }
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(new JFrame(),
-                            "EVAnalyzer v" + Version.getVersion() + "\nEverything up to date :) ...", "Update",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
-        bUpdate.setText("Update");
-        bUpdate.setVisible(false);
-        c.gridx = 2;
-        c.weightx = 0;
-        c.gridwidth = 1;
-        p.add(bUpdate, c);
-
         return p;
-    }
-
-    Release newesetUpdate = null;
-
-    @Override
-    public void newUpdateAvailable(Release r, UpdateListener.State s) {
-
-        if (s == UpdateListener.State.NEW_UPDATE_AVAILABLE) {
-            bUpdate.setVisible(true);
-            bUpdate.setEnabled(true);
-            bUpdate.setContentAreaFilled(true);
-            bUpdate.setText("Update to " + r.version);
-            newesetUpdate = r;
-        } else if (s == UpdateListener.State.NO_INTERNET_CONNECTION) {
-            bUpdate.setVisible(true);
-            bUpdate.setText("No Internet connection!");
-            bUpdate.setEnabled(false);
-            bUpdate.setContentAreaFilled(false);
-            newesetUpdate = null;
-        } else {
-            bUpdate.setVisible(false);
-            newesetUpdate = null;
-        }
     }
 
     JTextArea mLog = new JTextArea();

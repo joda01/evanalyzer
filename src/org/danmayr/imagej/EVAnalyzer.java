@@ -16,28 +16,19 @@ import ij.plugin.frame.*;
 import java.awt.*;
 import org.danmayr.imagej.gui.Dialog;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
-import org.danmayr.imagej.updater.Updater;
 
 public class EVAnalyzer implements PlugIn {
 
-	static Updater up;
 	Dialog dialog;
 
 	@Override
 	public void run(String arg) {
 
-		up = new Updater();
 		dialog = new Dialog();
 		PerformanceAnalyzer.setGui(dialog);
 		dialog.toFront();
 		dialog.setVisible(true);
 	}
-
-
-    public static void stopAutoUpdate(){
-        up.stopAutoUpdate();
-    }
-
 
 	public static void main(String[] args) {
 		IJ.log("Hello, World!");
