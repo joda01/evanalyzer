@@ -125,10 +125,11 @@ abstract public class Pipeline {
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
-  ChannelSettings cellChannel = new ChannelSettings();
+  ChannelSettings cellChannel;
 
   Pipeline(AnalyseSettings settings) {
     mSettings = settings;
+    cellChannel = new ChannelSettings(settings);
   }
 
   ///
@@ -175,8 +176,8 @@ abstract public class Pipeline {
     }
 
     // Crop Image
-    if (chSettings.marginToCrop > 0) {
-      Filter.cropMarginOfImage(chSettings.marginToCrop, dup);
+    if (chSettings.getMarginCropPixel() > 0) {
+      Filter.cropMarginOfImage(chSettings.getMarginCropPixel() , dup);
     }
 
     // Find edges

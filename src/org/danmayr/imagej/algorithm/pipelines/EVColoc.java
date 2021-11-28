@@ -146,11 +146,11 @@ public class EVColoc extends Pipeline {
             TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
             // Select setting of highest circularity of both channels
-            ChannelSettings chSet = ch1.set.mMinCircularity > ch2.set.mMinCircularity ? ch1.set : ch2.set;
+            ChannelSettings chSet = ch1.set.getMinCircularityDouble() > ch2.set.getMinCircularityDouble() ? ch1.set : ch2.set;
 
-            double circularityFilter = chSet.mMinCircularity;
-            double minParticleSize = chSet.mMinParticleSize;
-            double maxParticleSize = chSet.mMaxParticleSize;
+            double circularityFilter = chSet.getMinCircularityDouble();
+            double minParticleSize = chSet.getMinParticleSizeDouble();
+            double maxParticleSize = chSet.getMaxParticleSizeDouble();
 
             int colocNr = 0;
 
@@ -180,12 +180,11 @@ public class EVColoc extends Pipeline {
                             double[] intensityChannels = { particle1.getValue().areaGrayScale,
                                     particle2.getValue().areaGrayScale };
                             double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
-
-                            ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity,
+                            double sizeInMicrometer = mSettings.pixelToMicrometer(size);
+                            ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, circularity,
                                     intensityChannels,
                                     areaChannels, result, 0);
-                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter,
-                                    mSettings.minIntensity);
+                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter,0);
                             coloc.addRoi(exosom);
                             colocNr++;
                             break; // We have a match. We can continue with the next particle
@@ -255,7 +254,7 @@ public class EVColoc extends Pipeline {
             //
             int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
 
-            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.mMinCircularity);
+            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.getMinCircularityDouble());
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0, img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
@@ -309,9 +308,9 @@ public class EVColoc extends Pipeline {
         Filter.ApplyThershold(thershodlImg, imageWithTetraSpeckBeads.mThersholdMethod,
                 imageWithTetraSpeckBeads.minThershold, imageWithTetraSpeckBeads.maxThershold, retTh, true);
         ResultsTable rt = new ResultsTable();
-        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.mMinParticleSize,
-                imageWithTetraSpeckBeads.mMaxParticleSize,
-                imageWithTetraSpeckBeads.mMinCircularity, true, rt, false);
+        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.getMinParticleSizeDouble(),
+                imageWithTetraSpeckBeads.getMaxParticleSizeDouble(),
+                imageWithTetraSpeckBeads.getMinCircularityDouble(), true, rt, false);
         Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings, imageWithTetraSpeckBeads,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);

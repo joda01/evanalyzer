@@ -147,7 +147,6 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, "Output folder", String.valueOf(settings.mOutputFolder));
         row = WriteRow(summarySheet, row, "Selected Series", String.valueOf(settings.mSelectedSeries));
 
-        row = WriteRow(summarySheet, row, "Min Intensity", String.valueOf(settings.minIntensity));
         row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
 
         row = WriteRow(summarySheet, row, "Report filename", String.valueOf(settings.mOutputFileName));
@@ -166,10 +165,10 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
         row = WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
         row = WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
-        row = WriteRow(summarySheet, row, chName + " min Circularity", String.valueOf(ch.mMinCircularity));
-        row = WriteRow(summarySheet, row, chName + " Min particle Size", String.valueOf(ch.mMinParticleSize));
-        row = WriteRow(summarySheet, row, chName + " Max particle Size", String.valueOf(ch.mMaxParticleSize));
-        row = WriteRow(summarySheet, row, chName + " Margin crop", String.valueOf(ch.marginToCrop));
+        row = WriteRow(summarySheet, row, chName + " min Circularity", String.valueOf(ch.getMinCircularityDouble()));
+        row = WriteRow(summarySheet, row, chName + " Min particle Size", String.valueOf(ch.getMinParticleSizeDouble()));
+        row = WriteRow(summarySheet, row, chName + " Max particle Size", String.valueOf(ch.getMaxParticleSizeDouble()));
+        row = WriteRow(summarySheet, row, chName + " Margin crop", String.valueOf(ch.getMarginCropDouble()));
         row = WriteRow(summarySheet, row, chName + " Z-Projection ", String.valueOf(ch.ZProjector));
         row = WriteRow(summarySheet, row, chName + " Preprocessing ", String.valueOf(ch.preProcessing));
 

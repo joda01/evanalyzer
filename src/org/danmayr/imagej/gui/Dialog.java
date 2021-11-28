@@ -62,6 +62,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.MaskFormatter;
+import java.awt.*;
 
 import ij.*;
 import ij.gui.*;
@@ -94,6 +95,11 @@ public class Dialog extends JFrame implements UpdateListener {
     private JButton mClose;
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
+    SpinnerModel modelMicrometer = new SpinnerNumberModel(1, // initial value
+            0.1, // min
+            1, // max
+            0.01); // step
+    private JSpinner mPixelInMicrometer = new JSpinner(modelMicrometer);
     private JComboBox mFunctionSelection;
     private JComboBox mSeries;
     private FileProcessor mActAnalyzer = null;
@@ -121,7 +127,7 @@ public class Dialog extends JFrame implements UpdateListener {
             SpinnerModel model2 = new SpinnerNumberModel(0, // initial value
                     0, // min
                     65535, // max
-                    1); // step
+                    0.1); // step
             private JSpinner snapAreaSize = new JSpinner(model2);
             private JComboBox channelType;
             private JComboBox channel;
@@ -129,7 +135,17 @@ public class Dialog extends JFrame implements UpdateListener {
             private JCheckBox enchanceContrast;
             private JComboBox mZProjection;
             private JComboBox mPreProcesssingSteps;
-            private JFormattedTextField mParticleSize;
+
+            SpinnerModel modelMin = new SpinnerNumberModel(5, // initial value
+                    0, // min
+                    999999, // max
+                    0.1); // step
+            private JSpinner mMinParticleSize = new JSpinner(modelMin);
+            SpinnerModel modelMax = new SpinnerNumberModel(999999, // initial value
+                    0, // min
+                    999999, // max
+                    0.1); // step
+            private JSpinner mMaxParticleSize = new JSpinner(modelMax);
 
             SpinnerModel modelCirc = new SpinnerNumberModel(0, // initial value
                     0, // min
@@ -143,35 +159,12 @@ public class Dialog extends JFrame implements UpdateListener {
                     1); // step
             private JSpinner marginToCrop = new JSpinner(modelCrop);
 
-            public DocumentListener documentListern = new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    if (bLockParticleSize.isSelected()) {
-                        syncParticleSize(mParticleSize.getText(), mNr);
-                    }
-                }
-
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    if (bLockParticleSize.isSelected()) {
-                        syncParticleSize(mParticleSize.getText(), mNr);
-                    }
-                }
-
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    if (bLockParticleSize.isSelected()) {
-                        syncParticleSize(mParticleSize.getText(), mNr);
-                    }
-                }
-            };
-
             ///
             ///
             ///
-            public ChannelSettings getChannelSettings() {
+            public ChannelSettings getChannelSettings(AnalyseSettings sett) {
 
-                ChannelSettings chSet = new ChannelSettings();
+                ChannelSettings chSet = new ChannelSettings(sett);
                 chSet.mChannelNr = channel.getSelectedIndex() - 1;
                 chSet.mChannelIndex = this.mNr;
                 chSet.type = (Pipeline.ChannelType) channelType.getSelectedItem();
@@ -179,7 +172,7 @@ public class Dialog extends JFrame implements UpdateListener {
                 chSet.enhanceContrast = false;
                 chSet.maxThershold = 65535;
                 chSet.ZProjector = mZProjection.getSelectedItem().toString();
-                chSet.snapAreaSize = (Integer) snapAreaSize.getValue();
+                chSet.setSnapAreaSizeDoublw((Double) snapAreaSize.getValue());
 
                 try {
                     chSet.minThershold = (Integer) (minTheshold.getValue());
@@ -187,24 +180,21 @@ public class Dialog extends JFrame implements UpdateListener {
                     JOptionPane.showMessageDialog(new JFrame(), "Min thershold wrong!", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
-                chSet.marginToCrop = (Integer) marginToCrop.getValue();
+                chSet.setMarginCropDouble((Double) marginToCrop.getValue());
                 chSet.preProcessing.clear();
                 chSet.preProcessing.add((ChannelSettings.PreProcessingStep) mPreProcesssingSteps.getSelectedItem());
 
                 try {
-                    chSet.mMinCircularity = (Double) (minCirculartiy.getValue());
+                    chSet.setMinCircularityDouble((Double) (minCirculartiy.getValue()));
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(new JFrame(), "Min circulartiy wrong!", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
 
                 try {
-                    chSet.mMinParticleSize = Integer.parseInt(mParticleSize.getText(0, 5));
-                    chSet.mMaxParticleSize = Integer.parseInt(mParticleSize.getText(8, 5));
+                    chSet.setMinParticleSizeDouble((Double) mMinParticleSize.getValue());
+                    chSet.setMaxParticleSizeDouble((Double) mMaxParticleSize.getValue());
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(new JFrame(), "Particle Size wrong", "Dialog",
-                            JOptionPane.WARNING_MESSAGE);
-                } catch (BadLocationException e) {
                     JOptionPane.showMessageDialog(new JFrame(), "Particle Size wrong", "Dialog",
                             JOptionPane.WARNING_MESSAGE);
                 }
@@ -226,13 +216,13 @@ public class Dialog extends JFrame implements UpdateListener {
                 thersholdMethod.setSelectedItem(set.mThersholdMethod);
                 minTheshold.setValue(set.minThershold);
                 mZProjection.setSelectedItem(set.ZProjector);
-                minCirculartiy.setValue(set.mMinCircularity);
+                minCirculartiy.setValue(set.getMinCircularityDouble());
                 mPreProcesssingSteps.setSelectedItem(set.preProcessing.get(0));
-                marginToCrop.setValue(set.marginToCrop);
+                marginToCrop.setValue(set.getMarginCropDouble());
 
-                String formatted = String.format("%05d - %05d", (int) set.mMinParticleSize, (int) set.mMaxParticleSize);
-                mParticleSize.setValue(formatted);
-                snapAreaSize.setValue(set.snapAreaSize);
+                mMaxParticleSize.setValue(set.getMaxParticleSizeDouble());
+                mMinParticleSize.setValue(set.getMinParticleSizeDouble());
+                snapAreaSize.setValue(set.getSnapAreaSizeDouble());
             }
 
             //
@@ -266,7 +256,8 @@ public class Dialog extends JFrame implements UpdateListener {
                             minCirculartiy.setEnabled(false);
                             mPreProcesssingSteps.setEnabled(false);
                             marginToCrop.setEnabled(false);
-                            mParticleSize.setEnabled(false);
+                            mMinParticleSize.setEnabled(false);
+                            mMaxParticleSize.setEnabled(false);
                             snapAreaSize.setEnabled(false);
                         } else {
                             thersholdMethod.setEnabled(true);
@@ -277,7 +268,8 @@ public class Dialog extends JFrame implements UpdateListener {
                             minCirculartiy.setEnabled(true);
                             mPreProcesssingSteps.setEnabled(true);
                             marginToCrop.setEnabled(true);
-                            mParticleSize.setEnabled(true);
+                            mMinParticleSize.setEnabled(true);
+                            mMaxParticleSize.setEnabled(true);
                             snapAreaSize.setEnabled(true);
                         }
                         refreshPreview();
@@ -346,7 +338,7 @@ public class Dialog extends JFrame implements UpdateListener {
                     public void stateChanged(ChangeEvent e) {
                         refreshPreview();
                         if (bLockMinCircularity.isSelected()) {
-                            syncMinCircularitySetting((double) ((JSpinner) e.getSource()).getValue(), mNr);
+                            syncMinCircularitySetting((Double) ((JSpinner) e.getSource()).getValue(), mNr);
                         }
                     }
                 });
@@ -355,17 +347,33 @@ public class Dialog extends JFrame implements UpdateListener {
                 ////////////////////////////////////////////////////
 
                 c.gridy++;
-                mParticleSize = new JFormattedTextField(createFormatter("##### - #####"));
-                mParticleSize.setText("00005 - 99999");
-                mParticleSize.getDocument().addDocumentListener(documentListern);
-                panel.add(mParticleSize, c);
+                JPanel sizePanel = new JPanel(new GridLayout(0, 2));
+                sizePanel.add(mMinParticleSize);
+                sizePanel.add(mMaxParticleSize);
+                mMinParticleSize.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        if (bLockParticleSize.isSelected()) {
+                            syncParticleSizeMin((Double) ((JSpinner) e.getSource()).getValue(), mNr);
+                        }
+                    }
+                });
+                mMaxParticleSize.addChangeListener(new ChangeListener() {
+                    @Override
+                    public void stateChanged(ChangeEvent e) {
+                        if (bLockParticleSize.isSelected()) {
+                            syncParticleSizeMax((Double) ((JSpinner) e.getSource()).getValue(), mNr);
+                        }
+                    }
+                });
+                panel.add(sizePanel, c);
 
                 ////////////////////////////////////////////////////
                 snapAreaSize.addChangeListener(new ChangeListener() {
                     @Override
                     public void stateChanged(ChangeEvent e) {
                         if (bLockSnapArea.isSelected()) {
-                            syncSnapAreaSize((int) ((JSpinner) e.getSource()).getValue(), mNr);
+                            syncSnapAreaSize((Double) ((JSpinner) e.getSource()).getValue(), mNr);
                         }
                     }
                 });
@@ -394,7 +402,7 @@ public class Dialog extends JFrame implements UpdateListener {
                     public void stateChanged(ChangeEvent e) {
                         refreshPreview();
                         if (bLockMarginCrop.isSelected()) {
-                            syncMarginCrop((int) ((JSpinner) e.getSource()).getValue(), mNr);
+                            syncMarginCrop((Double) ((JSpinner) e.getSource()).getValue(), mNr);
                         }
                     }
                 });
@@ -424,7 +432,8 @@ public class Dialog extends JFrame implements UpdateListener {
                 minCirculartiy.setEnabled(false);
                 mPreProcesssingSteps.setEnabled(false);
                 marginToCrop.setEnabled(false);
-                mParticleSize.setEnabled(false);
+                mMaxParticleSize.setEnabled(false);
+                mMinParticleSize.setEnabled(false);
                 snapAreaSize.setEnabled(false);
             }
 
@@ -442,7 +451,7 @@ public class Dialog extends JFrame implements UpdateListener {
 
         }
 
-        void syncMinCircularitySetting(double value, int myIdx) {
+        void syncMinCircularitySetting(Double value, int myIdx) {
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 if (n != myIdx) {
                     channelSettings.get(n).minCirculartiy.setValue(value);
@@ -450,7 +459,7 @@ public class Dialog extends JFrame implements UpdateListener {
             }
         }
 
-        void syncMarginCrop(int value, int myIdx) {
+        void syncMarginCrop(Double value, int myIdx) {
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 if (n != myIdx) {
                     channelSettings.get(n).marginToCrop.setValue(value);
@@ -469,21 +478,23 @@ public class Dialog extends JFrame implements UpdateListener {
             }
         }
 
-        void syncParticleSize(String value, int myIdx) {
+        void syncParticleSizeMin(Double value, int myIdx) {
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-                channelSettings.get(n).mParticleSize.getDocument()
-                        .removeDocumentListener(channelSettings.get(n).documentListern);
-
                 if (n != myIdx) {
-                    channelSettings.get(n).mParticleSize.setText(value);
+                    channelSettings.get(n).mMinParticleSize.setValue(value);
                 }
-
-                channelSettings.get(n).mParticleSize.getDocument()
-                        .addDocumentListener(channelSettings.get(n).documentListern);
             }
         }
 
-        void syncSnapAreaSize(int value, int myIdx) {
+        void syncParticleSizeMax(Double value, int myIdx) {
+            for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
+                if (n != myIdx) {
+                    channelSettings.get(n).mMaxParticleSize.setValue(value);
+                }
+            }
+        }
+
+        void syncSnapAreaSize(Double value, int myIdx) {
             for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
                 if (n != myIdx) {
                     channelSettings.get(n).snapAreaSize.setValue(value);
@@ -603,7 +614,7 @@ public class Dialog extends JFrame implements UpdateListener {
                 c.weightx = 1;
                 c.weightx = 0.0;
                 c.gridwidth = 1;
-                JLabel lpt = new JLabel("Particle size range [px]:");
+                JLabel lpt = new JLabel("Particle size range [µm]:");
                 lpt.setToolTipText(
                         "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
                 lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
@@ -634,7 +645,7 @@ public class Dialog extends JFrame implements UpdateListener {
                 c.weightx = 1;
                 c.weightx = 0.0;
                 c.gridwidth = 1;
-                JLabel lpt = new JLabel("Snap area size [px]:");
+                JLabel lpt = new JLabel("Snap area size [µm]:");
                 lpt.setToolTipText(
                         "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
                 lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
@@ -704,7 +715,7 @@ public class Dialog extends JFrame implements UpdateListener {
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l4 = new JLabel("Margin-Crop [px]:");
+            JLabel l4 = new JLabel("Margin-Crop [µm]:");
             l4.setToolTipText("Range [0 to 65535]\nThe margin of the image will be cropped on each side.");
             l4.setMinimumSize(new Dimension(200, l4.getMinimumSize().height));
             l4.setMaximumSize(new Dimension(200, l4.getMaximumSize().height));
@@ -816,11 +827,11 @@ public class Dialog extends JFrame implements UpdateListener {
                 }
             });
             previewButtons.add(nextPreviewImage);
-            c.gridx = NUMBEROFCHANNELSETTINGS + 1;
+            c.gridx = 0;
             c.weightx = 0;
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.LINE_END;
-            c.gridwidth = 1;
+            c.gridwidth = 7;
             this.add(previewButtons, c);
         }
 
@@ -1120,9 +1131,10 @@ public class Dialog extends JFrame implements UpdateListener {
 
             JMenu template = new JMenu("Template");
             template.setIcon(new ImageIcon(getClass().getResource("icons8-empty-box-16.png")));
-            template.add(generateTemplateMenuItem("coloc.json","Coloc"));
-            template.add(generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json","In Cell counting"));
-
+            template.add(generateTemplateMenuItem("coloc_two_ch.json", "Colocalization 2 Channels"));
+            template.add(generateTemplateMenuItem("coloc_three_ch.json", "Colocalization 3 Channels"));
+            template.add(
+                    generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json", "In Cell EV Counting"));
 
             JMenuItem save = new JMenuItem("Save");
             save.setIcon(new ImageIcon(getClass().getResource("icons8-update-16.png")));
@@ -1231,20 +1243,6 @@ public class Dialog extends JFrame implements UpdateListener {
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4); // top padding
 
-        /*
-         * JLabel titl = new JLabel("Version " + Version.getVersion());
-         * titl.setHorizontalTextPosition(SwingConstants.CENTER); titl.setOpaque(true);
-         * if (Version.status == "alpha") { titl.setBackground(Color.RED); } else if
-         * (Version.status == "beta") { titl.setBackground(Color.YELLOW); } else {
-         * titl.setBackground(Color.CYAN); } topMenu.add(titl, c);
-         */
-        ////////////////////////////////////////////////////
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 3;
-        mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
-
         ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
@@ -1349,6 +1347,7 @@ public class Dialog extends JFrame implements UpdateListener {
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0;
+            c.gridwidth=1;
             JLabel l = new JLabel("Function:");
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -1379,6 +1378,26 @@ public class Dialog extends JFrame implements UpdateListener {
                 }
             });
             mainTab.add(mFunctionSelection, c);
+        }
+
+        ////////////////////////////////////////////////////
+        {
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l = new JLabel("Pixel in [µm]:");
+            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
+            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
+            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l.setSize(new Dimension(200, l.getSize().height));
+            ImageIcon li = new ImageIcon(getClass().getResource("icons8-lineal-16.png"));
+            l.setIcon(li);
+            mainTab.add(l, c);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            mainTab.add(mPixelInMicrometer, c);
         }
 
         ////////////////////////////////////////////////////
@@ -1647,6 +1666,8 @@ public class Dialog extends JFrame implements UpdateListener {
         String error = "";
         AnalyseSettings sett = new AnalyseSettings();
 
+        sett.mOnePixelInMicroMeter = (Double) mPixelInMicrometer.getValue();
+
         if (true == inputFolderNeeded) {
             sett.mInputFolder = mInputFolder.getText();
             File parentFile = new File(sett.mInputFolder);
@@ -1666,7 +1687,7 @@ public class Dialog extends JFrame implements UpdateListener {
         //
         sett.channelSettings.clear();
         for (int n = 0; n < NUMBEROFCHANNELSETTINGS; n++) {
-            sett.channelSettings.add(chSettings.channelSettings.get(n).getChannelSettings());
+            sett.channelSettings.add(chSettings.channelSettings.get(n).getChannelSettings(sett));
         }
 
         //
@@ -1699,6 +1720,7 @@ public class Dialog extends JFrame implements UpdateListener {
         mFunctionSelection.setSelectedItem(sett.mSelectedFunction);
         reportSettings.mControlPictures.setSelectedItem(sett.mSaveDebugImages);
         reportSettings.mComboReportGenerator.setSelectedItem(sett.reportType);
+        mPixelInMicrometer.setValue(sett.mOnePixelInMicroMeter);
 
         for (int n = 0; n < sett.channelSettings.size(); n++) {
             int chIdx = sett.channelSettings.get(n).mChannelIndex;
@@ -1711,6 +1733,8 @@ public class Dialog extends JFrame implements UpdateListener {
     ///
     public void startAnalyse(AnalyseSettings sett) {
         if (null != sett) {
+            sett.saveSettings(sett.mOutputFolder + java.io.File.separator + sett.mOutputFileName + "_settings.json",
+                    sett.mOutputFileName + "_settings", "-");
             mbStart.setEnabled(false);
             mCancle.setEnabled(true);
             mOpenResult.setEnabled(false);
@@ -1824,7 +1848,7 @@ public class Dialog extends JFrame implements UpdateListener {
     String LoadTemplate(String filename) {
         String retString = "";
         try {
-            InputStream is = getClass().getClassLoader().getResourceAsStream("templates/"+filename);
+            InputStream is = getClass().getClassLoader().getResourceAsStream("templates/" + filename);
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
             String strCurrentLine;
@@ -1837,7 +1861,7 @@ public class Dialog extends JFrame implements UpdateListener {
             ex.printStackTrace();
 
         } catch (NullPointerException ex) {
-            IJ.log("Nullptr Exception! "+ex.getMessage());
+            IJ.log("Nullptr Exception! " + ex.getMessage());
         }
         return retString;
     }
