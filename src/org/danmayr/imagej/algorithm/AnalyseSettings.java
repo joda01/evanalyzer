@@ -47,7 +47,6 @@ public class AnalyseSettings {
     public String mInputFolder;
     public String mOutputFolder;
     public int mSelectedSeries; // series_1 = 0
-    public double minIntensity = 0.0;
     public String mOutputFileName = "";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
 
@@ -55,6 +54,12 @@ public class AnalyseSettings {
     public boolean mCountEvsPerCell = false;
     public boolean mRemoveCellsWithoutNucleus = false;
     public boolean mCalcColoc = false;
+    public double mOnePixelInMicroMeter = 1;
+    
+
+    public double pixelToMicrometer(double pxl){
+        return pxl*mOnePixelInMicroMeter;
+    }
 
     public void saveSettings(String fileName, String title, String note) {
         JSONObject obj = new JSONObject();
@@ -65,7 +70,8 @@ public class AnalyseSettings {
         obj.put("report_type", reportType);
         obj.put("function", mSelectedFunction);
         obj.put("series", mSelectedSeries);
-        obj.put("min_intensity", minIntensity);
+        obj.put("pixel_in_micrometer", mOnePixelInMicroMeter);
+
 
         JSONArray ary = new JSONArray();
         for (int n = 0; n < channelSettings.size(); n++) {
@@ -103,14 +109,14 @@ public class AnalyseSettings {
         reportType = ReportType.valueOf(obj.getString("report_type"));
         mSelectedFunction = Function.valueOf(obj.getString("function"));
         mSelectedSeries = obj.getInt("series");
-        minIntensity = obj.getInt("min_intensity");
         mSelectedSeries = obj.getInt("series");
+        mOnePixelInMicroMeter = Double.parseDouble(obj.getString("pixel_in_micrometer"));
 
         JSONArray ary = obj.getJSONArray("channels");
 
         channelSettings.removeAllElements();
         for (int n = 0; n < ary.length(); n++) {
-            ChannelSettings ch = new ChannelSettings();
+            ChannelSettings ch = new ChannelSettings(this);
             ch.loadSettings(ary.getJSONObject(n));
             channelSettings.add(ch);
         }

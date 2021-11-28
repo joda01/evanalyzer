@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import org.danmayr.imagej.algorithm.statistics.*;
 
 import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 
 ///
 /// \class  Channel
@@ -16,7 +17,7 @@ public class Channel {
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
     String mControlImgPath = "";
-    String[] mTitles = { "area size", "intensity", "threshold scale", "circularity", "validity" };
+    String[] mTitles = { "area size [µm]", "intensity", "threshold scale", "circularity [0-1]", "validity" };
     String[] mTitleDynamic = { "" };
 
     ///

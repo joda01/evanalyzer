@@ -12,13 +12,16 @@ import java.util.concurrent.TimeUnit;
 import org.apache.poi.sl.draw.binding.CTPath2D;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
+import org.danmayr.imagej.algorithm.filters.ChannelInfoOverlaySettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
+import org.danmayr.imagej.algorithm.filters.RoiOverlaySettings;
 import org.danmayr.imagej.algorithm.statistics.Statistics;
 import org.danmayr.imagej.algorithm.statistics.StatisticsColoc;
 import org.danmayr.imagej.algorithm.structs.Channel;
 import org.danmayr.imagej.algorithm.structs.ParticleInfo;
 import org.danmayr.imagej.algorithm.structs.ParticleInfoColoc;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
+import java.awt.Color;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -73,14 +76,13 @@ public class EVColoc extends Pipeline {
             e.printStackTrace();
         }
 
-        Channel colocAll = null;
         RoiManager rm = new RoiManager(false);
 
         //
         // Calc Coloc for two channel combinations (0 - 1 | 0 - 2 | 1 - 2)
         //
         if (true == mSettings.mCalcColoc) {
-            String nameOfAllChannels = "Coloc of ";
+            ColocChannelSet colocAll = null;
             int colocEnum = 0;
             for (int n = 0; n < colocChannels.size(); n++) {
                 for (int m = n + 1; m < colocChannels.size(); m++) {
@@ -89,35 +91,35 @@ public class EVColoc extends Pipeline {
                     Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
                     pics2Ch.add(img0);
                     pics2Ch.add(img1);
-                    Channel coloc02 = calculateRoiColoc(
-                            "Coloc of " + img0.type.toString() + " with " + img1.type.toString(), img0, img1);
-                    channels.put(ChannelType.getColocEnum(colocEnum), coloc02);
+                    ColocChannelSet coloc02 = calculateRoiColoc(img0, img1);
+                    channels.put(ChannelType.getColocEnum(colocEnum), coloc02.ch);
                     colocEnum++;
-                    colocAll = coloc02;
-                }
 
-                nameOfAllChannels = colocChannels.get(n).type.toString();
-                if (n < colocChannels.size()) {
-                    nameOfAllChannels += " with ";
+                    //
+                    // For multi channel coloc
+                    //
+                    colocAll = calculateRoiColoc(colocAll, coloc02);
                 }
             }
 
             //
-            // Calc coloc for all channels
+            // Save control images for all channels
             //
-            if (colocChannels.size() > 2) {
-                colocAll = CalcColoc(nameOfAllChannels, rm, colocChannels);
-                channels.put(ChannelType.COLOC_ALL, colocAll);
+            Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
+            for (Map.Entry<ChannelType, Channel> val : channels.entrySet()) {
+                channelsToPrint.add(
+                        new ChannelInfoOverlaySettings(val.getValue().getRois(), val.getKey().getColor(), false, true));
             }
+            channelsToPrint
+                    .add(new ChannelInfoOverlaySettings(colocAll.ch.getRois(), new Color(255, 255, 255, 80), false,
+                            true));
+            String imageName = getName(file) + "_all_coloc.jpg";
+            String imagePath = getPath(file) + "_all_coloc.jpg";
+            Filter.SaveImageWithOverlayFromChannel(colocAll.imageAfterThershold, channelsToPrint, imagePath);
+            colocAll.ch.addControlImagePath(imageName);
+            channels.put(ChannelType.COLOC_ALL, colocAll.ch);
+
         }
-
-        //
-        // Save debug images
-        //
-        String name = img.getAbsolutePath().replace(java.io.File.separator, "");
-        PerformanceAnalyzer.start("save_ctrl");
-        saveControlImages(name, colocAll);
-        PerformanceAnalyzer.stop("save_ctrl");
 
         for (Map.Entry<ChannelType, Channel> e : channels.entrySet()) {
             e.getValue().ClearRoi();
@@ -127,95 +129,102 @@ public class EVColoc extends Pipeline {
     }
 
     //
-    // Calc coloc for more than 2 channels
-    //
-    Channel CalcColoc(String name, RoiManager rm, Vector<ColocChannelSet> pics) {
-        ImagePlus sumImageOriginal = pics.get(0).imgeBeforeThershold;
-        ImagePlus sumImageThersholded = pics.get(0).imageAfterThershold;
-
-        Channel chPic1 = pics.get(0).ch;
-        double minCirc = pics.get(0).set.mMinCircularity;
-        ChannelSettings chSet = pics.get(0).set;
-
-        for (int n = 1; n < pics.size(); n++) {
-            Channel chPic2 = pics.get(n).ch;
-            sumImageOriginal = Filter.ANDImages(sumImageOriginal, pics.get(n).imgeBeforeThershold);
-            sumImageThersholded = Filter.ANDImages(sumImageThersholded, pics.get(n).imageAfterThershold);
-            // Get the highest circulartiy for particle analyse
-            if(pics.get(n).set.mMinCircularity > minCirc){
-                minCirc = pics.get(n).set.mMinCircularity;
-                chSet = pics.get(n).set;
-            }
-        }
-        Filter.ApplyThershold(sumImageThersholded, AutoThresholder.Method.Yen);
-        Filter.AnalyzeParticles(sumImageThersholded, rm, 0, -1, minCirc);
-        Channel measColoc = Filter.MeasureImage(name, mSettings,chSet, sumImageOriginal, sumImageThersholded, rm);
-
-        return measColoc;
-    }
-
-    //
     // Calculate the coloc by taking a ROI in channel 1 and looking for a ROI in
     // channel 2 which
     // has an intersection. All the ROIs with intersection are added to the ROI
     // coloc channel
     //
-    Channel calculateRoiColoc(String name, ColocChannelSet ch1, ColocChannelSet ch2) {
-        String valueNames[] = { "coloc area", "coloc circularity", "coloc validity", "intensity " + ch1.type.toString(),
-                "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
+    ColocChannelSet calculateRoiColoc(ColocChannelSet ch1, ColocChannelSet ch2) {
+        if (ch1 != null && ch2 != null) {
+            String valueNames[] = { "coloc area", "coloc circularity", "coloc validity",
+                    "intensity " + ch1.type.toString(),
+                    "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
 
-        Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
-        TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
-        TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
+            String name = ch1.type.toString() + "_with_" + ch2.type.toString();
+            Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
+            TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
+            TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
-        // Select setting of highest circularity of both channels
-        ChannelSettings chSet = ch1.set.mMinCircularity > ch2.set.mMinCircularity ? ch1.set : ch2.set;
-        
-        double circularityFilter = chSet.mMinCircularity;
-        double minParticleSize = chSet.mMinParticleSize;
-        double maxParticleSize = chSet.mMaxParticleSize;
+            // Select setting of highest circularity of both channels
+            ChannelSettings chSet = ch1.set.getMinCircularityDouble() > ch2.set.getMinCircularityDouble() ? ch1.set : ch2.set;
 
-        int colocNr = 0;
+            double circularityFilter = chSet.getMinCircularityDouble();
+            double minParticleSize = chSet.getMinParticleSizeDouble();
+            double maxParticleSize = chSet.getMaxParticleSizeDouble();
 
-        for (Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()) {
-            for (Map.Entry<Integer, ParticleInfo> particle2 : roiPic2.entrySet()) {
-                Roi result = particle1.getValue().isPartOf(particle2.getValue());
-                if (null != result) {
-                    result.setImage(ch1.imageAfterThershold);
-                    int size = result.getContainedPoints().length;
+            int colocNr = 0;
 
-                    if (size > 0) {
-                        //
-                        // Particles have an intersection!!
-                        //
+            for (Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()) {
+                for (Map.Entry<Integer, ParticleInfo> particle2 : roiPic2.entrySet()) {
+                    Roi result = particle1.getValue().isPartOf(particle2.getValue());
+                    if (null != result) {
+                        result.setImage(ch1.imageAfterThershold);
+                        int size = result.getContainedPoints().length;
 
-                        //
-                        // Calculate circularity
-                        //
-                        double perimeter = result.getLength();
-                        double circularity = perimeter == 0.0 ? 0.0
-                                : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
-                        if (circularity > 1.0) {
-                            circularity = 1.0;
+                        if (size > 0) {
+                            //
+                            // Particles have an intersection!!
+                            //
+
+                            //
+                            // Calculate circularity
+                            //
+                            double perimeter = result.getLength();
+                            double circularity = perimeter == 0.0 ? 0.0
+                                    : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
+                            if (circularity > 1.0) {
+                                circularity = 1.0;
+                            }
+                            //
+
+                            double[] intensityChannels = { particle1.getValue().areaGrayScale,
+                                    particle2.getValue().areaGrayScale };
+                            double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
+                            double sizeInMicrometer = mSettings.pixelToMicrometer(size);
+                            ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, circularity,
+                                    intensityChannels,
+                                    areaChannels, result, 0);
+                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter,0);
+                            coloc.addRoi(exosom);
+                            colocNr++;
+                            break; // We have a match. We can continue with the next particle
                         }
-                        //
-
-                        double[] intensityChannels = { particle1.getValue().areaGrayScale,
-                                particle2.getValue().areaGrayScale };
-                        double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
-
-                        ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, size, circularity, intensityChannels,
-                                areaChannels, result);
-                        exosom.validatearticle(minParticleSize, maxParticleSize,circularityFilter, mSettings.minIntensity);
-                        coloc.addRoi(exosom);
-                        colocNr++;
-                        break; // We have a match. We can continue with the next particle
                     }
                 }
             }
+            coloc.calcStatistics();
+
+            //
+            // Generate channel settings
+            //
+            ImagePlus sumImageOriginal = Filter.ANDImages(ch1.imgeBeforeThershold, ch2.imgeBeforeThershold);
+            ImagePlus sumImageThersholded = Filter.ANDImages(ch1.imageAfterThershold, ch2.imageAfterThershold);
+            ColocChannelSet channelSet = new ColocChannelSet(sumImageOriginal, sumImageThersholded,
+                    ChannelType.COLOC_ALL, coloc, chSet);
+
+            //
+            // Save control image
+            //
+            if(ch1.type != ChannelType.COLOC_ALL){
+                Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
+                channelsToPrint.add(new ChannelInfoOverlaySettings(roiPic1, ch1.type.getColor(), false, true));
+                channelsToPrint.add(new ChannelInfoOverlaySettings(roiPic2, ch2.type.getColor(), false, true));
+                channelsToPrint
+                        .add(new ChannelInfoOverlaySettings(coloc.getRois(), new Color(255, 255, 255, 80), false, true));
+                String imageName = getName(file) + name + "_coloc.jpg";
+                String imagePath = getPath(file) + name + "_" + "coloc.jpg";
+
+                Filter.SaveImageWithOverlayFromChannel(ch1.imageAfterThershold, channelsToPrint, imagePath);
+                coloc.addControlImagePath(imageName);
+            }
+            return channelSet;
+        } else if (ch1 != null) {
+            return ch1;
+        } else if (ch2 != null) {
+            return ch2;
+        } else {
+            return null;
         }
-        coloc.calcStatistics();
-        return coloc;
     }
 
     ///
@@ -245,12 +254,12 @@ public class EVColoc extends Pipeline {
             //
             int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
 
-            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.mMinCircularity);
-            Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0,img0BeforeTh, img0Th, rm);
+            ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.getMinCircularityDouble());
+            Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0, img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
             channels.put(img0.type, measCh0);
-            colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0,img0));
+            colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
 
         ///
@@ -265,8 +274,9 @@ public class EVColoc extends Pipeline {
                 // int x = boundingBox.getLocation().x + boundingBox.width / 2;
                 // int y = boundingBox.getLocation().y + boundingBox.height / 2;
                 boolean found = false;
-                for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x+boundingBox.width; x++) {
-                    for (int y = boundingBox.getLocation().y; y <  boundingBox.getLocation().y+boundingBox.height; y++) {
+                for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x + boundingBox.width; x++) {
+                    for (int y = boundingBox.getLocation().y; y < boundingBox.getLocation().y
+                            + boundingBox.height; y++) {
                         int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
                         // Select only white pixels
 
@@ -280,7 +290,7 @@ public class EVColoc extends Pipeline {
                             break;
                         }
                     }
-                    if(true==found){
+                    if (true == found) {
                         break;
                     }
                 }
@@ -298,9 +308,10 @@ public class EVColoc extends Pipeline {
         Filter.ApplyThershold(thershodlImg, imageWithTetraSpeckBeads.mThersholdMethod,
                 imageWithTetraSpeckBeads.minThershold, imageWithTetraSpeckBeads.maxThershold, retTh, true);
         ResultsTable rt = new ResultsTable();
-        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.mMinParticleSize, imageWithTetraSpeckBeads.mMaxParticleSize,
-        imageWithTetraSpeckBeads.mMinCircularity, true, rt,false);
-        Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings,imageWithTetraSpeckBeads,
+        Filter.AnalyzeParticles(thershodlImg, rm, imageWithTetraSpeckBeads.getMinParticleSizeDouble(),
+                imageWithTetraSpeckBeads.getMaxParticleSizeDouble(),
+                imageWithTetraSpeckBeads.getMinCircularityDouble(), true, rt, false);
+        Channel tetraSpeckBeads = Filter.MeasureImage("TetraSpeck Beads", mSettings, imageWithTetraSpeckBeads,
                 imageWithTetraSpeckBeads.mChannelImg, thershodlImg, rm);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
         String path = getPath(file) + "_tetraspeck.jpg";
@@ -312,13 +323,15 @@ public class EVColoc extends Pipeline {
     //
     // Contains the result pictures from the counting
     //
+    // bth = before thrshold
+    // ath = after thershold
     class ColocChannelSet {
         ColocChannelSet(ImagePlus bth, ImagePlus ath, ChannelType t, Channel ch, ChannelSettings set) {
             this.imgeBeforeThershold = bth;
             this.imageAfterThershold = ath;
             this.type = t;
             this.ch = ch;
-            this.set=set;
+            this.set = set;
         }
 
         ImagePlus imgeBeforeThershold;
@@ -327,54 +340,4 @@ public class EVColoc extends Pipeline {
         Channel ch;
         ChannelSettings set;
     }
-
-    ///
-    /// Save control images
-    ///
-    void saveControlImages(String name, Channel measColoc) {
-        if (AnalyseSettings.CotrolPicture.WithControlPicture == mSettings.mSaveDebugImages) {
-            // ImagePlus[] = {"red", "green", "blue", "gray", "cyan", "magenta", "yellow"};
-            ImagePlus[] imgAry = { null, null, null, null, null, null, null };
-            Channel[] chAry = { null, null, null, null, null, null, null };
-            String[] chNames = { null, null, null, null, null, null, null };
-
-            for (int n = 0; n < colocChannels.size(); n++) {
-                if (colocChannels.get(n) != null) {
-                    int colorIdx = colocChannels.get(n).type.getColorIdx();
-                    if (colorIdx < imgAry.length) {
-                        imgAry[colorIdx] = colocChannels.get(n).imgeBeforeThershold;
-                        chAry[colorIdx] = colocChannels.get(n).ch;
-                        chNames[colorIdx] = colocChannels.get(n).ch.toString();
-                    }
-                }
-            }
-
-            name = name.replace("%", "");
-            name = name.replace(" ", "");
-            name = name.replace(":", "");
-            name = name.replace("^", "");
-            name = name.replace("+", "");
-            name = name.replace("*", "");
-            name = name.replace("~", "");
-            name = name.toLowerCase();
-
-            String path = mSettings.mOutputFolder + java.io.File.separator + name;
-
-            if (null != measColoc) {
-                ImagePlus mergedChannel = Filter.MergeChannels(imgAry);
-                Filter.SaveImageWithOverlay(mergedChannel, measColoc, path + "_merged.jpg");
-                measColoc.addControlImagePath(name + "_merged.jpg");
-            }
-
-            for (int n = 0; n < imgAry.length; n++) {
-                if (imgAry[n] != null && chAry[n] != null) {
-                    String fileName = "_" + chNames[n] + ".jpg";
-                    Filter.SaveImageWithOverlay(imgAry[n], chAry[n], path + fileName);
-                    chAry[n].addControlImagePath(name + fileName);
-                }
-            }
-
-        }
-    }
-
 }

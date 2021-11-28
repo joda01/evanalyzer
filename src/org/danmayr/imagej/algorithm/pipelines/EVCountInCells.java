@@ -118,7 +118,7 @@ public class EVCountInCells extends EVColoc {
                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod, val.getValue().minThershold,
                         val.getValue().maxThershold, in, true);
                 Filter.Watershed(evSubtracted); // Multi thread problem
-                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1, val.getValue().mMinCircularity);
+                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1, val.getValue().getMinCircularityDouble());
 
                 /*
                  * Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
@@ -258,7 +258,7 @@ public class EVCountInCells extends EVColoc {
             //
             //
             ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
-            ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, evChannel.getValue().mMinCircularity);
+            ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, evChannel.getValue().getMinCircularityDouble());
             /*
              * Filter.SaveImage(mask, getPath(mImage) + "_" +
              * evChannel.getValue().type.toString() + "_ev_in_cell_mask.jpg", rmEvs);
@@ -298,7 +298,7 @@ public class EVCountInCells extends EVColoc {
             // Find all nuclues
             //
             ImagePlus nucleusMask = Filter.AnalyzeParticles(nucluesEdited, nucleusRoiAll, 1000, -1,
-                    nuclues.mMinCircularity);
+                    nuclues.getMinCircularityDouble());
             Filter.FillHoles(nucleusMask);
             // Filter.SaveImage(nucleusMask, getPath(mImage) + "_nucleus.jpg",
             // nucleusRoiAll);
@@ -310,7 +310,7 @@ public class EVCountInCells extends EVColoc {
             // Remove all nucleus on edge
             //
             ImagePlus nucleusMaskFiltered = Filter.AnalyzeParticles(nucluesEdited, nucleusRoiFiltered, 1000, -1,
-                    nuclues.mMinCircularity, true, null, mSettings.mRemoveCellsWithoutNucleus);
+                    nuclues.getMinCircularityDouble(), true, null, mSettings.mRemoveCellsWithoutNucleus);
             Filter.FillHoles(nucleusMaskFiltered);
             /*
              * Filter.SaveImage(nucleusMaskFiltered, getPath(mImage) +
@@ -362,7 +362,7 @@ public class EVCountInCells extends EVColoc {
                     //
                     // Contains Cell information
                     //
-                    String valueNames[] = { "area size", "intensity", "circularity", "valid", "invalid" };
+                    String valueNames[] = { "area size [µm]", "intensity", "circularity [0-1]", "valid", "invalid" };
                     Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
                             new CellInfoStatistics(), valueNames, 0);
 
@@ -448,7 +448,7 @@ public class EVCountInCells extends EVColoc {
         }
 
         public String[] getTitle() {
-            String[] title = { "area size", "intensity", "circularity", "valid", "invalid" };
+            String[] title = { "area size [µm]", "intensity", "circularity [0-1]", "valid", "invalid" };
             return title;
         }
 

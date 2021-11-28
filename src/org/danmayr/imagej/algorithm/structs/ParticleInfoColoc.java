@@ -14,8 +14,8 @@ public class ParticleInfoColoc extends ParticleInfo {
     public double[] areaSizeChannels;
 
     public ParticleInfoColoc(int roiName, double areaSize, double circularity, double[] intensityChannels,
-            double[] areaSizeChannels, Roi roi) {
-        super(roiName, areaSize, 255, 255, circularity, roi);
+            double[] areaSizeChannels, Roi roi, int snapArea) {
+        super(roiName, areaSize, 255, 255, circularity, roi, snapArea);
         this.intensityChannels = intensityChannels;
         this.areaSizeChannels = areaSizeChannels;
     }

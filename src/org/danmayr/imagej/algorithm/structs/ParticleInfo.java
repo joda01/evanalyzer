@@ -1,7 +1,11 @@
 package org.danmayr.imagej.algorithm.structs;
 
+
+import java.awt.Rectangle;
+
 import org.danmayr.imagej.algorithm.filters.Filter;
 
+import ij.gui.OvalRoi;
 import ij.gui.Roi;
 
 ///
@@ -15,6 +19,7 @@ public class ParticleInfo {
     static protected int WRONG_CIRCULARITY = 0x08;
     static protected int WRONG_INTENSITY = 0x10;
     Roi mRoi = null;
+    Roi mSnapArea = null;
 
     ///
     /// \brief Constructor
@@ -27,9 +32,34 @@ public class ParticleInfo {
         this.areaGrayScale = areaGrayScale;
     }
 
-    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, Roi roi) {
+    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, Roi roi, int snapArea) {
         this(roiName,areaSize,areaGrayScale,areaThersholdScale,circularity);
         this.mRoi = roi;
+        if(snapArea > 0){
+            mSnapArea = generateSnapArea(roi, snapArea);
+        }else{
+            mSnapArea = roi;
+        }
+    }
+
+
+    public Roi generateSnapArea(Roi inRoi, int snapArea){
+        Rectangle bounds = inRoi.getBounds();
+
+        if(snapArea*2 > bounds.width && snapArea*2 > bounds.height){
+            int centerX = bounds.x+bounds.width/2;
+            int centerY = bounds.y+bounds.height/2;
+
+            int pointX = centerX-snapArea;
+            int pointY = centerY-snapArea;
+
+            int width = snapArea*2;
+
+            OvalRoi ovalroi = new OvalRoi(pointX,pointY,width,width);
+            return ovalroi;
+        }else{
+            return inRoi;
+        }
     }
 
     ///
@@ -38,11 +68,11 @@ public class ParticleInfo {
     ///
     public Roi isPartOf(ParticleInfo roiIn)
     {
-        if(null != mRoi && null != roiIn.getRoi()){
+        if(null != getSnapArea() && null != roiIn.getSnapArea()){
             // Only calculate the intersection of the ROIs if the bouding boxes intersects
             // this makes it faster
-            if(true == mRoi.getBounds().intersects(roiIn.getRoi().getBounds())){
-                return Filter.and(mRoi, roiIn.getRoi());
+            if(true == getSnapArea().getBounds().intersects(roiIn.getSnapArea().getBounds())){
+                return Filter.and(getSnapArea(), roiIn.getSnapArea());
             }else{
                 return null;
             }
@@ -54,10 +84,15 @@ public class ParticleInfo {
     public void clearRoi()
     {
         mRoi = null;
+        mSnapArea = null;
     }
 
     public Roi getRoi(){
         return mRoi;
+    }
+
+    public Roi getSnapArea(){
+        return mSnapArea;
     }
 
     ///

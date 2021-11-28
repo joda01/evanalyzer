@@ -87,6 +87,5 @@
   "function": "countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus",
   "min_intensity": 0,
   "report_type": "FullReport",
-  "series": 0,
-  "pixel_in_micrometer":1
+  "series": 0
 }
