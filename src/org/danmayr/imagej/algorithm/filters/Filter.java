@@ -276,16 +276,16 @@ public class Filter {
         Overlay ov = new Overlay();
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(ov, rm.getRoisAsArray(), Color.red, false);
+        paintRoiOverlay(ov, rm.getRoisAsArray(), Color.red, false,false);
         saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName,Color c, boolean printNr) {
+    public static void SaveImageWithOverlay(ImagePlus image, Channel rm, String imageName,Color c, boolean printNr, boolean fill) {
 
         ImagePlus saveImg = Filter.duplicateImage(image);
-        paintRoiOverlay(saveImg, rm.getRois(),c,printNr);
+        paintRoiOverlay(saveImg, rm.getRois(),c,printNr,fill);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
@@ -294,56 +294,59 @@ public class Filter {
         Overlay ov = new Overlay();
         ImagePlus saveImg = Filter.duplicateImage(image);
         for (int n = 0; n < overlays.size(); n++) {
-            paintRoiOverlay(ov, overlays.get(n).m.getRoisAsArray(), overlays.get(n).c, overlays.get(n).nr);
+            paintRoiOverlay(ov, overlays.get(n).m.getRoisAsArray(), overlays.get(n).c, overlays.get(n).nr,overlays.get(n).fill);
         }
         saveImg.setOverlay(ov);
         saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 
-    private static void paintRoiOverlay(ImagePlus image, TreeMap<Integer, ParticleInfo> rois,Color c, boolean printNr) {
+    public static void SaveImageWithOverlayFromChannel(ImagePlus image, Vector<ChannelInfoOverlaySettings> overlays, String imageName) {
         Overlay ov = new Overlay();
-        paintRoiOverlay(ov,rois,c,printNr);
+        ImagePlus saveImg = Filter.duplicateImage(image);
+        for (int n = 0; n < overlays.size(); n++) {
+            paintRoiOverlay(ov, overlays.get(n).m, overlays.get(n).c, overlays.get(n).nr,overlays.get(n).fill);
+        }
+        saveImg.setOverlay(ov);
+        saveImg = saveImg.flatten();
+        JpegWriter.save(saveImg, imageName, 100);
+    }
+
+    private static void paintRoiOverlay(ImagePlus image, TreeMap<Integer, ParticleInfo> rois,Color c, boolean printNr, boolean fill) {
+        Overlay ov = new Overlay();
+        paintRoiOverlay(ov,rois,c,printNr,fill);
         image.setOverlay(ov);
     }
 
-    private static void paintRoiOverlay(Overlay ov, TreeMap<Integer, ParticleInfo> rois, Color c, boolean printNr) {
+    private static void paintRoiOverlay(Overlay ov, TreeMap<Integer, ParticleInfo> rois, Color c, boolean printNr, boolean fill) {
         for (Map.Entry<Integer, ParticleInfo> e : rois.entrySet()) {
-            Roi ro = e.getValue().getRoi();
-            ro.setStrokeColor(c);
-            ov.add(ro);
-
-            Roi ro2 = e.getValue().getSnapArea();
-            if(ro2 !=null){
-                ro2.setStrokeColor(c);
-                ov.add(ro2);
-            }
-
-            if (true == printNr) {
-                Rectangle rec = ro.getBounds();
-                double x1 = rec.getX() + 0.5 * rec.getWidth();
-                double y1 = rec.getY() + 0.5 * rec.getHeight();
-                TextRoi lbl = new TextRoi(x1, y1, ""+e.getKey(), font);
-                lbl.setStrokeColor(Color.black);
-                lbl.setFillColor(Color.white);
-                ov.add(lbl);
-            }
+            addRoiToOverlay(ov,e.getKey(),e.getValue().getRoi(),c,printNr,fill);
+            addRoiToOverlay(ov,e.getKey(),e.getValue().getSnapArea(),c,printNr,false);
         }
     }
 
     static int fontSize = 15;
     static Font font = new Font("SansSerif", Font.PLAIN, fontSize);
 
-    private static void paintRoiOverlay(Overlay ov, Roi[] rois, Color c, boolean printNr) {
+    private static void paintRoiOverlay(Overlay ov, Roi[] rois, Color c, boolean printNr, boolean fill) {
         for (int n = 0; n < rois.length; n++) {
-            rois[n].setStrokeColor(c);
-            ov.add(rois[n]);
+            addRoiToOverlay(ov,n,rois[n],c,printNr,fill);
+        }
+    }
+
+    private static void addRoiToOverlay(Overlay ov, int nr, Roi roi,  Color c, boolean printNr, boolean fill){
+        if(roi!=null){
+            roi.setStrokeColor(c);
+            if(true == fill){
+                roi.setFillColor(c);
+            }
+            ov.add(roi);
 
             if (true == printNr) {
-                Rectangle rec = rois[n].getBounds();
+                Rectangle rec = roi.getBounds();
                 double x1 = rec.getX() + 0.5 * rec.getWidth();
                 double y1 = rec.getY() + 0.5 * rec.getHeight();
-                TextRoi lbl = new TextRoi(x1, y1, Integer.toString(n), font);
+                TextRoi lbl = new TextRoi(x1, y1, Integer.toString(nr), font);
                 lbl.setStrokeColor(Color.black);
                 lbl.setFillColor(Color.white);
                 ov.add(lbl);

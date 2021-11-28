@@ -19,4 +19,5 @@ public class RoiOverlaySettings
     public RoiManager m=null;
     public Color c;
     public boolean nr;
+    public boolean fill = false;
 }

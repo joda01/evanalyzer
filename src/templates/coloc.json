@@ -31,7 +31,7 @@
       "thershold": "Li",
       "thershold_max": 65535,
       "thershold_min": -1,
-      "type": "EV_DAPI",
+      "type": "EV_GFP",
       "zprojection": "OFF"
     },
     {

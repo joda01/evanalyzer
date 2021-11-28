@@ -15,6 +15,8 @@ import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
+import java.awt.*;
+
 
 ///
 /// \class  Channel
@@ -26,70 +28,57 @@ abstract public class Pipeline {
   // Enum which contains the color indexes for a RGBStackMerge
   // see:
   // https://imagej.nih.gov/ij/developer/source/ij/plugin/RGBStackMerge.java.html
-  private enum ChannelColor {
-    RED(0), GREEN(1), BLUE(2), GRAY(3), CYAN(4), MAGENTA(5), YELLOW(6);
-
-    private ChannelColor(int idx) {
-      mIdx = idx;
-    }
-
-    public int getIdx() {
-      return mIdx;
-    }
-
-    int mIdx;
-  }
 
   private static Map<Integer, ChannelType> map = new HashMap<Integer, ChannelType>();
 
   public enum ChannelType {
-    EV_DAPI("dapi", ChannelColor.BLUE, true, false, 0), EV_GFP("gfp", ChannelColor.GREEN, true, false, 1),
-    EV_CY3("cy3", ChannelColor.RED, true, false, 2), EV_CY5("cy5", ChannelColor.MAGENTA, true, false, 3),
-    EV_CY7("cy7", ChannelColor.YELLOW, true, false, 4),
-    CELL_BRIGHTFIELD("cell_brightfield", ChannelColor.GRAY, false, true, 5),
-    NUCLEUS("nucleus", ChannelColor.CYAN, false, false, 6),
-    NEGATIVE_CONTROL("ctrl", ChannelColor.GRAY, false, false, 7),
-    BACKGROUND("background", ChannelColor.GRAY, false, false, 8), FREE_01("free_1", ChannelColor.GRAY, false, false, 9),
-    FREE_02("free_2", ChannelColor.GRAY, false, false, 10), FREE_03("free_3", ChannelColor.GRAY, false, false, 11),
-    FREE_04("free_4", ChannelColor.GRAY, false, false, 12), FREE_05("free_5", ChannelColor.GRAY, false, false, 13),
-    FREE_06("free_6", ChannelColor.GRAY, false, false, 14), FREE_07("free_7", ChannelColor.GRAY, false, false, 15),
-    FREE_08("free_8", ChannelColor.GRAY, false, false, 16), FREE_09("free_9", ChannelColor.GRAY, false, false, 17),
-    FREE_10("free_10", ChannelColor.GRAY, false, false, 18), FREE_11("free_11", ChannelColor.GRAY, false, false, 19),
-    FREE_12("free_12", ChannelColor.GRAY, false, false, 20), FREE_13("free_13", ChannelColor.GRAY, false, false, 21),
-    FREE_14("free_14", ChannelColor.GRAY, false, false, 22), FREE_15("free_15", ChannelColor.GRAY, false, false, 23),
-    FREE_16("free_16", ChannelColor.GRAY, false, false, 24), FREE_17("free_17", ChannelColor.GRAY, false, false, 25),
-    FREE_18("free_18", ChannelColor.GRAY, false, false, 26), FREE_19("free_19", ChannelColor.GRAY, false, false, 27),
-    FREE_20("free_20", ChannelColor.GRAY, false, false, 28),
-    FREE_21("free_20", ChannelColor.GRAY, false, false, 21 + 8),
-    FREE_22("free_20", ChannelColor.GRAY, false, false, 22 + 8),
-    FREE_23("free_20", ChannelColor.GRAY, false, false, 23 + 8),
-    FREE_24("free_20", ChannelColor.GRAY, false, false, 24 + 8),
-    FREE_25("free_20", ChannelColor.GRAY, false, false, 25 + 8),
-    FREE_26("free_20", ChannelColor.GRAY, false, false, 26 + 8),
-    FREE_27("free_20", ChannelColor.GRAY, false, false, 27 + 8),
-    FREE_28("free_20", ChannelColor.GRAY, false, false, 28 + 8),
-    FREE_29("free_20", ChannelColor.GRAY, false, false, 29 + 8),
-    FREE_30("free_20", ChannelColor.GRAY, false, false, 30 + 8),
-    FREE_31("free_20", ChannelColor.GRAY, false, false, 31 + 8),
-    FREE_32("free_20", ChannelColor.GRAY, false, false, 32 + 8),
-    FREE_33("free_20", ChannelColor.GRAY, false, false, 33 + 8),
-    FREE_34("free_20", ChannelColor.GRAY, false, false, 34 + 8),
-    FREE_35("free_20", ChannelColor.GRAY, false, false, 35 + 8),
-    FREE_36("free_20", ChannelColor.GRAY, false, false, 36 + 8),
-    FREE_37("free_20", ChannelColor.GRAY, false, false, 37 + 8),
-    FREE_38("free_20", ChannelColor.GRAY, false, false, 38 + 8),
-    FREE_39("free_20", ChannelColor.GRAY, false, false, 39 + 8),
-    FREE_40("free_20", ChannelColor.GRAY, false, false, 40 + 8),
-    FREE_41("free_20", ChannelColor.GRAY, false, false, 41 + 8),
-    FREE_42("free_20", ChannelColor.GRAY, false, false, 42 + 8),
-    TETRASPECK_BEAD("tetraspeck_bead", ChannelColor.GRAY, false, false, 51),
-    COLOC_ALL("coloc_all", ChannelColor.GRAY, false, false, 52),
-    EV_CY3FCY5("cy3fcy5", ChannelColor.YELLOW, true, false, 53),
-    CELL_FLUORESCENCE("cell_fluorescence", ChannelColor.GRAY, false, true, 54),;
+    EV_DAPI("dapi", Color.blue, true, false, 0), EV_GFP("gfp", Color.green, true, false, 1),
+    EV_CY3("cy3", Color.red, true, false, 2), EV_CY5("cy5", Color.magenta, true, false, 3),
+    EV_CY7("cy7", Color.yellow, true, false, 4),
+    CELL_BRIGHTFIELD("cell_brightfield", Color.gray, false, true, 5),
+    NUCLEUS("nucleus", Color.cyan, false, false, 6),
+    NEGATIVE_CONTROL("ctrl", Color.gray, false, false, 7),
+    BACKGROUND("background", Color.gray, false, false, 8), FREE_01("free_1", Color.gray, false, false, 9),
+    FREE_02("free_2", Color.gray, false, false, 10), FREE_03("free_3", Color.gray, false, false, 11),
+    FREE_04("free_4", Color.gray, false, false, 12), FREE_05("free_5", Color.gray, false, false, 13),
+    FREE_06("free_6", Color.gray, false, false, 14), FREE_07("free_7", Color.gray, false, false, 15),
+    FREE_08("free_8", Color.gray, false, false, 16), FREE_09("free_9", Color.gray, false, false, 17),
+    FREE_10("free_10", Color.gray, false, false, 18), FREE_11("free_11", Color.gray, false, false, 19),
+    FREE_12("free_12", Color.gray, false, false, 20), FREE_13("free_13", Color.gray, false, false, 21),
+    FREE_14("free_14", Color.gray, false, false, 22), FREE_15("free_15", Color.gray, false, false, 23),
+    FREE_16("free_16", Color.gray, false, false, 24), FREE_17("free_17", Color.gray, false, false, 25),
+    FREE_18("free_18", Color.gray, false, false, 26), FREE_19("free_19", Color.gray, false, false, 27),
+    FREE_20("free_20", Color.gray, false, false, 28),
+    FREE_21("free_20", Color.gray, false, false, 21 + 8),
+    FREE_22("free_20", Color.gray, false, false, 22 + 8),
+    FREE_23("free_20", Color.gray, false, false, 23 + 8),
+    FREE_24("free_20", Color.gray, false, false, 24 + 8),
+    FREE_25("free_20", Color.gray, false, false, 25 + 8),
+    FREE_26("free_20", Color.gray, false, false, 26 + 8),
+    FREE_27("free_20", Color.gray, false, false, 27 + 8),
+    FREE_28("free_20", Color.gray, false, false, 28 + 8),
+    FREE_29("free_20", Color.gray, false, false, 29 + 8),
+    FREE_30("free_20", Color.gray, false, false, 30 + 8),
+    FREE_31("free_20", Color.gray, false, false, 31 + 8),
+    FREE_32("free_20", Color.gray, false, false, 32 + 8),
+    FREE_33("free_20", Color.gray, false, false, 33 + 8),
+    FREE_34("free_20", Color.gray, false, false, 34 + 8),
+    FREE_35("free_20", Color.gray, false, false, 35 + 8),
+    FREE_36("free_20", Color.gray, false, false, 36 + 8),
+    FREE_37("free_20", Color.gray, false, false, 37 + 8),
+    FREE_38("free_20", Color.gray, false, false, 38 + 8),
+    FREE_39("free_20", Color.gray, false, false, 39 + 8),
+    FREE_40("free_20", Color.gray, false, false, 40 + 8),
+    FREE_41("free_20", Color.gray, false, false, 41 + 8),
+    FREE_42("free_20", Color.gray, false, false, 42 + 8),
+    TETRASPECK_BEAD("tetraspeck_bead", Color.gray, false, false, 51),
+    COLOC_ALL("coloc_all", Color.gray, false, false, 52),
+    EV_CY3FCY5("cy3fcy5", Color.yellow, true, false, 53),
+    CELL_FLUORESCENCE("cell_fluorescence", Color.gray, false, true, 54),;
 
-    private ChannelType(String name, ChannelColor chColor, boolean evChannel, boolean cellChannel, int i) {
+    private ChannelType(String name, Color chColor, boolean evChannel, boolean cellChannel, int i) {
       mName = name;
-      mChColor = chColor;
+      mColor = chColor;
       mIsEvChannel = evChannel;
       mIsCellChannel = cellChannel;
       this.idx = i;
@@ -113,8 +102,8 @@ abstract public class Pipeline {
       return mName;
     }
 
-    public int getColorIdx() {
-      return mChColor.getIdx();
+    public Color getColor() {
+      return mColor;
     }
 
     public boolean isEvChannel() {
@@ -127,7 +116,7 @@ abstract public class Pipeline {
 
     int idx;
     private final String mName;
-    private final ChannelColor mChColor;
+    private final Color mColor;
     private final boolean mIsEvChannel;
     private final boolean mIsCellChannel;
   }

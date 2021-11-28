@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import org.danmayr.imagej.algorithm.statistics.*;
 
 import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 
 ///
 /// \class  Channel
