@@ -13,7 +13,7 @@ jobs:
       IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.tar.gz
       WIKI_USER: ${{ secrets.FIJI_SITES_USERNAME }}
       UPDATE_PASS: ${{ secrets.FIJI_SITES_PASSWORD }}
-      UPDATE_SITE: https://sites.imagej.net/evanalyzer/
+      UPDATE_SITE: evanalyzer
     steps:
       - name: Checkout
         uses: actions/checkout@v2
