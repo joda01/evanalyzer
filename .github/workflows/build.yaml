@@ -1,8 +1,11 @@
-name: Release to Update Site
+name: Build
+
+
 
 on:
-  push:
-    branches: [main]  # Trigger the workflow on push to the master branch
+  release:
+    # Only use the types keyword to narrow down the activity types that will trigger your workflow.
+    types: [published, created, edited]
 
 jobs:
   build_release:
