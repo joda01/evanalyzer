@@ -27,7 +27,7 @@ jobs:
         run: |
           ./build.sh
           cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
-          cp ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
+          cp -r ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
       - name: Release to ImageJ update site
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
