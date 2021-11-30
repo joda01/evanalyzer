@@ -2,7 +2,7 @@ name: Release to Update Site
 
 on:
   push:
-    branches: [master]  # Trigger the workflow on push to the master branch
+    branches: [main]  # Trigger the workflow on push to the master branch
 
 jobs:
   build_release:
@@ -11,9 +11,9 @@ jobs:
       image: mcr.microsoft.com/vscode/devcontainers/java:0-8
     env:
       IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.tar.gz
-      WIKI_USER: YOUR_USER_NAME
-      UPDATE_PASS: $  # DO NOT WRITE your password here
-      UPDATE_SITE: YOUR_UPDATE_SITE_NAME
+      WIKI_USER: ${{ secrets.FIJI_SITES_USERNAME }}
+      UPDATE_PASS: ${{ secrets.FIJI_SITES_PASSWORD }}
+      UPDATE_SITE: https://sites.imagej.net/evanalyzer/
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -23,8 +23,17 @@ jobs:
         run: |
           curl --silent ${IJ_DOWNLOAD_URL} | tar --extract --gzip
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
-     # - name: Install in ImageJ/Fiji (with Maven)
-     #   run: mvn -B install -Dscijava.app.directory=./Fiji.app -Ddelete.other.versions=true -Dscijava.ignoreDependencies=true
-     # - name: Release to ImageJ update site
-     #   run: |
-     #     ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
+      - name: Install in ImageJ/Fiji
+        run: |
+          ./build.sh
+          cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
+          cp ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
+      - name: Release to ImageJ update site
+        run: |
+          ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: EVAnalyzer
+          path: ./bin/EVAnalyzer.jar
+          retention-days: 30
