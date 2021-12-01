@@ -9,18 +9,36 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: mcr.microsoft.com/vscode/devcontainers/java:0-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build with Docker
+        run: ./build.sh
+      - name: Upload EVAnalyzer.jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: EVAnalyzer
+          path: |
+            ./bin/EVAnalyzer.jar
+            ./libs/evanalyzer
+          retention-days: 2
+      
+  depoly_release:
+    needs: build_release
+    runs-on: ubuntu-latest
     env:
       IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.tar.gz
       WIKI_USER: ${{ secrets.FIJI_SITES_USERNAME }}
       UPDATE_PASS: ${{ secrets.FIJI_SITES_PASSWORD }}
       UPDATE_SITE: evanalyzer
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build with Docker
-        run: ./build.sh
+      - name: Download build from step before
+        uses: actions/download-artifact@v2
+        with:
+          name: EVAnalyzer
       - name: Install ImageJ/Fiji
         run: |
+          ls -l
           curl --silent ${IJ_DOWNLOAD_URL} | tar --extract --gzip
       - name: Install in ImageJ/Fiji
         run: |
@@ -34,9 +52,3 @@ jobs:
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: EVAnalyzer
-          path: ./bin/EVAnalyzer.jar
-          retention-days: 30
