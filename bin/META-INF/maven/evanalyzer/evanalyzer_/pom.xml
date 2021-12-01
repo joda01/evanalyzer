@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>evanalyzer</groupId>
+		<artifactId>pom-evanalyzer</artifactId>
+		<version>6.5.0</version>
+	</parent>
+
+	<artifactId>evanalyzer_</artifactId>
+
+	<name>EVAnalyzer plugin for Fiji</name>
+	<description>EVAnalyzer plugin for Fiji.</description>
+	<url>https://github.com/joda01/evanalyzer</url>
+	<inceptionYear>2019</inceptionYear>
+	<organization>
+		<name>Fiji</name>
+		<url>https://fiji.sc/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU General Public License v3</name>
+			<url>https://www.gnu.org/licenses/gpl-3.0.de.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>joda01</id>
+			<name>Joachim Danmayr</name>
+			<url>https://github.com/joda01</url>
+			<roles>
+				<role>founder</role>
+				<role>lead</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>Melanie Schuerz</name>
+			<url></url>
+			<properties><id>melanie</id></properties>
+		</contributor>
+		<contributor>
+			<name>Maria Jaritsch</name>
+			<url></url>
+			<properties><id>maria</id></properties>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>ImageJ Forum</name>
+			<archive>http://forum.imagej.net/</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<connection>git@github.com:joda01/evanalyzer.git</connection>
+		<developerConnection>git@github.com:joda01/evanalyzer.git</developerConnection>
+		<tag>evanalyzer</tag>
+		<url>https://github.com/joda01/evanalyzer</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/joda01/evanalyzer/issues</url>
+	</issueManagement>
+
+	<properties>
+		<license.licenseName>gpl_v3</license.licenseName>
+		<license.copyrightOwners>Joachim Danmayr</license.copyrightOwners>
+	</properties>
+</project>
