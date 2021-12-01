@@ -3,6 +3,8 @@ name: Release to Update Site
 on:
   push:
   pull_request:
+  release:
+    types: [created]
 
 jobs:
   build_release:
