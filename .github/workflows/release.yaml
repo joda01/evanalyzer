@@ -24,7 +24,6 @@ jobs:
           curl --silent ${IJ_DOWNLOAD_URL} | tar --extract --gzip
       - name: Install in ImageJ/Fiji
         run: |
-          ./build.sh
           cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
           cp -r ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
           rm -r ./bin
