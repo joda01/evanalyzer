@@ -24,7 +24,7 @@ jobs:
           retention-days: 2
       
   depoly_release:
-    if: github.event_name == contains(github.ref, '/tags/v')
+    if: github.event_name == 'release' && github.event.action == 'created'
     needs: build_release
     runs-on: ubuntu-latest
     env:
