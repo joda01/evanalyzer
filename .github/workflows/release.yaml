@@ -6,7 +6,6 @@ on:
 
 jobs:
   build_release:
-    if: github.event_name == contains(github.ref, '/tags/v')
     runs-on: ubuntu-latest
     container: 
       image: mcr.microsoft.com/vscode/devcontainers/java:0-8
@@ -25,6 +24,7 @@ jobs:
           retention-days: 2
       
   depoly_release:
+    if: github.event_name == contains(github.ref, '/tags/v')
     needs: build_release
     runs-on: ubuntu-latest
     env:
