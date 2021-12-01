@@ -2,7 +2,7 @@ name: Release to Update Site
 
 on:
   push:
-    branches: [main]  # Trigger the workflow on push to the master branch
+  pull_request:
 
 jobs:
   build_release:
