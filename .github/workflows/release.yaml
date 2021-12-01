@@ -22,15 +22,14 @@ jobs:
       - name: Install ImageJ/Fiji
         run: |
           curl --silent ${IJ_DOWNLOAD_URL} | tar --extract --gzip
-          ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
       - name: Install in ImageJ/Fiji
         run: |
           ./build.sh
           cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
           cp -r ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
-          cp -f ./libs/fijii/jars/ij-1.53c.jar ./Fiji.app/jars/ij-1.53c.jar
       - name: Release to ImageJ update site
         run: |
+          ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
