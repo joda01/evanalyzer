@@ -44,10 +44,6 @@ jobs:
         run: |
           cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
           cp -r ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
-          rm -r ./bin
-          rm -r ./src
-          rm -r ./libs
-          rm -r ./doc
       - name: Release to ImageJ update site
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
