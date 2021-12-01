@@ -6,7 +6,7 @@ on:
 
 jobs:
   build_release:
-    if: github.event_name == contains(github.ref, '/tags/v')))
+    if: github.event_name == contains(github.ref, '/tags/v')
     runs-on: ubuntu-latest
     container: 
       image: mcr.microsoft.com/vscode/devcontainers/java:0-8
