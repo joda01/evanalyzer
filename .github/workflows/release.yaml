@@ -40,12 +40,13 @@ jobs:
         run: |
           ls -l
           curl --silent ${IJ_DOWNLOAD_URL} | tar --extract --gzip
-      - name: Release to ImageJ update site
+      - name: Update ImageJ
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
           ./Fiji.app/ImageJ-linux64 --headless --update update
-      - name: Install in ImageJ/Fiji
+      - name: Release to ImageJ update site
         run: |
           cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
-          cp -r ./libs/evanalyzer ./Fiji.app/jars/evanalyzer
+          mkdir -p ./Fiji.app/jars/evanalyzer
+          cp -r ./libs/evanalyzer/* ./Fiji.app/jars/evanalyzer
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
