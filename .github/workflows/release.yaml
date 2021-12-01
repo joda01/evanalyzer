@@ -47,4 +47,5 @@ jobs:
       - name: Release to ImageJ update site
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
+          ./Fiji.app/ImageJ-linux64 --headless --update update
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
