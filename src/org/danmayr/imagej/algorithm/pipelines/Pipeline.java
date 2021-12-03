@@ -33,8 +33,8 @@ abstract public class Pipeline {
 
   public enum ChannelType {
     EV_DAPI("dapi", Color.blue, true, false, 0), EV_GFP("gfp", Color.green, true, false, 1),
-    EV_CY3("cy3", Color.red, true, false, 2), EV_CY5("cy5", Color.magenta, true, false, 3),
-    EV_CY7("cy7", Color.yellow, true, false, 4),
+    EV_CY3("cy3", Color.yellow, true, false, 2), EV_CY5("cy5", Color.red, true, false, 3),
+    EV_CY7("cy7", Color.magenta, true, false, 4),
     CELL_BRIGHTFIELD("cell_brightfield", Color.gray, false, true, 5),
     NUCLEUS("nucleus", Color.cyan, false, false, 6),
     NEGATIVE_CONTROL("ctrl", Color.gray, false, false, 7),

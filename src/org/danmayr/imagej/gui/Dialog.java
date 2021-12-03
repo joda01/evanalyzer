@@ -94,9 +94,9 @@ public class Dialog extends JFrame {
     private JButton mOpenResult;
     private JProgressBar mProgressbar = new JProgressBar();
     SpinnerModel modelMicrometer = new SpinnerNumberModel(1, // initial value
-            0.1, // min
+            0.001, // min
             1, // max
-            0.01); // step
+            0.001); // step
     private JSpinner mPixelInMicrometer = new JSpinner(modelMicrometer);
     private JComboBox mFunctionSelection;
     private JComboBox mSeries;
