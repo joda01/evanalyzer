@@ -329,6 +329,8 @@ public class Filter {
             if (true == e.getValue().isValid()) {
                 addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), c, printNr, fill);
                 addRoiToOverlay(ov, e.getKey(), e.getValue().getSnapArea(), c, printNr, false);
+            }else{
+                addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), Color.DARK_GRAY, printNr, fill);
             }
         }
     }
