@@ -325,8 +325,11 @@ public class Filter {
     private static void paintRoiOverlay(Overlay ov, TreeMap<Integer, ParticleInfo> rois, Color c, boolean printNr,
             boolean fill) {
         for (Map.Entry<Integer, ParticleInfo> e : rois.entrySet()) {
-            addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), c, printNr, fill);
-            addRoiToOverlay(ov, e.getKey(), e.getValue().getSnapArea(), c, printNr, false);
+            // Just print valid particle
+            if (true == e.getValue().isValid()) {
+                addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), c, printNr, fill);
+                addRoiToOverlay(ov, e.getKey(), e.getValue().getSnapArea(), c, printNr, false);
+            }
         }
     }
 
@@ -525,7 +528,8 @@ public class Filter {
             ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity,
                     rm.getRoi(i), chSet.getSnapAreaSizePixel());
             if (null != settings) {
-                exosom.validatearticle(chSet.getMinParticleSizeDouble(), chSet.getMaxParticleSizeDouble(), chSet.getMinCircularityDouble(),
+                exosom.validatearticle(chSet.getMinParticleSizeDouble(), chSet.getMaxParticleSizeDouble(),
+                        chSet.getMinCircularityDouble(),
                         0);
             }
             ch.addRoi(exosom);
