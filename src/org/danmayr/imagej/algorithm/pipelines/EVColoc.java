@@ -116,8 +116,12 @@ public class EVColoc extends Pipeline {
             String imageName = getName(file) + "_all_coloc.jpg";
             String imagePath = getPath(file) + "_all_coloc.jpg";
             Filter.SaveImageWithOverlayFromChannel(colocAll.imageAfterThershold, channelsToPrint, imagePath);
-            colocAll.ch.addControlImagePath(imageName);
-            channels.put(ChannelType.COLOC_ALL, colocAll.ch);
+            
+            // Only add to output if there are more than two channels. Else it would be redundat
+            if (colocChannels.size() > 2) {
+                colocAll.ch.addControlImagePath(imageName);
+                channels.put(ChannelType.COLOC_ALL, colocAll.ch);
+            }
 
         }
 
@@ -146,7 +150,8 @@ public class EVColoc extends Pipeline {
             TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
             // Select setting of highest circularity of both channels
-            ChannelSettings chSet = ch1.set.getMinCircularityDouble() > ch2.set.getMinCircularityDouble() ? ch1.set : ch2.set;
+            ChannelSettings chSet = ch1.set.getMinCircularityDouble() > ch2.set.getMinCircularityDouble() ? ch1.set
+                    : ch2.set;
 
             double circularityFilter = chSet.getMinCircularityDouble();
             double minParticleSize = chSet.getMinParticleSizeDouble();
@@ -184,7 +189,7 @@ public class EVColoc extends Pipeline {
                             ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, circularity,
                                     intensityChannels,
                                     areaChannels, result, 0);
-                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter,0);
+                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter, 0);
                             coloc.addRoi(exosom);
                             colocNr++;
                             break; // We have a match. We can continue with the next particle
@@ -205,12 +210,13 @@ public class EVColoc extends Pipeline {
             //
             // Save control image
             //
-            if(ch1.type != ChannelType.COLOC_ALL){
+            if (ch1.type != ChannelType.COLOC_ALL) {
                 Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
                 channelsToPrint.add(new ChannelInfoOverlaySettings(roiPic1, ch1.type.getColor(), false, true));
                 channelsToPrint.add(new ChannelInfoOverlaySettings(roiPic2, ch2.type.getColor(), false, true));
                 channelsToPrint
-                        .add(new ChannelInfoOverlaySettings(coloc.getRois(), new Color(255, 255, 255, 80), false, true));
+                        .add(new ChannelInfoOverlaySettings(coloc.getRois(), new Color(255, 255, 255, 80), false,
+                                true));
                 String imageName = getName(file) + name + "_coloc.jpg";
                 String imagePath = getPath(file) + name + "_" + "coloc.jpg";
 
@@ -258,7 +264,15 @@ public class EVColoc extends Pipeline {
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0, img0BeforeTh, img0Th, rm);
             measCh0.setThershold(in0[0], in0[1]);
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
+
+            //
+            // Save control images
+            //
+            String path = getPath(file) + "_" + img0.type.toString() + ".jpg";
+            measCh0.addControlImagePath(getName(file) + "_" + img0.type.toString() + ".jpg");
             channels.put(img0.type, measCh0);
+            Filter.SaveImageWithOverlay(analzeImg0, rm, path);
+
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
 
