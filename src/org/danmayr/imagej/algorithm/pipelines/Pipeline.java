@@ -121,7 +121,7 @@ abstract public class Pipeline {
     private final boolean mIsCellChannel;
   }
 
-  protected AnalyseSettings mSettings;
+  protected static AnalyseSettings mSettings;
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
@@ -273,7 +273,7 @@ abstract public class Pipeline {
 
   abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
 
-  protected String getPath(File file) {
+  protected static String getPath(File file) {
     String name = file.getAbsolutePath().replace(java.io.File.separator, "");
     name = name.replace("%", "");
     name = name.replace(" ", "");
@@ -288,7 +288,7 @@ abstract public class Pipeline {
     return mSettings.mOutputFolder + java.io.File.separator + getName(file);
   }
 
-  protected String getName(File file) {
+  protected static String getName(File file) {
     String name = file.getAbsolutePath().replace(java.io.File.separator, "");
     name = name.replace("%", "");
     name = name.replace(" ", "");

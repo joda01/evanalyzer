@@ -1162,7 +1162,7 @@ public class Dialog extends JFrame {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     JOptionPane.showMessageDialog(new JFrame(), "EVAnalyzer v" + Version.getVersion()
-                            + ".\nCopyright 2020 - 2021 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                            + ".\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
                             "About", JOptionPane.INFORMATION_MESSAGE);
 
                 }
@@ -1536,7 +1536,7 @@ public class Dialog extends JFrame {
         ////////////////////////////////////////
 
         // Logo
-        JLabel logo = new JLabel("(c) 2019 - 2021  SMJD", SwingConstants.RIGHT);
+        JLabel logo = new JLabel("(c) 2019 - 2022  SMJD", SwingConstants.RIGHT);
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_32.png"));
         logo.setIcon(logoIcon);
 

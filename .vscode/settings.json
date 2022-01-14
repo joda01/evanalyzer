@@ -12,7 +12,8 @@
         "libs/fijii/jars/bio-formats/formats-bsd-6.5.1.jar",
         "libs/fijii/jars/bio-formats/formats-gpl-6.5.1.jar",
         "fijii/plugins/bio-formats_plugins-6.6.0.jar",
-        "libs/fijii/plugins/bio-formats_plugins-6.6.0.jar"
+        "libs/fijii/plugins/bio-formats_plugins-6.6.0.jar",
+        "libs/fijii/jars/ij-1.53c.jar"
     ],
     "java.dependency.packagePresentation": "flat",
     "java.project.sourcePaths": [

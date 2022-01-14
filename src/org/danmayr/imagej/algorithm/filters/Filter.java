@@ -329,7 +329,7 @@ public class Filter {
             if (true == e.getValue().isValid()) {
                 addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), c, printNr, fill);
                 addRoiToOverlay(ov, e.getKey(), e.getValue().getSnapArea(), c, printNr, false);
-            }else{
+            } else {
                 addRoiToOverlay(ov, e.getKey(), e.getValue().getRoi(), Color.DARK_GRAY, printNr, fill);
             }
         }
@@ -483,7 +483,7 @@ public class Filter {
     /// Execute analyze particles before
     ///
     public static Channel MeasureImage(String channelName, AnalyseSettings settings, ChannelSettings chSet,
-            ImagePlus imageOrigial, ImagePlus imageThershold, RoiManager rm) {
+            ImagePlus imageOrigial, ImagePlus imageThershold, RoiManager rm, boolean doParticleCheck) {
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/frame/RoiManager.html
         // multiMeasure(ImagePlus imp)
         // import ij.plugin.frame.RoiManager
@@ -492,7 +492,7 @@ public class Filter {
 
         ResultsTable r1 = measure(imageOrigial, rm);
         ResultsTable r2 = measure(imageThershold, rm);
-        Channel ch = createChannelFromMeasurement(channelName, settings, chSet, r1, r2, rm);
+        Channel ch = createChannelFromMeasurement(channelName, settings, chSet, r1, r2, rm, doParticleCheck);
         return ch;
     }
 
@@ -510,7 +510,8 @@ public class Filter {
     }
 
     public static Channel createChannelFromMeasurement(String channelName, AnalyseSettings settings,
-            ChannelSettings chSet, ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm) {
+            ChannelSettings chSet, ResultsTable imgOriginal, ResultsTable imgThershold, RoiManager rm,
+            boolean doParticleCheck) {
 
         int area = imgThershold.getColumnIndex("Area");
         int mean = imgThershold.getColumnIndex("Mean");
@@ -529,7 +530,7 @@ public class Filter {
 
             ParticleInfo exosom = new ParticleInfo(roiNr, areaSize, grayScale, thersholdScale, circularity,
                     rm.getRoi(i), chSet.getSnapAreaSizePixel());
-            if (null != settings) {
+            if (doParticleCheck) {
                 exosom.validatearticle(chSet.getMinParticleSizeDouble(), chSet.getMaxParticleSizeDouble(),
                         chSet.getMinCircularityDouble(),
                         0);

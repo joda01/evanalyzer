@@ -31,10 +31,13 @@ import org.danmayr.imagej.algorithm.pipelines.*;
 
 public class EVCountInCells extends EVColoc {
 
-    File mImage;
     static int MAX_THERSHOLD = 255;
     TreeMap<ChannelType, Channel> mReturnChannels;
     TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
+    Vector<ColocChannelSet> colocChannels = new Vector<>();
+    Vector<ColocChannelSet> colocChannelsEvInCells = new Vector<>();
+
+    
 
     public EVCountInCells(AnalyseSettings settings) {
         super(settings);
@@ -44,6 +47,8 @@ public class EVCountInCells extends EVColoc {
     protected TreeMap<ChannelType, Channel> startPipeline(File img) {
         mReturnChannels = new TreeMap<ChannelType, Channel>();
         mEditedEvs.clear();
+        colocChannels.clear();
+        colocChannelsEvInCells.clear();
         mImage = img;
 
         // System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism",
@@ -53,6 +58,10 @@ public class EVCountInCells extends EVColoc {
         EvSeparation();
         PerformanceAnalyzer.stop("CntInCells:EvSeparation");
 
+        PerformanceAnalyzer.start("CntInCells:executeColocAlgorithm");
+        EVColoc("coloc_all_evs",colocChannels);
+        PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithm");
+
         PerformanceAnalyzer.start("CntInCells:CellShapeDetection");
         ImagePlus cellArea = CellShapeDetection();
         PerformanceAnalyzer.stop("CntInCells:CellShapeDetection");
@@ -61,11 +70,29 @@ public class EVCountInCells extends EVColoc {
         NucleusSeparation(cellArea);
         PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
 
+        PerformanceAnalyzer.start("CntInCells:executeColocAlgorithmForEvsInCell");
+        EVColoc("coloc_incell_evs",colocChannelsEvInCells);
+        PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithmForEvsInCell");
+
         for (Map.Entry<ChannelType, Channel> e : mReturnChannels.entrySet()) {
             e.getValue().ClearRoi();
         }
 
         return mReturnChannels;
+    }
+
+    ///
+    /// EV Coloc
+    ///
+    void EVColoc(String title,Vector<ColocChannelSet> evChannelsToAnalyze) {
+        TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title,mImage, evChannelsToAnalyze);
+        int startIdx = mReturnChannels.size();
+        for (Map.Entry<ChannelType, Channel> val : ret.entrySet()) {
+            ChannelType type = ChannelType
+                    .getColocEnum(val.getKey().idx +startIdx + ChannelType.getFirstFreeChannel() * 2);
+
+            addReturnChannel(val.getValue(), type, val.getValue().getCtrlImagePath());
+        }
     }
 
     ///
@@ -118,20 +145,23 @@ public class EVCountInCells extends EVColoc {
                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod, val.getValue().minThershold,
                         val.getValue().maxThershold, in, true);
                 Filter.Watershed(evSubtracted); // Multi thread problem
-                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1, val.getValue().getMinCircularityDouble());
+                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
+                        val.getValue().getMinCircularityDouble());
 
                 /*
                  * Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
                  * + "_mask" + ".jpg", rm);
                  */
                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings, val.getValue(),
-                        evSubtractedOriginal, evSubtracted, rm);
+                        evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
                 addReturnChannel(evCh, val.getKey(), "");
                 try {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
                     setNew.mChannelImg = evSubtracted;
                     mEditedEvs.put(val.getKey(), setNew);
+                    colocChannels.add(new ColocChannelSet(evSubtractedOriginal, evSubtracted, val.getValue().type, evCh,
+                            val.getValue()));
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();
                     IJ.log("ERR");
@@ -193,7 +223,8 @@ public class EVCountInCells extends EVColoc {
              * Filter.SaveImage(cellsEdited, getPath(mImage) + "_" +
              * cellChannelSetting.type.toString() + ".jpg", rm);
              */
-            Channel chCell = Filter.MeasureImage("Cell Area", null, cellChannelSetting, cellsOriginal, cellsEdited, rm);
+            Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
+                    rm, false);
             chCell.setThershold(in[0], in[1]);
             addReturnChannel(chCell, cellChannelSetting.type, "");
 
@@ -247,8 +278,9 @@ public class EVCountInCells extends EVColoc {
             //
             // Calculate cell original thershold
             //
-            Channel cellAreaChannel = Filter.MeasureImage("cell area in" + evChannel.getValue().type.toString(), null,
-                    cellChannelSettings, evChannelImgOriginal, evChannelImg, cellArea);
+            Channel cellAreaChannel = Filter.MeasureImage("cell area in" + evChannel.getValue().type.toString(),
+                    mSettings,
+                    cellChannelSettings, evChannelImgOriginal, evChannelImg, cellArea, false);
 
             ChannelType cellAreaEvType = ChannelType.getColocEnum(evChannel.getValue().type.idx);
 
@@ -258,18 +290,23 @@ public class EVCountInCells extends EVColoc {
             //
             //
             ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
-            ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1, evChannel.getValue().getMinCircularityDouble());
+            ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1,
+                    evChannel.getValue().getMinCircularityDouble());
             /*
              * Filter.SaveImage(mask, getPath(mImage) + "_" +
              * evChannel.getValue().type.toString() + "_ev_in_cell_mask.jpg", rmEvs);
              */
             Channel evsInCells = Filter.MeasureImage(evChannel.getValue().type.toString() + " in Cell", mSettings,
-                    evChannel.getValue(), evChannelImgOriginal, mask, rmEvs);
+                    evChannel.getValue(), evChannelImgOriginal, mask, rmEvs, true);
 
             ChannelType inCellEvType = ChannelType
                     .getColocEnum(evChannel.getValue().type.idx + ChannelType.getFirstFreeChannel());
 
             addReturnChannel(evsInCells, inCellEvType, "");
+
+            colocChannelsEvInCells
+                    .add(new ColocChannelSet(evChannelImgOriginal, mask, evChannel.getValue().type, evsInCells,
+                            evChannel.getValue()));
 
             Filter.ClearRoiInImage(evChannelImgOriginal);
             Filter.ClearRoiInImage(evChannelImg);
@@ -370,7 +407,7 @@ public class EVCountInCells extends EVColoc {
                     // Measure the cell
                     //
                     Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, val.getValue(), evImg, evImg,
-                            cellRoi);
+                            cellRoi, true);
 
                     //
                     // Prepare overlays
@@ -389,7 +426,7 @@ public class EVCountInCells extends EVColoc {
                         Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
                         roiOverLay.add(new RoiOverlaySettings(evsInCellroi, Color.RED, false));
                         Channel cell = Filter.createChannelFromMeasurement("evs_per_cell_in_" + Integer.toString(n),
-                                mSettings, val.getValue(), rt, rt, cellRoi);
+                                mSettings, val.getValue(), rt, rt, cellRoi, true);
                         cell.calcStatistics();
                         Statistics stat = cell.getStatistic();
                         CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
