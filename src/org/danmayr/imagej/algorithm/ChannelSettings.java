@@ -71,7 +71,7 @@ public class ChannelSettings implements Cloneable {
     }
 
     public void setMinCircularityDouble(double v) {
-        mMinParticleSize = v;
+        mMinCircularity = v;
     }
 
     public void setMinParticleSizeDouble(double v) {
