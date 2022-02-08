@@ -12,7 +12,7 @@ import org.json.*;
 public class ChannelSettings implements Cloneable {
 
     public enum PreProcessingStep {
-        None, EdgeDetection
+        None, EdgeDetection,EnhanceContrast
     }
 
     public ImagePlus mChannelImg;

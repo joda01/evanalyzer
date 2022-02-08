@@ -81,6 +81,15 @@ public class Filter {
     }
 
     ///
+    /// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
+    ///
+    public static void EnhanceContrast(ImagePlus img) {
+        // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
+        ContrastEnhancer filter = new ContrastEnhancer();
+        filter.equalize(img);
+    }
+
+    ///
     /// https://imagej.nih.gov/ij/source/ij/plugin/filter/RankFilters.java
     ///
     public static void Median(ImagePlus img) {

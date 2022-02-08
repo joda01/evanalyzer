@@ -409,7 +409,7 @@ public class Dialog extends JFrame {
 
                 ////////////////////////////////////////////////////
                 ChannelSettings.PreProcessingStep[] preprocessingSteps = { ChannelSettings.PreProcessingStep.None,
-                        ChannelSettings.PreProcessingStep.EdgeDetection };
+                        ChannelSettings.PreProcessingStep.EdgeDetection,ChannelSettings.PreProcessingStep.EnhanceContrast  };
 
                 c.gridy++;
                 mPreProcesssingSteps = new JComboBox<ChannelSettings.PreProcessingStep>(preprocessingSteps);

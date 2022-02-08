@@ -180,12 +180,16 @@ abstract public class Pipeline {
       Filter.cropMarginOfImage(chSettings.getMarginCropPixel() , dup);
     }
 
-    // Find edges
+    // Preprocessing
     for (int n = 0; n < chSettings.preProcessing.size(); n++) {
       ChannelSettings.PreProcessingStep preProcess = chSettings.preProcessing.get(n);
       if (preProcess == ChannelSettings.PreProcessingStep.EdgeDetection) {
         Filter.FindEdges(dup);
       }
+      if (preProcess == ChannelSettings.PreProcessingStep.EnhanceContrast) {
+        Filter.EnhanceContrast(dup);
+      }
+      
     }
     return dup;
   }
