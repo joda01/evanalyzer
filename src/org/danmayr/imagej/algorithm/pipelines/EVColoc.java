@@ -267,14 +267,18 @@ public class EVColoc extends Pipeline {
                     img0.minThershold, img0.maxThershold, in0);
 
             //
-            // Remove TetraSpeckBeads
+            // Find particles
             //
-            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
-
             ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.getMinCircularityDouble());
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0, img0BeforeTh, img0Th, rm,
                     true);
             measCh0.setThershold(in0[0], in0[1]);
+
+            //
+            // Remove Tetraspec
+            //
+            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(analzeImg0, measCh0);
+
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
 
             //
@@ -291,66 +295,44 @@ public class EVColoc extends Pipeline {
         ///
         /// Remove tetraspeck bead
         ///
-        int RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved, ChannelType type) {
-            int removedTetraSpecs = 0;
-            if (rmWithTetraSpeckBeads != null) {
-                for (Map.Entry<Integer, ParticleInfo> ent : rmWithTetraSpeckBeads.getRois().entrySet()) {
-                    // Calculate center of mass of the ROI for selecting
-                    Roi snapAreaTetraSpeck = ent.getValue().getSnapArea();
-                    Rectangle boundingBox = snapAreaTetraSpeck.getBounds();
+        int RemoveTetraSpeckBeads(ImagePlus evImg, Channel thesholdPictureWhereTetraSpeckShouldBeRemoved) {
 
-                    for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x
-                            + boundingBox.width; x++) {
-                        for (int y = boundingBox.getLocation().y; y < boundingBox.getLocation().y
-                                + boundingBox.height; y++) {
-                            int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
-                            // Select only if there is a
-                            if (pixelVal > 200) {
-                                thesholdPictureWhereTetraSpeckShouldBeRemoved.setRoi(snapAreaTetraSpeck);
-                                thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(snapAreaTetraSpeck);
-                                Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                                Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                                removedTetraSpecs++;
-                            }
+            int removedTetraSpecs = 0;
+            for (Map.Entry<Integer, ParticleInfo> tetraspecParticel : rmWithTetraSpeckBeads.getRois().entrySet()) {
+                for (Map.Entry<Integer, ParticleInfo> evParticle : thesholdPictureWhereTetraSpeckShouldBeRemoved
+                        .getRois().entrySet()) {
+                    Roi result = evParticle.getValue().isPartOf(tetraspecParticel.getValue());
+                    if (null != result) {
+                        result.setImage(evImg);
+                        int size = result.getContainedPoints().length;
+
+                        if (size > 0) {
+                            //
+                            // Particles have an intersection!! This must be a Tetraspeck Remove it!!
+                            //
+    
+
+                            //
+                            // Paint it black
+                            //
+                            evImg.setRoi(evParticle.getValue().getRoi());
+                            evImg.getProcessor().setRoi(evParticle.getValue().getRoi());
+                            Filter.PaintSelecttedRoiAreaBlack(evImg);
+                            Filter.ClearRoiInImage(evImg);
+
+                            //
+                            // Remove from ROI list
+                            //
+                            thesholdPictureWhereTetraSpeckShouldBeRemoved.removeRoi(evParticle.getKey());
+                            removedTetraSpecs++;
+                            break; // We have a match. We can continue with the next particle
                         }
                     }
-
-                    //
-                    // Removal by wand
-                    //
-                    // int x = boundingBox.getLocation().x + boundingBox.width / 2;
-                    // int y = boundingBox.getLocation().y + boundingBox.height / 2;
-                    /*
-                     * boolean found = false;
-                     * for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x +
-                     * boundingBox.width; x++) {
-                     * for (int y = boundingBox.getLocation().y; y < boundingBox.getLocation().y
-                     * + boundingBox.height; y++) {
-                     * int pixelVal =
-                     * thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
-                     * // Select only white pixels
-                     * 
-                     * if (pixelVal > 200) {
-                     * Roi roi = Filter.doWand(thesholdPictureWhereTetraSpeckShouldBeRemoved, x, y,
-                     * 20);
-                     * thesholdPictureWhereTetraSpeckShouldBeRemoved.setRoi(roi);
-                     * thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
-                     * Filter.PaintSelecttedRoiAreaBlack(
-                     * thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                     * Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                     * removedTetraSpecs++;
-                     * break;
-                     * }
-                     * }
-                     * if (true == found) {
-                     * break;
-                     * }
-                     * }
-                     */
                 }
             }
             return removedTetraSpecs;
         }
+
     }
 
     Channel FindTetraspeckBeads(ChannelSettings imageWithTetraSpeckBeads) {
