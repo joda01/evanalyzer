@@ -125,18 +125,20 @@ public class EVColoc extends Pipeline {
             channelsToPrint.add(
                     new ChannelInfoOverlaySettings(val.getValue().getRois(), val.getKey().getColor(), false, true));
         }
-        channelsToPrint
-                .add(new ChannelInfoOverlaySettings(colocAll.ch.getRois(), new Color(255, 255, 255, 80), false,
-                        true));
-        String imageName = getName(file) + "_all_coloc.jpg";
-        String imagePath = getPath(file) + "_all_coloc.jpg";
-        Filter.SaveImageWithOverlayFromChannel(colocAll.imageAfterThershold, channelsToPrint, imagePath);
+        if (null != colocAll && null != colocAll.ch) {
+            channelsToPrint
+                    .add(new ChannelInfoOverlaySettings(colocAll.ch.getRois(), new Color(255, 255, 255, 80), false,
+                            true));
+            String imageName = getName(file) + "_all_coloc.jpg";
+            String imagePath = getPath(file) + "_all_coloc.jpg";
+            Filter.SaveImageWithOverlayFromChannel(colocAll.imageAfterThershold, channelsToPrint, imagePath);
 
-        // Only add to output if there are more than two channels. Else it would be
-        // redundat
-        if (channelsToAnalyze.size() > 2) {
-            colocAll.ch.addControlImagePath(imageName);
-            channelsOut.put(ChannelType.COLOC_ALL, colocAll.ch);
+            // Only add to output if there are more than two channels. Else it would be
+            // redundat
+            if (channelsToAnalyze.size() > 2) {
+                colocAll.ch.addControlImagePath(imageName);
+                channelsOut.put(ChannelType.COLOC_ALL, colocAll.ch);
+            }
         }
         return channelsOut;
     }
