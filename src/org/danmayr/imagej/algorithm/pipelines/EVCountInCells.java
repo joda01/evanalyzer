@@ -37,8 +37,6 @@ public class EVCountInCells extends EVColoc {
     Vector<ColocChannelSet> colocChannels = new Vector<>();
     Vector<ColocChannelSet> colocChannelsEvInCells = new Vector<>();
 
-    
-
     public EVCountInCells(AnalyseSettings settings) {
         super(settings);
     }
@@ -59,7 +57,7 @@ public class EVCountInCells extends EVColoc {
         PerformanceAnalyzer.stop("CntInCells:EvSeparation");
 
         PerformanceAnalyzer.start("CntInCells:executeColocAlgorithm");
-        EVColoc("coloc_all_evs",colocChannels);
+        EVColoc("coloc_all_evs", colocChannels);
         PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithm");
 
         PerformanceAnalyzer.start("CntInCells:CellShapeDetection");
@@ -71,7 +69,7 @@ public class EVCountInCells extends EVColoc {
         PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
 
         PerformanceAnalyzer.start("CntInCells:executeColocAlgorithmForEvsInCell");
-        EVColoc("coloc_incell_evs",colocChannelsEvInCells);
+        EVColoc("coloc_incell_evs", colocChannelsEvInCells);
         PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithmForEvsInCell");
 
         for (Map.Entry<ChannelType, Channel> e : mReturnChannels.entrySet()) {
@@ -84,12 +82,12 @@ public class EVCountInCells extends EVColoc {
     ///
     /// EV Coloc
     ///
-    void EVColoc(String title,Vector<ColocChannelSet> evChannelsToAnalyze) {
-        TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title,mImage, evChannelsToAnalyze);
+    void EVColoc(String title, Vector<ColocChannelSet> evChannelsToAnalyze) {
+        TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title, mImage, evChannelsToAnalyze);
         int startIdx = mReturnChannels.size();
         for (Map.Entry<ChannelType, Channel> val : ret.entrySet()) {
             ChannelType type = ChannelType
-                    .getColocEnum(val.getKey().idx +startIdx + ChannelType.getFirstFreeChannel() * 2);
+                    .getColocEnum(val.getKey().idx + startIdx + ChannelType.getFirstFreeChannel() * 2);
 
             addReturnChannel(val.getValue(), type, val.getValue().getCtrlImagePath());
         }
@@ -451,8 +449,10 @@ public class EVCountInCells extends EVColoc {
 
     void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
         synchronized (this) {
-            ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
-            mReturnChannels.put(type, ch);
+            if (ch != null && type != null) {
+                ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
+                mReturnChannels.put(type, ch);
+            }
         }
     }
 
