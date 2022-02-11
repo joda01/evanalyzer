@@ -124,7 +124,7 @@ public class EVColoc extends Pipeline {
             channelsToPrint.add(
                     new ChannelInfoOverlaySettings(val.getValue().getRois(), val.getKey().getColor(), false, true));
         }
-        if (null != colocAll) {
+        if (null != colocAll && null != colocAll.ch) {
             channelsToPrint
                     .add(new ChannelInfoOverlaySettings(colocAll.ch.getRois(), new Color(255, 255, 255, 80), false,
                             true));
