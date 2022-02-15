@@ -291,8 +291,10 @@ public class EVColoc extends Pipeline {
             Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
             channelsToPrint.add(
                     new ChannelInfoOverlaySettings(measCh0.getRois(), val.getKey().getColor(), false, false));
-            channelsToPrint.add(
-                    new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.YELLOW, false, false));
+            if (null != rmWithTetraSpeckBeads) {
+                channelsToPrint.add(
+                        new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.YELLOW, false, false));
+            }
             Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
 
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
@@ -304,38 +306,40 @@ public class EVColoc extends Pipeline {
         int RemoveTetraSpeckBeads(ImagePlus evImg, Channel thesholdPictureWhereTetraSpeckShouldBeRemoved) {
 
             int removedTetraSpecs = 0;
-            for (Map.Entry<Integer, ParticleInfo> tetraspecParticel : rmWithTetraSpeckBeads.getRois().entrySet()) {
-                for (Map.Entry<Integer, ParticleInfo> evParticle : thesholdPictureWhereTetraSpeckShouldBeRemoved
-                        .getRois().entrySet()) {
-                    Roi result = evParticle.getValue().isPartOf(tetraspecParticel.getValue());
-                    if (null != result) {
-                        result.setImage(evImg);
-                        int size = result.getContainedPoints().length;
+            if (null != rmWithTetraSpeckBeads && null != thesholdPictureWhereTetraSpeckShouldBeRemoved) {
+                for (Map.Entry<Integer, ParticleInfo> tetraspecParticel : rmWithTetraSpeckBeads.getRois().entrySet()) {
+                    for (Map.Entry<Integer, ParticleInfo> evParticle : thesholdPictureWhereTetraSpeckShouldBeRemoved
+                            .getRois().entrySet()) {
+                        Roi result = evParticle.getValue().isPartOf(tetraspecParticel.getValue());
+                        if (null != result) {
+                            result.setImage(evImg);
+                            int size = result.getContainedPoints().length;
 
-                        if (size > 0) {
-                            //
-                            // Particles have an intersection!! This must be a Tetraspeck Remove it!!
-                            //
+                            if (size > 0) {
+                                //
+                                // Particles have an intersection!! This must be a Tetraspeck Remove it!!
+                                //
 
-                            //
-                            // Paint it black
-                            //
-                            evImg.setRoi(evParticle.getValue().getRoi());
-                            evImg.getProcessor().setRoi(evParticle.getValue().getRoi());
-                            Filter.PaintSelecttedRoiAreaBlack(evImg);
-                            Filter.ClearRoiInImage(evImg);
+                                //
+                                // Paint it black
+                                //
+                                evImg.setRoi(evParticle.getValue().getRoi());
+                                evImg.getProcessor().setRoi(evParticle.getValue().getRoi());
+                                Filter.PaintSelecttedRoiAreaBlack(evImg);
+                                Filter.ClearRoiInImage(evImg);
 
-                            //
-                            // Remove from ROI list
-                            //
-                            thesholdPictureWhereTetraSpeckShouldBeRemoved.removeRoi(evParticle.getKey());
-                            removedTetraSpecs++;
-                            break; // We have a match. We can continue with the next particle
+                                //
+                                // Remove from ROI list
+                                //
+                                thesholdPictureWhereTetraSpeckShouldBeRemoved.removeRoi(evParticle.getKey());
+                                removedTetraSpecs++;
+                                break; // We have a match. We can continue with the next particle
+                            }
                         }
                     }
                 }
+                thesholdPictureWhereTetraSpeckShouldBeRemoved.calcStatistics();
             }
-            thesholdPictureWhereTetraSpeckShouldBeRemoved.calcStatistics();
             return removedTetraSpecs;
         }
 
