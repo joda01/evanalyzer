@@ -287,7 +287,13 @@ public class EVColoc extends Pipeline {
             String path = getPath(mImage) + "_" + img0.type.toString() + ".jpg";
             measCh0.addControlImagePath(getName(mImage) + "_" + img0.type.toString() + ".jpg");
             channels.put(img0.type, measCh0);
-            Filter.SaveImageWithOverlay(analzeImg0, rm, path);
+
+            Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
+            channelsToPrint.add(
+                    new ChannelInfoOverlaySettings(measCh0.getRois(), val.getKey().getColor(), false, false));
+            channelsToPrint.add(
+                    new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.YELLOW, false, false));
+            Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
 
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
@@ -310,7 +316,6 @@ public class EVColoc extends Pipeline {
                             //
                             // Particles have an intersection!! This must be a Tetraspeck Remove it!!
                             //
-    
 
                             //
                             // Paint it black
@@ -330,6 +335,7 @@ public class EVColoc extends Pipeline {
                     }
                 }
             }
+            thesholdPictureWhereTetraSpeckShouldBeRemoved.calcStatistics();
             return removedTetraSpecs;
         }
 
