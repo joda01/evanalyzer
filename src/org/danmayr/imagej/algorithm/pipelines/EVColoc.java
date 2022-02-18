@@ -293,7 +293,7 @@ public class EVColoc extends Pipeline {
                     new ChannelInfoOverlaySettings(measCh0.getRois(), val.getKey().getColor(), false, false));
             if (null != rmWithTetraSpeckBeads) {
                 channelsToPrint.add(
-                        new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.YELLOW, false, false));
+                        new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.GRAY, false, false));
             }
             Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
 
