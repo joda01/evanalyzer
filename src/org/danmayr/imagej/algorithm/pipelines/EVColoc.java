@@ -52,14 +52,13 @@ public class EVColoc extends Pipeline {
         background = null;
         channels = new TreeMap<ChannelType, Channel>();
         colocChannels.clear();
-        RoiManager rmWithTetraSpeckBeads = new RoiManager(false);
-
+        Channel channelWithTetraSpeckBeats = null;
         if (null != getBackground()) {
             background = getBackground().mChannelImg;
         }
 
         if (null != getTetraSpeckBead()) {
-            FindTetraspeckBeads(rmWithTetraSpeckBeads, getTetraSpeckBead());
+            channelWithTetraSpeckBeats = FindTetraspeckBeads(getTetraSpeckBead());
         }
 
         //
@@ -68,7 +67,7 @@ public class EVColoc extends Pipeline {
         TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
         ExecutorService exec = Executors.newFixedThreadPool(evs.size());
         for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
-            exec.execute(new EvCounting(rmWithTetraSpeckBeads, val));
+            exec.execute(new EvCounting(channelWithTetraSpeckBeats, val));
         }
         exec.shutdown();
         try {
@@ -251,9 +250,9 @@ public class EVColoc extends Pipeline {
     class EvCounting implements Runnable {
 
         Map.Entry<ChannelType, ChannelSettings> val;
-        RoiManager rmWithTetraSpeckBeads;
+        Channel rmWithTetraSpeckBeads;
 
-        EvCounting(RoiManager rmWithTetraSpeckBeads, Map.Entry<ChannelType, ChannelSettings> v) {
+        EvCounting(Channel rmWithTetraSpeckBeads, Map.Entry<ChannelType, ChannelSettings> v) {
             this.val = v;
             this.rmWithTetraSpeckBeads = rmWithTetraSpeckBeads;
         }
@@ -268,14 +267,18 @@ public class EVColoc extends Pipeline {
                     img0.minThershold, img0.maxThershold, in0);
 
             //
-            // Remove TetraSpeckBeads
+            // Find particles
             //
-            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(img0Th, img0.type);
-
             ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.getMinCircularityDouble());
             Channel measCh0 = Filter.MeasureImage(img0.type.toString(), mSettings, img0, img0BeforeTh, img0Th, rm,
                     true);
             measCh0.setThershold(in0[0], in0[1]);
+
+            //
+            // Remove Tetraspec
+            //
+            int nrOfRemovedTetraSpecks = RemoveTetraSpeckBeads(analzeImg0, measCh0);
+
             measCh0.setNrOfRemovedParticles(nrOfRemovedTetraSpecks);
 
             //
@@ -284,7 +287,15 @@ public class EVColoc extends Pipeline {
             String path = getPath(mImage) + "_" + img0.type.toString() + ".jpg";
             measCh0.addControlImagePath(getName(mImage) + "_" + img0.type.toString() + ".jpg");
             channels.put(img0.type, measCh0);
-            Filter.SaveImageWithOverlay(analzeImg0, rm, path);
+
+            Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
+            channelsToPrint.add(
+                    new ChannelInfoOverlaySettings(measCh0.getRois(), val.getKey().getColor(), false, false));
+            if (null != rmWithTetraSpeckBeads) {
+                channelsToPrint.add(
+                        new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.GRAY, false, false));
+            }
+            Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
 
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
@@ -292,41 +303,50 @@ public class EVColoc extends Pipeline {
         ///
         /// Remove tetraspeck bead
         ///
-        int RemoveTetraSpeckBeads(ImagePlus thesholdPictureWhereTetraSpeckShouldBeRemoved, ChannelType type) {
+        int RemoveTetraSpeckBeads(ImagePlus evImg, Channel thesholdPictureWhereTetraSpeckShouldBeRemoved) {
+
             int removedTetraSpecs = 0;
-            for (int n = 0; n < rmWithTetraSpeckBeads.getCount(); n++) {
-                // Calculate center of mass of the ROI for selecting
-                Rectangle boundingBox = rmWithTetraSpeckBeads.getRoi(n).getPolygon().getBounds();
+            if (null != rmWithTetraSpeckBeads && null != thesholdPictureWhereTetraSpeckShouldBeRemoved) {
+                for (Map.Entry<Integer, ParticleInfo> tetraspecParticel : rmWithTetraSpeckBeads.getRois().entrySet()) {
+                    for (Map.Entry<Integer, ParticleInfo> evParticle : thesholdPictureWhereTetraSpeckShouldBeRemoved
+                            .getRois().entrySet()) {
+                        Roi result = evParticle.getValue().isPartOf(tetraspecParticel.getValue());
+                        if (null != result) {
+                            result.setImage(evImg);
+                            int size = result.getContainedPoints().length;
 
-                // int x = boundingBox.getLocation().x + boundingBox.width / 2;
-                // int y = boundingBox.getLocation().y + boundingBox.height / 2;
-                boolean found = false;
-                for (int x = boundingBox.getLocation().x; x < boundingBox.getLocation().x + boundingBox.width; x++) {
-                    for (int y = boundingBox.getLocation().y; y < boundingBox.getLocation().y
-                            + boundingBox.height; y++) {
-                        int pixelVal = thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().get(x, y);
-                        // Select only white pixels
+                            if (size > 0) {
+                                //
+                                // Particles have an intersection!! This must be a Tetraspeck Remove it!!
+                                //
 
-                        if (pixelVal > 200) {
-                            Roi roi = Filter.doWand(thesholdPictureWhereTetraSpeckShouldBeRemoved, x, y, 20);
-                            thesholdPictureWhereTetraSpeckShouldBeRemoved.setRoi(roi);
-                            thesholdPictureWhereTetraSpeckShouldBeRemoved.getProcessor().setRoi(roi);
-                            Filter.PaintSelecttedRoiAreaBlack(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                            Filter.ClearRoiInImage(thesholdPictureWhereTetraSpeckShouldBeRemoved);
-                            removedTetraSpecs++;
-                            break;
+                                //
+                                // Paint it black
+                                //
+                                evImg.setRoi(evParticle.getValue().getRoi());
+                                evImg.getProcessor().setRoi(evParticle.getValue().getRoi());
+                                Filter.PaintSelecttedRoiAreaBlack(evImg);
+                                Filter.ClearRoiInImage(evImg);
+
+                                //
+                                // Remove from ROI list
+                                //
+                                thesholdPictureWhereTetraSpeckShouldBeRemoved.removeRoi(evParticle.getKey());
+                                removedTetraSpecs++;
+                                break; // We have a match. We can continue with the next particle
+                            }
                         }
                     }
-                    if (true == found) {
-                        break;
-                    }
                 }
+                thesholdPictureWhereTetraSpeckShouldBeRemoved.calcStatistics();
             }
             return removedTetraSpecs;
         }
+
     }
 
-    void FindTetraspeckBeads(RoiManager rm, ChannelSettings imageWithTetraSpeckBeads) {
+    Channel FindTetraspeckBeads(ChannelSettings imageWithTetraSpeckBeads) {
+        RoiManager rm = new RoiManager(false);
         double[] retTh = new double[2];
         ImagePlus thershodlImg = Filter.duplicateImage(imageWithTetraSpeckBeads.mChannelImg);
         Filter.SubtractBackground(thershodlImg);
@@ -345,6 +365,7 @@ public class EVColoc extends Pipeline {
         tetraSpeckBeads.addControlImagePath(getName(mImage) + "_tetraspeck.jpg");
         channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
         Filter.SaveImageWithOverlay(imageWithTetraSpeckBeads.mChannelImg, rm, path);
+        return tetraSpeckBeads;
     }
 
 }

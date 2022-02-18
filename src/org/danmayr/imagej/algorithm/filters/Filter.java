@@ -86,6 +86,7 @@ public class Filter {
     public static void EnhanceContrast(ImagePlus img) {
         // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
         ContrastEnhancer filter = new ContrastEnhancer();
+        //filter.stretchHistogram(img,0.5);
         filter.equalize(img);
     }
 

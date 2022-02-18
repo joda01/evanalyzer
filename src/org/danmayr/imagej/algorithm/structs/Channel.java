@@ -61,6 +61,10 @@ public class Channel {
         return mControlImgPath;
     }
 
+    public void removeRoi(Integer idx){
+        mRois.remove(idx);
+    }
+
     ///
     /// \brief returns the channel name
     ///
