@@ -151,7 +151,7 @@ public class EVColoc extends Pipeline {
     protected static ColocChannelSet calculateRoiColoc(String title, File file, ColocChannelSet ch1,
             ColocChannelSet ch2) {
         if (ch1 != null && ch2 != null) {
-            String valueNames[] = { "coloc area", "coloc factor","coloc circularity", "coloc validity",
+            String valueNames[] = { "coloc area", "coloc factor", "coloc circularity", "coloc validity",
                     "intensity " + ch1.type.toString(),
                     "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
 
@@ -179,40 +179,43 @@ public class EVColoc extends Pipeline {
 
                         if (size > 0) {
                             //
-                            // Particles have an intersection!!
-                            //
-
-                            //
-                            // Calculate circularity
-                            //
-                            double perimeter = result.getLength();
-                            double circularity = perimeter == 0.0 ? 0.0
-                                    : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
-                            if (circularity > 1.0) {
-                                circularity = 1.0;
-                            }
-                            //
                             // Calculate coloc factor
                             //
-                            double colocFactor = size/particle1.getValue().areaSize;
-                            double colocFactor2 = size/particle2.getValue().areaSize;
-                            if(colocFactor2>colocFactor){
+                            double colocFactor = size / particle1.getValue().areaSize;
+                            double colocFactor2 = size / particle2.getValue().areaSize;
+                            if (colocFactor2 > colocFactor) {
                                 colocFactor = colocFactor2;
                             }
-                            colocFactor*=100;
+                            colocFactor *= 100;
+                            if (colocFactor >= mSettings.mMinColocFactor) {
+                                //
+                                // Particles have an intersection!!
+                                //
 
+                                //
+                                // Calculate circularity
+                                //
+                                double perimeter = result.getLength();
+                                double circularity = perimeter == 0.0 ? 0.0
+                                        : 4.0 * Math.PI * (result.getStatistics().area / (perimeter * perimeter));
+                                if (circularity > 1.0) {
+                                    circularity = 1.0;
+                                }
 
-                            double[] intensityChannels = { particle1.getValue().areaGrayScale,
-                                    particle2.getValue().areaGrayScale };
-                            double[] areaChannels = { particle1.getValue().areaSize, particle2.getValue().areaSize };
-                            double sizeInMicrometer = mSettings.pixelToMicrometer(size);
-                            ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer,colocFactor, circularity,
-                                    intensityChannels,
-                                    areaChannels, result, 0);
-                            exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter, 0);
-                            coloc.addRoi(exosom);
-                            colocNr++;
-                            break; // We have a match. We can continue with the next particle
+                                double[] intensityChannels = { particle1.getValue().areaGrayScale,
+                                        particle2.getValue().areaGrayScale };
+                                double[] areaChannels = { particle1.getValue().areaSize,
+                                        particle2.getValue().areaSize };
+                                double sizeInMicrometer = mSettings.pixelToMicrometer(size);
+                                ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, colocFactor,
+                                        circularity,
+                                        intensityChannels,
+                                        areaChannels, result, 0);
+                                exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter, 0);
+                                coloc.addRoi(exosom);
+                                colocNr++;
+                                break; // We have a match. We can continue with the next particle
+                            }
                         }
                     }
                 }
