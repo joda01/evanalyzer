@@ -99,10 +99,10 @@ public class Dialog extends JFrame {
             0.001); // step
     private JSpinner mPixelInMicrometer = new JSpinner(modelMicrometer);
 
-    SpinnerModel modelColocFactor = new SpinnerNumberModel(1, // initial value
-            0, // min
-            100, // max
-            1); // step
+    SpinnerModel modelColocFactor = new SpinnerNumberModel((double)1.0, // initial value
+            (double)0, // min
+            (double)100.0, // max
+            (double)1.0); // step
     private JSpinner mMinColocFactor = new JSpinner(modelColocFactor);
     private JComboBox mFunctionSelection;
     private JComboBox mSeries;
