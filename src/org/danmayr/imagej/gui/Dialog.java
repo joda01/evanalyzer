@@ -98,6 +98,12 @@ public class Dialog extends JFrame {
             1, // max
             0.001); // step
     private JSpinner mPixelInMicrometer = new JSpinner(modelMicrometer);
+
+    SpinnerModel modelColocFactor = new SpinnerNumberModel((double)1.0, // initial value
+            (double)0, // min
+            (double)100.0, // max
+            (double)1.0); // step
+    private JSpinner mMinColocFactor = new JSpinner(modelColocFactor);
     private JComboBox mFunctionSelection;
     private JComboBox mSeries;
     private FileProcessor mActAnalyzer = null;
@@ -409,7 +415,8 @@ public class Dialog extends JFrame {
 
                 ////////////////////////////////////////////////////
                 ChannelSettings.PreProcessingStep[] preprocessingSteps = { ChannelSettings.PreProcessingStep.None,
-                        ChannelSettings.PreProcessingStep.EdgeDetection,ChannelSettings.PreProcessingStep.EnhanceContrast  };
+                        ChannelSettings.PreProcessingStep.EdgeDetection,
+                        ChannelSettings.PreProcessingStep.EnhanceContrast };
 
                 c.gridy++;
                 mPreProcesssingSteps = new JComboBox<ChannelSettings.PreProcessingStep>(preprocessingSteps);
@@ -1129,7 +1136,8 @@ public class Dialog extends JFrame {
             template.add(generateTemplateMenuItem("coloc_two_ch.json", "Colocalization 2 Channels"));
             template.add(generateTemplateMenuItem("coloc_three_ch.json", "Colocalization 3 Channels"));
             template.add(
-                    generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json", "In Cell EV Counting"));
+                    generateTemplateMenuItem("in_cell_counting_brightfield_with_separation.json",
+                            "In Cell EV Counting"));
 
             JMenuItem save = new JMenuItem("Save");
             save.setIcon(new ImageIcon(getClass().getResource("icons8-update-16.png")));
@@ -1329,6 +1337,26 @@ public class Dialog extends JFrame {
         mainTab.add(mSeries, c);
 
         ////////////////////////////////////////////////////
+        {
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l = new JLabel("Pixel in [µm]:");
+            l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
+            l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
+            l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
+            l.setSize(new Dimension(200, l.getSize().height));
+            ImageIcon li = new ImageIcon(getClass().getResource("icons8-lineal-16.png"));
+            l.setIcon(li);
+            mainTab.add(l, c);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            mainTab.add(mPixelInMicrometer, c);
+        }
+
+        ////////////////////////////////////////////////////
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy++;
@@ -1336,12 +1364,13 @@ public class Dialog extends JFrame {
         mainTab.add(new JSeparator(SwingConstants.HORIZONTAL), c);
 
         ////////////////////////////////////////////////////
+        // Function
         {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0;
-            c.gridwidth=1;
+            c.gridwidth = 1;
             JLabel l = new JLabel("Function:");
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
@@ -1375,23 +1404,24 @@ public class Dialog extends JFrame {
         }
 
         ////////////////////////////////////////////////////
+        // Min colco factor
         {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0;
-            JLabel l = new JLabel("Pixel in [µm]:");
+            JLabel l = new JLabel("Min Coloc factor [%]");
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
             l.setSize(new Dimension(200, l.getSize().height));
-            ImageIcon li = new ImageIcon(getClass().getResource("icons8-lineal-16.png"));
+            ImageIcon li = new ImageIcon(getClass().getResource("icons8-intersection-16.png"));
             l.setIcon(li);
             mainTab.add(l, c);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
-            mainTab.add(mPixelInMicrometer, c);
+            mainTab.add(mMinColocFactor, c);
         }
 
         ////////////////////////////////////////////////////
@@ -1598,6 +1628,7 @@ public class Dialog extends JFrame {
         AnalyseSettings sett = new AnalyseSettings();
 
         sett.mOnePixelInMicroMeter = (Double) mPixelInMicrometer.getValue();
+        sett.mMinColocFactor = (Double)mMinColocFactor.getValue();
 
         if (true == inputFolderNeeded) {
             sett.mInputFolder = mInputFolder.getText();
@@ -1652,6 +1683,7 @@ public class Dialog extends JFrame {
         reportSettings.mControlPictures.setSelectedItem(sett.mSaveDebugImages);
         reportSettings.mComboReportGenerator.setSelectedItem(sett.reportType);
         mPixelInMicrometer.setValue(sett.mOnePixelInMicroMeter);
+        mMinColocFactor.setValue(sett.mMinColocFactor);
 
         for (int n = 0; n < sett.channelSettings.size(); n++) {
             int chIdx = sett.channelSettings.get(n).mChannelIndex;

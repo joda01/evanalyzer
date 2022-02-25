@@ -12,22 +12,26 @@ public class ParticleInfoColoc extends ParticleInfo {
 
     public double[] intensityChannels;
     public double[] areaSizeChannels;
+    public double colocFactor;
 
-    public ParticleInfoColoc(int roiName, double areaSize, double circularity, double[] intensityChannels,
+    public ParticleInfoColoc(int roiName, double areaSize, double colocFactor, double circularity, double[] intensityChannels,
             double[] areaSizeChannels, Roi roi, int snapArea) {
         super(roiName, areaSize, 255, 255, circularity, roi, snapArea);
         this.intensityChannels = intensityChannels;
         this.areaSizeChannels = areaSizeChannels;
+        this.colocFactor=colocFactor;
     }
 
     @Override
     public double[] getValues() {
-        double[] values = new double[3 + intensityChannels.length + areaSizeChannels.length];
+        double[] values = new double[4 + intensityChannels.length + areaSizeChannels.length];
         values[0] = areaSize;
-        values[1] = circularity;
-        values[2] = status;
+        values[1] = colocFactor;
+        values[2] = circularity;
+        values[3] = status;
+        
 
-        int idx = 3;
+        int idx = 4;
         for (int n = 0; n < this.intensityChannels.length; n++) {
             values[idx] = intensityChannels[n];
             idx++;

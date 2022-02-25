@@ -5,7 +5,7 @@ import java.util.Map;
 import org.danmayr.imagej.algorithm.structs.*;
 
 public class StatisticsColoc extends Statistics {
-    String title[] = { "area size [µm]", "circularity [0-1]","valid","invalid" }; 
+    String title[] = { "area size [µm]", "coloc factor [%]","circularity [0-1]","valid","invalid" }; 
     
     double[] intensityChannelsSum = null;
     double[] areaSizeChannelsSum = null;
@@ -17,22 +17,25 @@ public class StatisticsColoc extends Statistics {
 
     public void calcStatistics(Channel ch) {
         String dynTitle[] = ch.getDynamicTitle();
-        title = new String[4+dynTitle.length];
+        title = new String[5+dynTitle.length];
         title[0]="coloc area";
-        title[1]="coloc circ.";
-        title[2]="coloc valid";
-        title[3]="coloc invalid";
-        retValues = new  double[4+dynTitle.length];
+        title[1]="coloc factor";
+        title[2]="coloc circ.";
+        title[3]="coloc valid";
+        title[4]="coloc invalid";
+        retValues = new  double[5+dynTitle.length];
 
         for(int u = 0;u<dynTitle.length;u++){
-            title[u+4] = dynTitle[u];
+            title[u+5] = dynTitle[u];
         }
         
         int nrOfInvalid = 0;
         int nrOfValid = 0;
         double areaSizeSum = 0;
+        double colocFactorSum = 0;
         double grayScaleSum = 0;
         double circularitySum = 0;
+        double avgColocFactor = 0;
 
         intensityChannelsSum = null;
         areaSizeChannelsSum = null;
@@ -44,6 +47,7 @@ public class StatisticsColoc extends Statistics {
                 nrOfInvalid++;
             } else {
                 nrOfValid++;
+                colocFactorSum += info.colocFactor;
                 areaSizeSum += info.areaSize;
                 grayScaleSum += info.areaGrayScale;
                 circularitySum += info.circularity;
@@ -67,6 +71,7 @@ public class StatisticsColoc extends Statistics {
             avgAreaSize = areaSizeSum / nrOfValid;
             avgGrayScale = grayScaleSum / nrOfValid;
             avgCircularity = circularitySum / nrOfValid;
+            avgColocFactor = colocFactorSum/nrOfValid;
 
             int idx = 4;
             for(int n=0;n<intensityChannelsSum.length;n++){
@@ -83,6 +88,7 @@ public class StatisticsColoc extends Statistics {
             avgAreaSize = 0;
             avgGrayScale = 0;
             avgCircularity = 0;
+            avgColocFactor = 0;
         }
         this.invalid = nrOfInvalid;
         this.valid = nrOfValid;
@@ -90,9 +96,10 @@ public class StatisticsColoc extends Statistics {
 
 
         retValues[0] = avgAreaSize;
-        retValues[1] = avgCircularity;
-        retValues[2] = valid;
-        retValues[3] = invalid;
+        retValues[1] = avgColocFactor;
+        retValues[2] = avgCircularity;
+        retValues[3] = valid;
+        retValues[4] = invalid;
     }
 
     public double[] getValues() {

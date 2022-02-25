@@ -55,10 +55,10 @@ public class AnalyseSettings {
     public boolean mRemoveCellsWithoutNucleus = false;
     public boolean mCalcColoc = false;
     public double mOnePixelInMicroMeter = 1;
-    
+    public double mMinColocFactor = 1;
 
-    public double pixelToMicrometer(double pxl){
-        return pxl*mOnePixelInMicroMeter;
+    public double pixelToMicrometer(double pxl) {
+        return pxl * mOnePixelInMicroMeter;
     }
 
     public void saveSettings(String fileName, String title, String note) {
@@ -71,7 +71,7 @@ public class AnalyseSettings {
         obj.put("function", mSelectedFunction);
         obj.put("series", mSelectedSeries);
         obj.put("pixel_in_micrometer", mOnePixelInMicroMeter);
-
+        obj.put("min_coloc_factor", mMinColocFactor);
 
         JSONArray ary = new JSONArray();
         for (int n = 0; n < channelSettings.size(); n++) {
@@ -111,6 +111,12 @@ public class AnalyseSettings {
         mSelectedSeries = obj.getInt("series");
         mSelectedSeries = obj.getInt("series");
         mOnePixelInMicroMeter = Double.parseDouble(obj.getString("pixel_in_micrometer"));
+
+        try {
+            mMinColocFactor = Double.parseDouble(obj.getString("min_coloc_factor"));
+        } catch (Exception ex) {
+
+        }
 
         JSONArray ary = obj.getJSONArray("channels");
 
