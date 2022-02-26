@@ -15,9 +15,11 @@ public class StatisticsColoc extends Statistics {
 
     }
 
+    static int NR_OF_FIXED_ELEMENTS = 5;
+
     public void calcStatistics(Channel ch) {
         String dynTitle[] = ch.getDynamicTitle();
-        title = new String[5+dynTitle.length];
+        title = new String[NR_OF_FIXED_ELEMENTS+dynTitle.length];
         title[0]="coloc area";
         title[1]="coloc factor";
         title[2]="coloc circ.";
@@ -26,7 +28,7 @@ public class StatisticsColoc extends Statistics {
         retValues = new  double[5+dynTitle.length];
 
         for(int u = 0;u<dynTitle.length;u++){
-            title[u+5] = dynTitle[u];
+            title[u+NR_OF_FIXED_ELEMENTS] = dynTitle[u];
         }
         
         int nrOfInvalid = 0;
@@ -73,7 +75,7 @@ public class StatisticsColoc extends Statistics {
             avgCircularity = circularitySum / nrOfValid;
             avgColocFactor = colocFactorSum/nrOfValid;
 
-            int idx = 4;
+            int idx = NR_OF_FIXED_ELEMENTS;
             for(int n=0;n<intensityChannelsSum.length;n++){
                 retValues[idx] = intensityChannelsSum[n] / nrOfValid;
                 idx++;
