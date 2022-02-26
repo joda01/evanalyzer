@@ -136,7 +136,7 @@ public class EVCountInCells extends EVColoc {
 
                 ImagePlus evSubtracted = Filter.SubtractImages(evOriginal, evEdited);
                 ImagePlus evSubtractedOriginal = Filter.duplicateImage(evSubtracted);
-                // Filter.SubtractBackground(evSubtracted);
+                // Filter.RollingBall(evSubtracted);
                 // Filter.ApplyGaus(evSubtracted);
                 Filter.Smooth(evSubtracted);
                 double[] in = new double[2];
@@ -188,7 +188,7 @@ public class EVCountInCells extends EVColoc {
             // For labeled cells -->
             if (cellChannelSetting.type == ChannelType.CELL_FLUORESCENCE) {
                 Filter.FindEdges(cellsEdited);
-                Filter.SubtractBackground(cellsEdited);
+                Filter.RollingBall(cellsEdited);
             }
             // <--
 
@@ -325,7 +325,7 @@ public class EVCountInCells extends EVColoc {
             ImagePlus nucluesEdited = Filter.duplicateImage(nucluesOriginal);
             Filter.Smooth(nucluesEdited);
             Filter.Smooth(nucluesEdited);
-            Filter.SubtractBackground(nucluesEdited);
+            Filter.RollingBall(nucluesEdited);
             Filter.ApplyThershold(nucluesEdited, nuclues.mThersholdMethod);
             Filter.FillHoles(nucluesEdited);
 

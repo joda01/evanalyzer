@@ -924,7 +924,7 @@ public class Dialog extends JFrame {
                         mPreviewImage0[n] = imagesPerChannel.get(channelNr);
                         mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
 
-                        Filter.SubtractBackground(mPreviewImage0[n]);
+                        Filter.RollingBall(mPreviewImage0[n]);
                         // Filter.ApplyGaus(mPreviewImage0[n]);
                         IJ.run(mPreviewImage0[n], "Convolve...",
                                 "text1=[1 4 6 4 1\n4 16 24 16 4\n6 24 36 24 6\n4 16 24 16 4\n1 4 6 4 1] normalize");
@@ -938,7 +938,7 @@ public class Dialog extends JFrame {
                             mPreviewImage0[n] = imagesPerChannel.get(channelNr);
                             mOriginalImage0[n] = Filter.duplicateImage(mPreviewImage0[n]);
 
-                            Filter.SubtractBackground(mPreviewImage0[n]);
+                            Filter.RollingBall(mPreviewImage0[n]);
                             Filter.Smooth(mPreviewImage0[n]);
                             Filter.Smooth(mPreviewImage0[n]);
                         }

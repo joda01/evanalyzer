@@ -86,8 +86,14 @@ public class Filter {
     public static void EnhanceContrast(ImagePlus img) {
         // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
         ContrastEnhancer filter = new ContrastEnhancer();
-        //filter.stretchHistogram(img,0.5);
+        // filter.stretchHistogram(img,0.5);
         filter.equalize(img);
+    }
+
+    public static void NormalizeHistogram(ImagePlus img) {
+        // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
+        ContrastEnhancerThreadSafe filter = new ContrastEnhancerThreadSafe();
+        filter.stretchHistogramNormalize(img, 0.3);
     }
 
     ///
@@ -176,7 +182,7 @@ public class Filter {
         // IJ.run(img, "Smooth", "");
     }
 
-    public static void SubtractBackground(ImagePlus img) {
+    public static void RollingBall(ImagePlus img) {
         BackgroundSubtracter sb = new BackgroundSubtracter();
         // ImageProcessor ip, double radius, boolean createBackground,
         // boolean lightBackground, boolean useParaboloid, boolean doPresmooth, boolean
@@ -317,11 +323,13 @@ public class Filter {
             String imageName) {
         Overlay ov = new Overlay();
         ImagePlus saveImg = Filter.duplicateImage(image);
-        for (int n = 0; n < overlays.size(); n++) {
-            paintRoiOverlay(ov, overlays.get(n).m, overlays.get(n).c, overlays.get(n).nr, overlays.get(n).fill);
+        if (null != overlays) {
+            for (int n = 0; n < overlays.size(); n++) {
+                paintRoiOverlay(ov, overlays.get(n).m, overlays.get(n).c, overlays.get(n).nr, overlays.get(n).fill);
+            }
+            saveImg.setOverlay(ov);
+            saveImg = saveImg.flatten();
         }
-        saveImg.setOverlay(ov);
-        saveImg = saveImg.flatten();
         JpegWriter.save(saveImg, imageName, 100);
     }
 

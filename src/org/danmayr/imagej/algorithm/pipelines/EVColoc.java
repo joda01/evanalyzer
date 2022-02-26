@@ -55,6 +55,8 @@ public class EVColoc extends Pipeline {
         Channel channelWithTetraSpeckBeats = null;
         if (null != getBackground()) {
             background = getBackground().mChannelImg;
+            Filter.NormalizeHistogram(background);
+
         }
 
         if (null != getTetraSpeckBead()) {
@@ -297,6 +299,7 @@ public class EVColoc extends Pipeline {
             // Save control images
             //
             String path = getPath(mImage) + "_" + img0.type.toString() + ".jpg";
+            String pathor = getPath(mImage) + "_" + img0.type.toString() + "ori.jpg";
             measCh0.addControlImagePath(getName(mImage) + "_" + img0.type.toString() + ".jpg");
             channels.put(img0.type, measCh0);
 
@@ -308,6 +311,7 @@ public class EVColoc extends Pipeline {
                         new ChannelInfoOverlaySettings(rmWithTetraSpeckBeads.getRois(), Color.GRAY, false, false));
             }
             Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
+            Filter.SaveImageWithOverlayFromChannel(img0BeforeTh, null, pathor);
 
             colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
@@ -361,7 +365,7 @@ public class EVColoc extends Pipeline {
         RoiManager rm = new RoiManager(false);
         double[] retTh = new double[2];
         ImagePlus thershodlImg = Filter.duplicateImage(imageWithTetraSpeckBeads.mChannelImg);
-        Filter.SubtractBackground(thershodlImg);
+        Filter.RollingBall(thershodlImg);
         Filter.Smooth(thershodlImg);
         Filter.Smooth(thershodlImg);
         Filter.ApplyThershold(thershodlImg, imageWithTetraSpeckBeads.mThersholdMethod,

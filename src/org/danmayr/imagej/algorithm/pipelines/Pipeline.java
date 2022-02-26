@@ -256,14 +256,12 @@ abstract public class Pipeline {
 
     ImagePlus th = img;
     if (null != background) {
+      Filter.NormalizeHistogram(th);
       th = Filter.SubtractImages(th, background);
     }
 
-    // if (true == enhanceContrast) {
-    // Filter.EnhanceContrast(th);
-    // }
 
-    Filter.SubtractBackground(th);
+    Filter.RollingBall(th);
     // Filter.ApplyGaus(th);
     Filter.Smooth(th);
     Filter.Smooth(th);
