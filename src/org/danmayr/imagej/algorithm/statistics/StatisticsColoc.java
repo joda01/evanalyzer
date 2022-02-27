@@ -25,7 +25,7 @@ public class StatisticsColoc extends Statistics {
         title[2]="coloc circ.";
         title[3]="coloc valid";
         title[4]="coloc invalid";
-        retValues = new  double[5+dynTitle.length];
+        retValues = new  double[NR_OF_FIXED_ELEMENTS+dynTitle.length];
 
         for(int u = 0;u<dynTitle.length;u++){
             title[u+NR_OF_FIXED_ELEMENTS] = dynTitle[u];

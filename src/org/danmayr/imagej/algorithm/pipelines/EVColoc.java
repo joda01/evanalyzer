@@ -41,7 +41,7 @@ public class EVColoc extends Pipeline {
     }
 
     TreeMap<ChannelType, Channel> channels;
-    Vector<ColocChannelSet> colocChannels = new Vector<>();
+    TreeMap<ChannelType,ColocChannelSet> colocChannels = new TreeMap<>();
     ImagePlus background = null;
 
     protected File mImage;
@@ -55,8 +55,6 @@ public class EVColoc extends Pipeline {
         Channel channelWithTetraSpeckBeats = null;
         if (null != getBackground()) {
             background = getBackground().mChannelImg;
-            Filter.NormalizeHistogram(background);
-
         }
 
         if (null != getTetraSpeckBead()) {
@@ -91,7 +89,7 @@ public class EVColoc extends Pipeline {
     }
 
     protected static TreeMap<ChannelType, Channel> executeColocAlgorithm(String title, File file,
-            Vector<ColocChannelSet> channelsToAnalyze) {
+            TreeMap<ChannelType, ColocChannelSet> channelsToAnalyze) {
 
         TreeMap<ChannelType, Channel> channelsOut = new TreeMap<ChannelType, Channel>();
         //
@@ -100,21 +98,23 @@ public class EVColoc extends Pipeline {
 
         ColocChannelSet colocAll = null;
         int colocEnum = 0;
-        for (int n = 0; n < channelsToAnalyze.size(); n++) {
-            for (int m = n + 1; m < channelsToAnalyze.size(); m++) {
-                ColocChannelSet img0 = channelsToAnalyze.get(n);
-                ColocChannelSet img1 = channelsToAnalyze.get(m);
-                Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
-                pics2Ch.add(img0);
-                pics2Ch.add(img1);
-                ColocChannelSet coloc02 = calculateRoiColoc(title, file, img0, img1);
-                channelsOut.put(ChannelType.getColocEnum(colocEnum), coloc02.ch);
-                colocEnum++;
+        for (Map.Entry<ChannelType, ColocChannelSet> n : channelsToAnalyze.entrySet()) {
+            for (Map.Entry<ChannelType, ColocChannelSet> m : channelsToAnalyze.entrySet()) {
+                if(n.getKey() != m.getKey()){
+                    ColocChannelSet img0 = n.getValue();
+                    ColocChannelSet img1 = m.getValue();
+                    Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
+                    pics2Ch.add(img0);
+                    pics2Ch.add(img1);
+                    ColocChannelSet coloc02 = calculateRoiColoc(title, file, img0, img1);
+                    channelsOut.put(ChannelType.getColocEnum(colocEnum), coloc02.ch);
+                    colocEnum++;
 
-                //
-                // For multi channel coloc
-                //
-                colocAll = calculateRoiColoc(title, file, colocAll, coloc02);
+                    //
+                    // For multi channel coloc
+                    //
+                    colocAll = calculateRoiColoc(title, file, colocAll, coloc02);
+                }
             }
         }
 
@@ -158,7 +158,7 @@ public class EVColoc extends Pipeline {
                     "intensity " + ch2.type.toString(), "area " + ch1.type.toString(), "area " + ch2.type.toString() };
 
             String name = title + "_" + ch1.type.toString() + "_with_" + ch2.type.toString();
-            Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 3);
+            Channel coloc = new Channel(name, new StatisticsColoc(), valueNames, 4);
             TreeMap<Integer, ParticleInfo> roiPic1 = ch1.ch.getRois();
             TreeMap<Integer, ParticleInfo> roiPic2 = ch2.ch.getRois();
 
@@ -277,7 +277,8 @@ public class EVColoc extends Pipeline {
             ImagePlus img0Th = Filter.duplicateImage(img0.mChannelImg);
             RoiManager rm = new RoiManager(false);
             double[] in0 = new double[2];
-            ImagePlus img0BeforeTh = preFilterSetColoc(img0Th, background, img0.enhanceContrast, img0.mThersholdMethod,
+            ImagePlus img0BeforeTh = preFilterSetColoc(mImage, img0Th, background, img0.enhanceContrast,
+                    img0.mThersholdMethod,
                     img0.minThershold, img0.maxThershold, in0);
 
             //
@@ -313,7 +314,7 @@ public class EVColoc extends Pipeline {
             Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
             Filter.SaveImageWithOverlayFromChannel(img0BeforeTh, null, pathor);
 
-            colocChannels.add(new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
+            colocChannels.put(val.getKey(),new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
 
         ///

@@ -17,7 +17,6 @@ import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.filters.Filter;
 import java.awt.*;
 
-
 ///
 /// \class  Channel
 /// \brief  Channel of a picture
@@ -32,59 +31,61 @@ abstract public class Pipeline {
   private static Map<Integer, ChannelType> map = new HashMap<Integer, ChannelType>();
 
   public enum ChannelType {
-    EV_DAPI("dapi", Color.blue, true, false, 0), EV_GFP("gfp", Color.green, true, false, 1),
-    EV_CY3("cy3", Color.yellow, true, false, 2), EV_CY5("cy5", Color.red, true, false, 3),
+    EV_DAPI("dapi", Color.blue, true, false, 0),
+    EV_GFP("gfp", Color.green, true, false, 1),
+    EV_CY3("cy3", Color.yellow, true, false, 2),
+    EV_CY5("cy5", Color.red, true, false, 3),
     EV_CY7("cy7", Color.magenta, true, false, 4),
-    CELL_BRIGHTFIELD("cell_brightfield", Color.gray, false, true, 5),
-    NUCLEUS("nucleus", Color.cyan, false, false, 6),
-    NEGATIVE_CONTROL("ctrl", Color.gray, false, false, 7),
-    BACKGROUND("background", Color.gray, false, false, 8), 
-    FREE_01("free_1", Color.gray, false, false, 9),
-    FREE_02("free_2", Color.gray, false, false, 10), 
-    FREE_03("free_3", Color.gray, false, false, 11),
-    FREE_04("free_4", Color.gray, false, false, 12), 
-    FREE_05("free_5", Color.gray, false, false, 13),
-    FREE_06("free_6", Color.gray, false, false, 14), 
-    FREE_07("free_7", Color.gray, false, false, 15),
-    FREE_08("free_8", Color.gray, false, false, 16), 
-    FREE_09("free_9", Color.gray, false, false, 17),
-    FREE_10("free_10", Color.gray, false, false, 18), 
-    FREE_11("free_11", Color.gray, false, false, 19),
-    FREE_12("free_12", Color.gray, false, false, 20), 
-    FREE_13("free_13", Color.gray, false, false, 21),
-    FREE_14("free_14", Color.gray, false, false, 22), 
-    FREE_15("free_15", Color.gray, false, false, 23),
-    FREE_16("free_16", Color.gray, false, false, 24), 
-    FREE_17("free_17", Color.gray, false, false, 25),
-    FREE_18("free_18", Color.gray, false, false, 26), 
-    FREE_19("free_19", Color.gray, false, false, 27),
-    FREE_20("free_20", Color.gray, false, false, 28),
-    FREE_21("free_20", Color.gray, false, false, 21 + 8),
-    FREE_22("free_20", Color.gray, false, false, 22 + 8),
-    FREE_23("free_20", Color.gray, false, false, 23 + 8),
-    FREE_24("free_20", Color.gray, false, false, 24 + 8),
-    FREE_25("free_20", Color.gray, false, false, 25 + 8),
-    FREE_26("free_20", Color.gray, false, false, 26 + 8),
-    FREE_27("free_20", Color.gray, false, false, 27 + 8),
-    FREE_28("free_20", Color.gray, false, false, 28 + 8),
-    FREE_29("free_20", Color.gray, false, false, 29 + 8),
-    FREE_30("free_20", Color.gray, false, false, 30 + 8),
-    FREE_31("free_20", Color.gray, false, false, 31 + 8),
-    FREE_32("free_20", Color.gray, false, false, 32 + 8),
-    FREE_33("free_20", Color.gray, false, false, 33 + 8),
-    FREE_34("free_20", Color.gray, false, false, 34 + 8),
-    FREE_35("free_20", Color.gray, false, false, 35 + 8),
-    FREE_36("free_20", Color.gray, false, false, 36 + 8),
-    FREE_37("free_20", Color.gray, false, false, 37 + 8),
-    FREE_38("free_20", Color.gray, false, false, 38 + 8),
-    FREE_39("free_20", Color.gray, false, false, 39 + 8),
-    FREE_40("free_20", Color.gray, false, false, 40 + 8),
-    FREE_41("free_20", Color.gray, false, false, 41 + 8),
-    FREE_42("free_20", Color.gray, false, false, 42 + 8),
-    TETRASPECK_BEAD("tetraspeck_bead", Color.gray, false, false, 51),
-    COLOC_ALL("coloc_all", Color.gray, false, false, 52),
-    EV_CY3FCY5("cy3fcy5", Color.yellow, true, false, 53),
-    CELL_FLUORESCENCE("cell_fluorescence", Color.gray, false, true, 54),;
+    EV_CY3FCY5("cy3fcy5", Color.yellow, true, false, 5),
+    CELL_BRIGHTFIELD("cell_brightfield", Color.gray, false, true, 6),
+    NUCLEUS("nucleus", Color.cyan, false, false, 7),
+    NEGATIVE_CONTROL("ctrl", Color.gray, false, false, 8),
+    BACKGROUND("background", Color.gray, false, false, 9),
+    FREE_01("free_1", Color.gray, false, false, 1 + 9),
+    FREE_02("free_2", Color.gray, false, false, 2 + 9),
+    FREE_03("free_3", Color.gray, false, false, 3 + 9),
+    FREE_04("free_4", Color.gray, false, false, 4 + 9),
+    FREE_05("free_5", Color.gray, false, false, 5 + 9),
+    FREE_06("free_6", Color.gray, false, false, 6 + 9),
+    FREE_07("free_7", Color.gray, false, false, 7 + 9),
+    FREE_08("free_8", Color.gray, false, false, 8 + 9),
+    FREE_09("free_9", Color.gray, false, false, 9 + 9),
+    FREE_10("free_10", Color.gray, false, false, 10 + 9),
+    FREE_11("free_11", Color.gray, false, false, 11 + 9),
+    FREE_12("free_12", Color.gray, false, false, 12 + 9),
+    FREE_13("free_13", Color.gray, false, false, 13 + 9),
+    FREE_14("free_14", Color.gray, false, false, 14 + 9),
+    FREE_15("free_15", Color.gray, false, false, 15 + 9),
+    FREE_16("free_16", Color.gray, false, false, 16 + 9),
+    FREE_17("free_17", Color.gray, false, false, 17 + 9),
+    FREE_18("free_18", Color.gray, false, false, 18 + 9),
+    FREE_19("free_19", Color.gray, false, false, 19 + 9),
+    FREE_20("free_20", Color.gray, false, false, 20 + 9),
+    FREE_21("free_20", Color.gray, false, false, 21 + 9),
+    FREE_22("free_20", Color.gray, false, false, 22 + 9),
+    FREE_23("free_20", Color.gray, false, false, 23 + 9),
+    FREE_24("free_20", Color.gray, false, false, 24 + 9),
+    FREE_25("free_20", Color.gray, false, false, 25 + 9),
+    FREE_26("free_20", Color.gray, false, false, 26 + 9),
+    FREE_27("free_20", Color.gray, false, false, 27 + 9),
+    FREE_28("free_20", Color.gray, false, false, 28 + 9),
+    FREE_29("free_20", Color.gray, false, false, 29 + 9),
+    FREE_30("free_20", Color.gray, false, false, 30 + 9),
+    FREE_31("free_20", Color.gray, false, false, 31 + 9),
+    FREE_32("free_20", Color.gray, false, false, 32 + 9),
+    FREE_33("free_20", Color.gray, false, false, 33 + 9),
+    FREE_34("free_20", Color.gray, false, false, 34 + 9),
+    FREE_35("free_20", Color.gray, false, false, 35 + 9),
+    FREE_36("free_20", Color.gray, false, false, 36 + 9),
+    FREE_37("free_20", Color.gray, false, false, 37 + 9),
+    FREE_38("free_20", Color.gray, false, false, 38 + 9),
+    FREE_39("free_20", Color.gray, false, false, 39 + 9),
+    FREE_40("free_20", Color.gray, false, false, 40 + 9),
+    FREE_41("free_20", Color.gray, false, false, 41 + 9),
+    FREE_42("free_20", Color.gray, false, false, 42 + 9),
+    TETRASPECK_BEAD("tetraspeck_bead", Color.gray, false, false, 43 + 9),
+    COLOC_ALL("coloc_all", Color.gray, false, false, 44 + 9),
+    CELL_FLUORESCENCE("cell_fluorescence", Color.gray, false, true, 45 + 9),;
 
     private ChannelType(String name, Color chColor, boolean evChannel, boolean cellChannel, int i) {
       mName = name;
@@ -99,7 +100,7 @@ abstract public class Pipeline {
     }
 
     static int getFirstFreeChannel() {
-      return 9;
+      return 10;
     }
 
     static {
@@ -187,7 +188,7 @@ abstract public class Pipeline {
 
     // Crop Image
     if (chSettings.getMarginCropPixel() > 0) {
-      Filter.cropMarginOfImage(chSettings.getMarginCropPixel() , dup);
+      Filter.cropMarginOfImage(chSettings.getMarginCropPixel(), dup);
     }
 
     // Preprocessing
@@ -199,7 +200,7 @@ abstract public class Pipeline {
       if (preProcess == ChannelSettings.PreProcessingStep.EnhanceContrast) {
         Filter.EnhanceContrast(dup);
       }
-      
+
     }
     return dup;
   }
@@ -251,27 +252,39 @@ abstract public class Pipeline {
     }
   }
 
-  public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+  public static ImagePlus preFilterSetColoc(File file, ImagePlus img, ImagePlus background, boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
-    return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, true);
+    return preFilterSetColoc(file, img, background, enhanceContrast, thMethod, thMin, thMax, thershold, true);
   }
 
-  public static ImagePlus preFilterSetColocPreview(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+  public static ImagePlus preFilterSetColocPreview(File file, ImagePlus img, ImagePlus background,
+      boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold) {
-    return preFilterSetColoc(img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
+    return preFilterSetColoc(file, img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
-  public static ImagePlus preFilterSetColoc(ImagePlus img, ImagePlus background, boolean enhanceContrast,
+  public static ImagePlus preFilterSetColoc(File file, ImagePlus img, ImagePlus background, boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
     ImagePlus th = img;
     if (null != background) {
-      Filter.NormalizeHistogram(th);
-      th = Filter.SubtractImages(th, background);
+      if (null != file) {
+        IJ.log("SAVE");
+        String imagePath = getPath(file) + "_original.jpg";
+        Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
+      }
+
+      th = Filter.FlatFieldCorrection(th, background);
+
+      if (null != file) {
+        IJ.log("SAVE");
+        String imagePath = getPath(file) + "_transformed.jpg";
+        Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
+      }
+
     }
 
-
-    Filter.RollingBall(th);
+     Filter.RollingBall(th);
     // Filter.ApplyGaus(th);
     Filter.Smooth(th);
     Filter.Smooth(th);

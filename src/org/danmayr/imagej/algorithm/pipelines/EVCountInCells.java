@@ -34,9 +34,11 @@ public class EVCountInCells extends EVColoc {
     static int MAX_THERSHOLD = 255;
     TreeMap<ChannelType, Channel> mReturnChannels;
     TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
-    Vector<ColocChannelSet> colocChannels = new Vector<>();
-    Vector<ColocChannelSet> colocChannelsEvInCells = new Vector<>();
+    TreeMap<ChannelType,ColocChannelSet> colocChannels = new TreeMap<>();
+    TreeMap<ChannelType,ColocChannelSet> colocChannelsEvInCells = new TreeMap<>();
 
+
+    
     public EVCountInCells(AnalyseSettings settings) {
         super(settings);
     }
@@ -82,7 +84,7 @@ public class EVCountInCells extends EVColoc {
     ///
     /// EV Coloc
     ///
-    void EVColoc(String title, Vector<ColocChannelSet> evChannelsToAnalyze) {
+    void EVColoc(String title, TreeMap<ChannelType,ColocChannelSet> evChannelsToAnalyze) {
         TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title, mImage, evChannelsToAnalyze);
         int startIdx = mReturnChannels.size();
         for (Map.Entry<ChannelType, Channel> val : ret.entrySet()) {
@@ -158,7 +160,7 @@ public class EVCountInCells extends EVColoc {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
                     setNew.mChannelImg = evSubtracted;
                     mEditedEvs.put(val.getKey(), setNew);
-                    colocChannels.add(new ColocChannelSet(evSubtractedOriginal, evSubtracted, val.getValue().type, evCh,
+                    colocChannels.put(val.getValue().type,new ColocChannelSet(evSubtractedOriginal, evSubtracted, val.getValue().type, evCh,
                             val.getValue()));
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();
@@ -303,7 +305,7 @@ public class EVCountInCells extends EVColoc {
             addReturnChannel(evsInCells, inCellEvType, "");
 
             colocChannelsEvInCells
-                    .add(new ColocChannelSet(evChannelImgOriginal, mask, evChannel.getValue().type, evsInCells,
+                    .put(evChannel.getKey(),new ColocChannelSet(evChannelImgOriginal, mask, evChannel.getValue().type, evsInCells,
                             evChannel.getValue()));
 
             Filter.ClearRoiInImage(evChannelImgOriginal);
