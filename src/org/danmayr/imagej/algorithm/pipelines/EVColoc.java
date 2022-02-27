@@ -2,6 +2,8 @@ package org.danmayr.imagej.algorithm.pipelines;
 
 import java.awt.Rectangle;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -41,7 +43,7 @@ public class EVColoc extends Pipeline {
     }
 
     TreeMap<ChannelType, Channel> channels;
-    TreeMap<ChannelType,ColocChannelSet> colocChannels = new TreeMap<>();
+    TreeMap<ChannelType, ColocChannelSet> colocChannels = new TreeMap<>();
     ImagePlus background = null;
 
     protected File mImage;
@@ -98,23 +100,24 @@ public class EVColoc extends Pipeline {
 
         ColocChannelSet colocAll = null;
         int colocEnum = 0;
-        for (Map.Entry<ChannelType, ColocChannelSet> n : channelsToAnalyze.entrySet()) {
-            for (Map.Entry<ChannelType, ColocChannelSet> m : channelsToAnalyze.entrySet()) {
-                if(n.getKey() != m.getKey()){
-                    ColocChannelSet img0 = n.getValue();
-                    ColocChannelSet img1 = m.getValue();
-                    Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
-                    pics2Ch.add(img0);
-                    pics2Ch.add(img1);
-                    ColocChannelSet coloc02 = calculateRoiColoc(title, file, img0, img1);
-                    channelsOut.put(ChannelType.getColocEnum(colocEnum), coloc02.ch);
-                    colocEnum++;
 
-                    //
-                    // For multi channel coloc
-                    //
-                    colocAll = calculateRoiColoc(title, file, colocAll, coloc02);
-                }
+        List<ChannelType> keyList = new ArrayList<ChannelType>(channelsToAnalyze.keySet());
+        for (int n = 0; n < keyList.size(); n++) {
+            for (int m = n + 1; m < keyList.size(); m++) {
+                ColocChannelSet img0 = channelsToAnalyze.get(keyList.get(n));
+                ColocChannelSet img1 = channelsToAnalyze.get(keyList.get(m));
+                Vector<ColocChannelSet> pics2Ch = new Vector<ColocChannelSet>();
+                pics2Ch.add(img0);
+                pics2Ch.add(img1);
+                ColocChannelSet coloc02 = calculateRoiColoc(title, file, img0, img1);
+                channelsOut.put(ChannelType.getColocEnum(colocEnum), coloc02.ch);
+                colocEnum++;
+
+                //
+                // For multi channel coloc
+                //
+                colocAll = calculateRoiColoc(title, file, colocAll, coloc02);
+
             }
         }
 
@@ -314,7 +317,7 @@ public class EVColoc extends Pipeline {
             Filter.SaveImageWithOverlayFromChannel(analzeImg0, channelsToPrint, path);
             Filter.SaveImageWithOverlayFromChannel(img0BeforeTh, null, pathor);
 
-            colocChannels.put(val.getKey(),new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
+            colocChannels.put(val.getKey(), new ColocChannelSet(img0BeforeTh, img0Th, img0.type, measCh0, img0));
         }
 
         ///
