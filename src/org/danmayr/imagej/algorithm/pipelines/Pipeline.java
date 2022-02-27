@@ -263,31 +263,40 @@ abstract public class Pipeline {
     return preFilterSetColoc(file, img, background, enhanceContrast, thMethod, thMin, thMax, thershold, false);
   }
 
-  public static ImagePlus preFilterSetColoc(File file, ImagePlus img, ImagePlus background, boolean enhanceContrast,
+  public static ImagePlus preFilterSetColoc(File file, ImagePlus img, ImagePlus backgroundOriginal,
+      boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
     ImagePlus th = img;
-    if (null != background) {
+
+    Filter.Smooth(th);
+    Filter.Smooth(th);
+
+    if (null != backgroundOriginal) {
+      ImagePlus background = Filter.duplicateImage(backgroundOriginal);
+      Filter.Smooth(background);
+      Filter.Smooth(background);
+
       if (null != file) {
-        IJ.log("SAVE");
         String imagePath = getPath(file) + "_original.jpg";
         Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
       }
 
-      th = Filter.FlatFieldCorrection(th, background);
+      int[] minMax = Filter.getMinMax(background);
+
+      Filter.NormalizeHistogram(background, minMax);
+      Filter.NormalizeHistogram(th, minMax);
+      th = Filter.SubtractImages(th, background);
 
       if (null != file) {
-        IJ.log("SAVE");
         String imagePath = getPath(file) + "_transformed.jpg";
         Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
       }
 
     }
 
-     Filter.RollingBall(th);
+    Filter.RollingBall(th);
     // Filter.ApplyGaus(th);
-    Filter.Smooth(th);
-    Filter.Smooth(th);
 
     ImagePlus beforeThershold = Filter.duplicateImage(th);
     Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);

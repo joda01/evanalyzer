@@ -80,6 +80,16 @@ public class Filter {
         return sumImage;
     }
 
+    public static ImagePlus FlatFieldCorrection(ImagePlus image, ImagePlus background)
+    {
+        CalculatorPlusThreadSafe calcPlus = new CalculatorPlusThreadSafe(CalculatorPlusThreadSafe.DIVIDE);
+        ImagePlus retVal = background.duplicate();
+        double mean = background.getStatistics().mean;
+        IJ.log("Mean " + mean);
+        calcPlus.calculate(image, retVal, mean, 0);
+        return retVal;
+    }
+
     ///
     /// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
     ///
@@ -90,10 +100,28 @@ public class Filter {
         filter.equalize(img);
     }
 
-    public static void NormalizeHistogram(ImagePlus img) {
+    public static int[] NormalizeHistogram(ImagePlus img) {
         // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
         ContrastEnhancerThreadSafe filter = new ContrastEnhancerThreadSafe();
         filter.stretchHistogramNormalize(img, 0.3);
+        return filter.getLutInversTable();
+    }
+
+    public static int[] NormalizeHistogram(ImagePlus img, int[] minMax) {
+        // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
+        ContrastEnhancerThreadSafe filter = new ContrastEnhancerThreadSafe();
+        filter.stretchHistogramNormalize(img, 0.3,minMax);
+        return filter.getLutInversTable();
+    }
+
+    public static int[] getMinMax(ImagePlus img){
+        ImageStatistics stats = ImageStatistics.getStatistics(img.getProcessor(), 16, null);
+        return ContrastEnhancerThreadSafe.getMinAndMax(img.getProcessor(), 0.3, stats);
+    }
+
+    public static void ApplyLUT(ImagePlus img, int[] lutTable) {
+        // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
+        img.getProcessor().applyTable(lutTable);
     }
 
     ///

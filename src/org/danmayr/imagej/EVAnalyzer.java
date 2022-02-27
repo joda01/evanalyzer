@@ -31,7 +31,6 @@ public class EVAnalyzer implements PlugIn {
 	}
 
 	public static void main(String[] args) {
-		IJ.log("Hello, World!");
 
 		// set the plugins.dir property to make the plugin appear in the Plugins menu
 		// see: https://stackoverflow.com/a/7060464/1207769

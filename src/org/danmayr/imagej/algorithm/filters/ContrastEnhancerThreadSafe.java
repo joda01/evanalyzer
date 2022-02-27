@@ -96,6 +96,11 @@ public class ContrastEnhancerThreadSafe implements Measurements {
         stretchHistogram(imp,saturated);
     }
 
+	public void stretchHistogramNormalize(ImagePlus imp, double saturated,int[] minMax) {
+        this.normalize = true;
+        stretchHistogram(imp,saturated,minMax);
+    }
+
 	public void stretchHistogram(ImagePlus imp, double saturated) {
 		ImageStatistics stats = null;
 		if (useStackHistogram)
@@ -121,12 +126,41 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 				stretchHistogram(ip, saturated, stats);
 		}
 	}
+
+	public void stretchHistogram(ImagePlus imp, double saturated, int[] minMax) {
+		ImageStatistics stats = null;
+		if (useStackHistogram)
+			stats = new StackStatistics(imp);
+		if (processStack) {
+			ImageStack stack = imp.getStack();
+			for (int i=1; i<=stackSize; i++) {
+				IJ.showProgress(i, stackSize);
+				ImageProcessor ip = stack.getProcessor(i);
+				ip.setRoi(imp.getRoi());
+				if (!useStackHistogram)
+					stats = ImageStatistics.getStatistics(ip, MIN_MAX, null);
+				stretchHistogram(ip, saturated, stats,minMax);
+			}
+		} else {
+			ImageProcessor ip = imp.getProcessor();
+			ip.setRoi(imp.getRoi());
+			if (stats==null)
+				stats = ImageStatistics.getStatistics(ip, MIN_MAX, null);
+			if (imp.isComposite())
+				stretchCompositeImageHistogram((CompositeImage)imp, saturated, stats);
+			else
+				stretchHistogram(ip, saturated, stats,minMax);
+		}
+	}
 	
 	public void stretchHistogram(ImageProcessor ip, double saturated) {
 		useStackHistogram = false;
 		stretchHistogram(new ImagePlus("", ip), saturated);
 	}
 
+
+	static String peace[] = {"P","E","A","C","E"};
+	static int peaceIdx = 0;
 
 	public void stretchHistogram(ImageProcessor ip, double saturated, ImageStatistics stats) {
 		int[] a = getMinAndMax(ip, saturated, stats);
@@ -141,8 +175,44 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 			if (!updateSelectionOnly)
 				ip.resetRoi();
 			if (normalize){
-                IJ.log("Yeh :) I'm normalizing");
+                IJ.log(peace[peaceIdx]+" | Yeh :) I'm normalizing min:" + min + " | max:" +max );
+
+				peaceIdx++;
+				if(peaceIdx >4){
+					peaceIdx = 0;
+				}
 				normalize(ip, min, max);
+            }
+			else {
+				if (updateSelectionOnly) {
+					ImageProcessor mask = ip.getMask();
+					if (mask!=null) ip.snapshot();
+					ip.setMinAndMax(min, max);
+					if (mask!=null) ip.reset(mask);
+				} else
+					ip.setMinAndMax(min, max);
+			}
+		}
+	}
+
+	public void stretchHistogram(ImageProcessor ip, double saturated, ImageStatistics stats, int[] a) {
+		int hmin=a[0], hmax=a[1];
+		if (hmax>hmin) {
+			double min = stats.histMin+hmin*stats.binSize;
+			double max = stats.histMin+hmax*stats.binSize;
+			if (stats.histogram16!=null && ip instanceof ShortProcessor) {
+				min = hmin;
+				max = hmax;
+			}
+			if (!updateSelectionOnly)
+				ip.resetRoi();
+			if (normalize){
+                IJ.log(peace[peaceIdx]+" | Yeh :) I'm normalizing min:" + min + " | max:" +max );
+
+				peaceIdx++;
+				if(peaceIdx >4){
+					peaceIdx = 0;
+				}				normalize(ip, min, max);
             }
 			else {
 				if (updateSelectionOnly) {
@@ -189,7 +259,7 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 		*/
 	}
 
-	int[] getMinAndMax(ImageProcessor ip, double saturated, ImageStatistics stats) {
+	public static int[] getMinAndMax(ImageProcessor ip, double saturated, ImageStatistics stats) {
 		int hmin, hmax;
 		int threshold;
 		int[] histogram = stats.histogram;
@@ -224,6 +294,7 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 		return a;
 	}
 	
+	int[] mLutInvers;
 	void normalize(ImageProcessor ip, double min, double max) {
 		int min2 = 0;
 		int max2 = 255;
@@ -233,15 +304,28 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 		else if (ip instanceof FloatProcessor)
 			normalizeFloat(ip, min, max);
 		int[] lut = new int[range];
+		int[] lutInvers = new int[range];
 		for (int i=0; i<range; i++) {
-			if (i<=min)
+			if (i<=min){
 				lut[i] = 0;
-			else if (i>=max)
+				lutInvers[0] = i;
+			}
+			else if (i>=max){
 				lut[i] = max2;
-			else
-				lut[i] = (int)(((double)(i-min)/(max-min))*max2);
+				lutInvers[max2] = i;
+			}
+			else{
+				int newVal = (int)(((double)(i-min)/(max-min))*max2);
+				lut[i] = newVal;
+				lutInvers[newVal] = i;
+			}
 		}
+		mLutInvers = lutInvers;
 		applyTable(ip, lut);
+	}
+
+	public int[] getLutInversTable(){
+		return mLutInvers;
 	}
 	
 	void applyTable(ImageProcessor ip, int[] lut) {
@@ -255,6 +339,7 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 	}
 
 	void normalizeFloat(ImageProcessor ip, double min, double max) {
+		IJ.log("Float normalize");
 		double scale = max>min?1.0/(max-min):1.0;
 		int size = ip.getWidth()*ip.getHeight();
 		float[] pixels = (float[])ip.getPixels();
