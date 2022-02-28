@@ -212,7 +212,8 @@ public class ContrastEnhancerThreadSafe implements Measurements {
 				peaceIdx++;
 				if(peaceIdx >4){
 					peaceIdx = 0;
-				}				normalize(ip, min, max);
+				}
+				normalize(ip, min, max);
             }
 			else {
 				if (updateSelectionOnly) {

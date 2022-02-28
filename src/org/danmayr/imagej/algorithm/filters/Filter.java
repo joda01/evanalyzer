@@ -90,6 +90,14 @@ public class Filter {
         return retVal;
     }
 
+    public static void Scale(ImagePlus image, double scaleFactor)
+    {
+        CalculatorPlusThreadSafe calcPlus = new CalculatorPlusThreadSafe(CalculatorPlusThreadSafe.SCALE);
+        ImagePlus retVal = image.duplicate();
+        calcPlus.calculate(image, image, scaleFactor, 0);
+        image = retVal;
+    }
+
     ///
     /// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
     ///

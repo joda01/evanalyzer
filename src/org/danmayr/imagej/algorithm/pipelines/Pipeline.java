@@ -271,22 +271,32 @@ abstract public class Pipeline {
 
     Filter.Smooth(th);
     Filter.Smooth(th);
+    Filter.RollingBall(th);
+
 
     if (null != backgroundOriginal) {
       ImagePlus background = Filter.duplicateImage(backgroundOriginal);
-      Filter.Smooth(background);
-      Filter.Smooth(background);
 
       if (null != file) {
         String imagePath = getPath(file) + "_original.jpg";
         Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
       }
 
-      int[] minMax = Filter.getMinMax(background);
+      int[] minMax = Filter.getMinMax(th);
+     // int[] minMaxTh = Filter.getMinMax(th);
 
-      Filter.NormalizeHistogram(background, minMax);
-      Filter.NormalizeHistogram(th, minMax);
+
+      //Filter.NormalizeHistogram(background,minMax);
+      //int[] lutTh = Filter.NormalizeHistogram(th,minMax);
+      Filter.RollingBall(background);
+
       th = Filter.SubtractImages(th, background);
+
+      Filter.Smooth(background);
+      Filter.Smooth(background);
+
+      //Filter.ApplyLUT(background, lutBack);
+      //Filter.ApplyLUT(th, lutTh);
 
       if (null != file) {
         String imagePath = getPath(file) + "_transformed.jpg";
@@ -295,7 +305,6 @@ abstract public class Pipeline {
 
     }
 
-    Filter.RollingBall(th);
     // Filter.ApplyGaus(th);
 
     ImagePlus beforeThershold = Filter.duplicateImage(th);
