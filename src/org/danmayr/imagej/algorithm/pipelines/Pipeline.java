@@ -267,51 +267,25 @@ abstract public class Pipeline {
       boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
-    ImagePlus th = img;
-
-    Filter.Smooth(th);
-    Filter.Smooth(th);
-    Filter.RollingBall(th);
-
-
-    if (null != backgroundOriginal) {
-      ImagePlus background = Filter.duplicateImage(backgroundOriginal);
-
-      if (null != file) {
-        String imagePath = getPath(file) + "_original.jpg";
-        Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
-      }
-
-      int[] minMax = Filter.getMinMax(th);
-     // int[] minMaxTh = Filter.getMinMax(th);
-
-
-      //Filter.NormalizeHistogram(background,minMax);
-      //int[] lutTh = Filter.NormalizeHistogram(th,minMax);
-      Filter.RollingBall(background);
-
-      th = Filter.SubtractImages(th, background);
-
-      Filter.Smooth(background);
-      Filter.Smooth(background);
-
-      //Filter.ApplyLUT(background, lutBack);
-      //Filter.ApplyLUT(th, lutTh);
-
-      if (null != file) {
-        String imagePath = getPath(file) + "_transformed.jpg";
-        Filter.SaveImageWithOverlayFromChannel(th, null, imagePath);
-      }
-
-    }
-
-    // Filter.ApplyGaus(th);
-
-    ImagePlus beforeThershold = Filter.duplicateImage(th);
-    Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
-    img.setImage(th);
-    img = th;
-    return beforeThershold;
+        ImagePlus th = img;
+        if (null != backgroundOriginal) {
+          th = Filter.SubtractImages(th, backgroundOriginal);
+        }
+    
+        // if (true == enhanceContrast) {
+        // Filter.EnhanceContrast(th);
+        // }
+    
+        Filter.RollingBall(th);
+        // Filter.ApplyGaus(th);
+        Filter.Smooth(th);
+        Filter.Smooth(th);
+    
+        ImagePlus beforeThershold = Filter.duplicateImage(th);
+        Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
+        img.setImage(th);
+        img = th;
+        return beforeThershold;
   }
 
   abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
