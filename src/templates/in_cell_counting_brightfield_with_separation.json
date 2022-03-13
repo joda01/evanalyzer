@@ -84,7 +84,7 @@
     }
   ],
   "ctrl_images": "WithControlPicture",
-  "function": "countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus",
+  "function": "evCountPerCellRemoveCropped",
   "min_intensity": 0,
   "report_type": "FullReport",
   "series": 0,

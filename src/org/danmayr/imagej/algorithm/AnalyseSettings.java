@@ -22,11 +22,12 @@ public class AnalyseSettings {
     }
 
     public enum Function {
-        noSelection("--No selection--"), calcColoc("EV Colocalization"), countEVs("EV Counting"),
-        countInCellEVs("EV Counting in Cells"),
-        countInCellEVsWithCellSeparation("EV Counting in Cells with cell separation"),
-        countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus(
-                "EV Counting in Cells with cell separation + remove nucleus on edge and remove cells without nucleus");
+        noSelection("--No selection--"),
+        evColoc("EV coloc"),
+        evCount("EV count"),
+        evCountInTotalCellArea("EV count per total Cell area"),
+        evCountPerCell("EV count per cell"),
+        evCountPerCellRemoveCropped("EV count per cell remove cropped cells");
 
         private final String name;
 
@@ -38,6 +39,10 @@ public class AnalyseSettings {
             // (otherName == null) check is not needed because name.equals(null) returns
             // false
             return name.equals(otherName);
+        }
+
+        public String getStringName() {
+            return this.name;
         }
     }
 

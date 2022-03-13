@@ -1381,14 +1381,16 @@ public class Dialog extends JFrame {
             mainTab.add(l, c);
 
             AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                    AnalyseSettings.Function.countEVs, AnalyseSettings.Function.calcColoc,
-                    AnalyseSettings.Function.countInCellEVs,
-                    AnalyseSettings.Function.countInCellEVsWithCellSeparation,
-                    AnalyseSettings.Function.countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus };
+                    AnalyseSettings.Function.evCount, 
+                    AnalyseSettings.Function.evColoc,
+                    AnalyseSettings.Function.evCountInTotalCellArea,
+                    AnalyseSettings.Function.evCountPerCell,
+                    AnalyseSettings.Function.evCountPerCellRemoveCropped };
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
             mFunctionSelection = new JComboBox<AnalyseSettings.Function>(functions);
+            mFunctionSelection.setRenderer(new ItemRendererFunction(mFunctionSelection));
             mFunctionSelection.addItemListener(new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent e) {

@@ -80,28 +80,28 @@ public class FileProcessor extends Thread {
         // Analyse images
         Pipeline pipeline = null;
 
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countEVs)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCount)) {
             mAnalyseSettings.mCalcColoc = false;
             mAnalyseSettings.mCountEvsPerCell = false;
             pipeline = new EVColoc(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.calcColoc)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evColoc)) {
             mAnalyseSettings.mCalcColoc = true;
             mAnalyseSettings.mCountEvsPerCell = false;
             pipeline = new EVColoc(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellEVs)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountInTotalCellArea)) {
             mAnalyseSettings.mCountEvsPerCell = false;
             mAnalyseSettings.mCalcColoc = false;
             pipeline = new EVCountInCells(mAnalyseSettings);
         }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.countInCellEVsWithCellSeparation)) {
+        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountPerCell)) {
             mAnalyseSettings.mCountEvsPerCell = true;
             mAnalyseSettings.mCalcColoc = false;
             pipeline = new EVCountInCells(mAnalyseSettings);
         }
         if (mAnalyseSettings.mSelectedFunction
-                .equals(AnalyseSettings.Function.countInCellEVsWithCellSeparationExcludeCellsWithoutNucleus)) {
+                .equals(AnalyseSettings.Function.evCountPerCellRemoveCropped)) {
             mAnalyseSettings.mCountEvsPerCell = true;
             mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
             mAnalyseSettings.mCalcColoc = false;
