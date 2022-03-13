@@ -23,28 +23,6 @@ import java.util.Vector;
 import java.util.prefs.Preferences;
 import java.awt.BorderLayout;
 import javax.swing.*;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -59,6 +37,8 @@ import org.danmayr.imagej.algorithm.pipelines.Pipeline;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
@@ -99,10 +79,10 @@ public class Dialog extends JFrame {
             0.001); // step
     private JSpinner mPixelInMicrometer = new JSpinner(modelMicrometer);
 
-    SpinnerModel modelColocFactor = new SpinnerNumberModel((double)1.0, // initial value
-            (double)0, // min
-            (double)100.0, // max
-            (double)1.0); // step
+    SpinnerModel modelColocFactor = new SpinnerNumberModel((double) 1.0, // initial value
+            (double) 0, // min
+            (double) 100.0, // max
+            (double) 1.0); // step
     private JSpinner mMinColocFactor = new JSpinner(modelColocFactor);
     private JComboBox mFunctionSelection;
     private JComboBox mSeries;
@@ -1169,10 +1149,8 @@ public class Dialog extends JFrame {
             it2.addActionListener(new java.awt.event.ActionListener() {
                 // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    JOptionPane.showMessageDialog(new JFrame(), "EVAnalyzer v" + Version.getVersion()
-                            + ".\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
-                            "About", JOptionPane.INFORMATION_MESSAGE);
 
+                    openAboutDialog();
                 }
             });
 
@@ -1182,7 +1160,40 @@ public class Dialog extends JFrame {
 
         mMenuBar.add(fileMenu);
         mMenuBar.add(helpMenu);
+        mMenuBar.add(Box.createHorizontalGlue());
+        JMenu logo = new JMenu("");
+        logo.setContentAreaFilled(false);
+        logo.setEnabled(false);
+        ImageIcon ico = new ImageIcon(getClass().getResource("logo_24.png"));
+        logo.setDisabledIcon(ico);
+        logo.setIcon(ico);
+        logo.setAlignmentX(JComponent.RIGHT_ALIGNMENT);
+        logo.addActionListener(new java.awt.event.ActionListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                openAboutDialog();
+            }
+        });
+        logo.addMenuListener(new MenuListener() {
+            // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+            @Override
+            public void menuSelected(MenuEvent e) {
+                openAboutDialog();
+            }
 
+            @Override
+            public void menuDeselected(MenuEvent e) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void menuCanceled(MenuEvent e) {
+            }
+        });
+
+        mMenuBar.add(logo);
+
+        mMenuBar.revalidate();
         this.setJMenuBar(mMenuBar);
 
         this.add(tabbedPane, BorderLayout.CENTER);
@@ -1194,8 +1205,20 @@ public class Dialog extends JFrame {
         pack();
 
         // this.setAlwaysOnTop(true);
-        // this.setResizable(false);
+        this.setResizable(false);
+        ImageIcon iconImg = new ImageIcon(getClass().getResource("icon.png"));
+        setIconImage(iconImg.getImage());
         setTitle("EVAnalyzer " + Version.getVersion());
+        setVisible(true);
+    }
+
+    static void renderSplashFrame(Graphics2D g, int frame) {
+        final String[] comps = { "foo", "bar", "baz" };
+        g.setComposite(AlphaComposite.Clear);
+        g.fillRect(120, 140, 200, 40);
+        g.setPaintMode();
+        g.setColor(Color.BLACK);
+        g.drawString("Loading " + comps[(frame / 5) % 3] + "...", 120, 150);
     }
 
     ///
@@ -1381,7 +1404,7 @@ public class Dialog extends JFrame {
             mainTab.add(l, c);
 
             AnalyseSettings.Function[] functions = { AnalyseSettings.Function.noSelection,
-                    AnalyseSettings.Function.evCount, 
+                    AnalyseSettings.Function.evCount,
                     AnalyseSettings.Function.evColoc,
                     AnalyseSettings.Function.evCountInTotalCellArea,
                     AnalyseSettings.Function.evCountPerCell,
@@ -1569,8 +1592,8 @@ public class Dialog extends JFrame {
 
         // Logo
         JLabel logo = new JLabel("(c) 2019 - 2022  SMJD", SwingConstants.RIGHT);
-        ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_32.png"));
-        logo.setIcon(logoIcon);
+        // ImageIcon logoIcon = new ImageIcon(getClass().getResource("logo_48.png"));
+        // logo.setIcon(logoIcon);
 
         c.gridx = 0;
         c.gridy++;
@@ -1630,7 +1653,7 @@ public class Dialog extends JFrame {
         AnalyseSettings sett = new AnalyseSettings();
 
         sett.mOnePixelInMicroMeter = (Double) mPixelInMicrometer.getValue();
-        sett.mMinColocFactor = (Double)mMinColocFactor.getValue();
+        sett.mMinColocFactor = (Double) mMinColocFactor.getValue();
 
         if (true == inputFolderNeeded) {
             sett.mInputFolder = mInputFolder.getText();
@@ -1829,6 +1852,12 @@ public class Dialog extends JFrame {
             IJ.log("Nullptr Exception! " + ex.getMessage());
         }
         return retString;
+    }
+
+    private void openAboutDialog() {
+        JOptionPane.showMessageDialog(this, "EVAnalyzer v" + Version.getVersion()
+                + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                "About", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

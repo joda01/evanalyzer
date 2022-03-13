@@ -396,11 +396,19 @@ public class ExcelExport {
         CellStyle actStyleThinLine = createCellStyleHeader(imgSheet, false);
         CellStyle actStyleThickLine = createCellStyleHeader(imgSheet, true);
 
+
+
         ///
         /// Write header
         ///
         Row rowChName = imgSheet.createRow(0);
         Row rowTitles = imgSheet.createRow(0 + 1);
+
+        //
+        // Write back button
+        //
+        Cell rowBackButton = rowChName.createCell(0);
+        //rowBackButton.
 
         TreeMap<ChannelType, Pair<String, String[]>> titles = image.getTitle();
         TreeMap<ChannelType, Integer> channelColumnSize = new TreeMap<>(); // Stores the number of Columns per channel
