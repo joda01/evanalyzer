@@ -32,7 +32,7 @@ public class ParticleInfo {
         this.areaGrayScale = areaGrayScale;
     }
 
-    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, Roi roi, int snapArea) {
+    public ParticleInfo(int roiName, double areaSize, double areaGrayScale, double areaThersholdScale, double circularity, Roi roi, double snapArea) {
         this(roiName,areaSize,areaGrayScale,areaThersholdScale,circularity);
         this.mRoi = roi;
         if(snapArea > 0){
@@ -43,19 +43,19 @@ public class ParticleInfo {
     }
 
 
-    public Roi generateSnapArea(Roi inRoi, int snapArea){
+    public Roi generateSnapArea(Roi inRoi, double snapArea){
         Rectangle bounds = inRoi.getBounds();
 
-        if(snapArea*2 > bounds.width && snapArea*2 > bounds.height){
-            int centerX = bounds.x+bounds.width/2;
-            int centerY = bounds.y+bounds.height/2;
+        if(snapArea > bounds.width && snapArea > bounds.height){
+            double centerX = bounds.x+bounds.width/2;
+            double centerY = bounds.y+bounds.height/2;
 
-            int pointX = centerX-snapArea;
-            int pointY = centerY-snapArea;
+            double pointX = centerX-snapArea/2;
+            double pointY = centerY-snapArea/2;
 
-            int width = snapArea*2;
+            double width = snapArea;
 
-            OvalRoi ovalroi = new OvalRoi(pointX,pointY,width,width);
+            OvalRoi ovalroi = new OvalRoi((int)pointX,(int)pointY,(int)width,(int)width);
             return ovalroi;
         }else{
             return inRoi;

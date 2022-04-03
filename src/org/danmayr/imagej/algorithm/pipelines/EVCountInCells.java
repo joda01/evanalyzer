@@ -399,7 +399,7 @@ public class EVCountInCells extends EVColoc {
                     //
                     // Contains Cell information
                     //
-                    String valueNames[] = { "area size [µm]", "intensity", "circularity [0-1]", "valid", "invalid" };
+                    String valueNames[] = { "area size [µm²]", "intensity", "circularity [0-1]", "valid", "invalid" };
                     Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
                             new CellInfoStatistics(), valueNames, 0);
 
@@ -487,7 +487,7 @@ public class EVCountInCells extends EVColoc {
         }
 
         public String[] getTitle() {
-            String[] title = { "area size [µm]", "intensity", "circularity [0-1]", "valid", "invalid" };
+            String[] title = { "area size [µm²]", "intensity", "circularity [0-1]", "valid", "invalid" };
             return title;
         }
 

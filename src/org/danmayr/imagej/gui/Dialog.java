@@ -599,7 +599,7 @@ public class Dialog extends JFrame {
                 c.weightx = 1;
                 c.weightx = 0.0;
                 c.gridwidth = 1;
-                JLabel lpt = new JLabel("Particle size range [µm]:");
+                JLabel lpt = new JLabel("Particle size range [µm²]:");
                 lpt.setToolTipText(
                         "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
                 lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));
@@ -630,7 +630,7 @@ public class Dialog extends JFrame {
                 c.weightx = 1;
                 c.weightx = 0.0;
                 c.gridwidth = 1;
-                JLabel lpt = new JLabel("Snap area size [µm]:");
+                JLabel lpt = new JLabel("Snap area diameter [µm]:");
                 lpt.setToolTipText(
                         "Range [0 to 9999]\nValue in pixel. Particle size must be in the given range.\nElse it will be ignored for calculation.");
                 lpt.setMinimumSize(new Dimension(200, lpt.getMinimumSize().height));

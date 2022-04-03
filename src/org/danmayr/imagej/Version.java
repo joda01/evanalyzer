@@ -3,7 +3,7 @@ package org.danmayr.imagej;
 public class Version {
     static final public int major = 7;
     static final public int minor = 2;
-    static final public int fix = 0;
+    static final public int fix = 1;
     public static String status = "alpha";   // beta, aplha, release
     public final static long build  = 1642186455;
 

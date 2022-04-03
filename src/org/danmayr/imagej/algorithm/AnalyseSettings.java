@@ -66,6 +66,10 @@ public class AnalyseSettings {
         return pxl * mOnePixelInMicroMeter;
     }
 
+    public double pixelAreaToMicrometer(double pxl) {
+        return pxl * mOnePixelInMicroMeter*mOnePixelInMicroMeter;
+    }
+
     public void saveSettings(String fileName, String title, String note) {
         JSONObject obj = new JSONObject();
 

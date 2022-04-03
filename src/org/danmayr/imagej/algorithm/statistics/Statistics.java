@@ -58,7 +58,7 @@ public class Statistics {
     }
 
     public String[] getTitle() {
-        String[] title = { "area size [µm]", "intensity", "circularity [0-1]","valid","invalid","tetraspeck","threshold" };
+        String[] title = { "area size [µm²]", "intensity", "circularity [0-1]","valid","invalid","tetraspeck","threshold" };
         return title;
     }
 

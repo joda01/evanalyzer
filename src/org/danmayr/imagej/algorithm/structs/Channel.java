@@ -17,7 +17,7 @@ public class Channel {
     TreeMap<Integer, ParticleInfo> mRois = new TreeMap<>();
     Statistics mStatistics = null;
     String mControlImgPath = "";
-    String[] mTitles = { "area size [µm]", "intensity", "threshold scale", "circularity [0-1]", "validity" };
+    String[] mTitles = { "area size [µm²]", "intensity", "threshold scale", "circularity [0-1]", "validity" };
     String[] mTitleDynamic = { "" };
 
     ///

@@ -5,7 +5,7 @@ import java.util.Map;
 import org.danmayr.imagej.algorithm.structs.*;
 
 public class StatisticsColoc extends Statistics {
-    String title[] = { "area size [µm]", "coloc factor [%]","circularity [0-1]","valid","invalid" }; 
+    String title[] = { "area size [µm²]", "coloc factor [%]","circularity [0-1]","valid","invalid" }; 
     
     double[] intensityChannelsSum = null;
     double[] areaSizeChannelsSum = null;

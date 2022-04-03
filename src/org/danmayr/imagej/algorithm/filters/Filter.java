@@ -567,7 +567,7 @@ public class Filter {
         // First line is header therefore start with 1
         for (int i = 0; i < imgOriginal.size(); i++) {
 
-            double areaSize = settings.pixelToMicrometer(imgOriginal.getValueAsDouble(area, i));
+            double areaSize = settings.pixelAreaToMicrometer(imgOriginal.getValueAsDouble(area, i));
             double grayScale = imgOriginal.getValueAsDouble(mean, i);
             double thersholdScale = imgThershold.getValueAsDouble(mean, i);
             double circularity = imgOriginal.getValueAsDouble(circ, i);

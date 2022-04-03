@@ -211,7 +211,7 @@ public class EVColoc extends Pipeline {
                                         particle2.getValue().areaGrayScale };
                                 double[] areaChannels = { particle1.getValue().areaSize,
                                         particle2.getValue().areaSize };
-                                double sizeInMicrometer = mSettings.pixelToMicrometer(size);
+                                double sizeInMicrometer = mSettings.pixelAreaToMicrometer(size);
                                 ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, colocFactor,
                                         circularity,
                                         intensityChannels,
