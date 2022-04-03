@@ -169,10 +169,6 @@ public class EVColoc extends Pipeline {
             ChannelSettings chSet = ch1.set.getMinCircularityDouble() > ch2.set.getMinCircularityDouble() ? ch1.set
                     : ch2.set;
 
-            double circularityFilter = chSet.getMinCircularityDouble();
-            double minParticleSize = chSet.getMinParticleSizeDouble();
-            double maxParticleSize = chSet.getMaxParticleSizeDouble();
-
             int colocNr = 0;
 
             for (Map.Entry<Integer, ParticleInfo> particle1 : roiPic1.entrySet()) {
@@ -186,8 +182,8 @@ public class EVColoc extends Pipeline {
                             //
                             // Calculate coloc factor
                             //
-                            double colocFactor = size / particle1.getValue().areaSize;
-                            double colocFactor2 = size / particle2.getValue().areaSize;
+                            double colocFactor =  (double)size / (double)particle1.getValue().getSnapArea().getContainedPoints().length;
+                            double colocFactor2 = (double)size / (double)particle2.getValue().getSnapArea().getContainedPoints().length;
                             if (colocFactor2 > colocFactor) {
                                 colocFactor = colocFactor2;
                             }
@@ -206,17 +202,19 @@ public class EVColoc extends Pipeline {
                                 if (circularity > 1.0) {
                                     circularity = 1.0;
                                 }
-
                                 double[] intensityChannels = { particle1.getValue().areaGrayScale,
                                         particle2.getValue().areaGrayScale };
                                 double[] areaChannels = { particle1.getValue().areaSize,
                                         particle2.getValue().areaSize };
                                 double sizeInMicrometer = mSettings.pixelAreaToMicrometer(size);
+                                // Correct area size calculation
                                 ParticleInfoColoc exosom = new ParticleInfoColoc(colocNr, sizeInMicrometer, colocFactor,
                                         circularity,
                                         intensityChannels,
                                         areaChannels, result, 0);
-                                exosom.validatearticle(minParticleSize, maxParticleSize, circularityFilter, 0);
+                                
+                                // No validity check for coloc
+                                //exosom.validatearticle(0, -1, 0, 0);
                                 coloc.addRoi(exosom);
                                 colocNr++;
                                 break; // We have a match. We can continue with the next particle
