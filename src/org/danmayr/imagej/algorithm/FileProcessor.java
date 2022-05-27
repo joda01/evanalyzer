@@ -254,6 +254,7 @@ public class FileProcessor extends Thread {
                 } else if (file.getName().toLowerCase().endsWith(".vsi")
                         || file.getName().toLowerCase().endsWith(".tiff")
                         || file.getName().toLowerCase().endsWith(".czi")
+                        || file.getName().toLowerCase().endsWith(".ics")
                         || file.getName().toLowerCase().endsWith(".tif")) {
                     foundFiles.add(file);
                 }
