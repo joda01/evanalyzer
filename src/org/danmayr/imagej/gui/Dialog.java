@@ -985,7 +985,7 @@ public class Dialog extends JFrame {
 
         private JComboBox mComboReportGenerator;
         private JComboBox mControlPictures;
-        private JTextField mReportFileName = new JTextField(30);
+        private JTextField mReportName = new JTextField(30);
 
         public PanelReport(Container parent) {
             GridBagLayout layout = new GridBagLayout();
@@ -1001,7 +1001,7 @@ public class Dialog extends JFrame {
             c.gridx = 0;
             c.gridy = 0;
             c.weightx = 0;
-            JLabel l2 = new JLabel("Report filename:");
+            JLabel l2 = new JLabel("Report name:");
             ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-rename-16.png"));
             l2.setIcon(diamter2);
             l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
@@ -1013,7 +1013,7 @@ public class Dialog extends JFrame {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
-            this.add(mReportFileName, c);
+            this.add(mReportName, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -1301,7 +1301,6 @@ public class Dialog extends JFrame {
                 String outFolder = mInputFolder.getText();
                 outFolder = outFolder.substring(outFolder.lastIndexOf(File.separator) + 1);
                 outFolder.replace(File.separator, "");
-                reportSettings.mReportFileName.setText(outFolder);
             }
         });
         mainTab.add(mbInputFolder, c);
@@ -1647,22 +1646,31 @@ public class Dialog extends JFrame {
 
     //
     // Get analyze settings
+    // \param[in] forAnalysis set to true if you want to get the settings prepared
+    // for analysis
     //
-    AnalyseSettings getAnalyzeSettings(boolean inputFolderNeeded) {
+    AnalyseSettings getAnalyzeSettings(boolean forAnalysis) {
         String error = "";
         AnalyseSettings sett = new AnalyseSettings();
 
         sett.mOnePixelInMicroMeter = (Double) mPixelInMicrometer.getValue();
         sett.mMinColocFactor = (Double) mMinColocFactor.getValue();
 
-        if (true == inputFolderNeeded) {
+        if (true == forAnalysis) {
             sett.mInputFolder = mInputFolder.getText();
             File parentFile = new File(sett.mInputFolder);
             if (false == parentFile.exists()) {
                 error = "Please select an existing input folder!\n";
             }
 
-            sett.mOutputFolder = mOutputFolder.getText();
+            String outputFolder = reportSettings.mReportName.getText();
+            if (outputFolder.length() <= 0) {
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                LocalDateTime now = LocalDateTime.now();
+                outputFolder = dtf.format(now);
+            }
+
+            sett.mOutputFolder = mOutputFolder.getText() + java.io.File.separator + outputFolder;
             if (sett.mOutputFolder.length() <= 0) {
                 error = "Please select an output folder!\n";
             }
@@ -1687,7 +1695,6 @@ public class Dialog extends JFrame {
 
         sett.mSaveDebugImages = (AnalyseSettings.CotrolPicture) reportSettings.mControlPictures.getSelectedItem();
         sett.reportType = (AnalyseSettings.ReportType) reportSettings.mComboReportGenerator.getSelectedItem();
-        sett.mOutputFileName = reportSettings.mReportFileName.getText();
 
         if (error.length() <= 0) {
 
@@ -1721,8 +1728,14 @@ public class Dialog extends JFrame {
     ///
     public void startAnalyse(AnalyseSettings sett) {
         if (null != sett) {
-            sett.saveSettings(sett.mOutputFolder + java.io.File.separator + sett.mOutputFileName + "_settings.json",
-                    sett.mOutputFileName + "_settings", "-");
+            // Creeate folder if not exists
+            final File parentFile = new File(sett.mOutputFolder);
+            if (parentFile != null && !parentFile.exists()) {
+                parentFile.mkdirs();
+            }
+
+            sett.saveSettings(sett.mOutputFolder + java.io.File.separator + "settings.json",
+                    sett.mReportName, "-");
             mbStart.setEnabled(false);
             mCancle.setEnabled(true);
             mOpenResult.setEnabled(false);

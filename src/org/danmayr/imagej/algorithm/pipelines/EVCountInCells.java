@@ -34,11 +34,9 @@ public class EVCountInCells extends EVColoc {
     static int MAX_THERSHOLD = 255;
     TreeMap<ChannelType, Channel> mReturnChannels;
     TreeMap<ChannelType, ChannelSettings> mEditedEvs = new TreeMap<ChannelType, ChannelSettings>();
-    TreeMap<ChannelType,ColocChannelSet> colocChannels = new TreeMap<>();
-    TreeMap<ChannelType,ColocChannelSet> colocChannelsEvInCells = new TreeMap<>();
+    TreeMap<ChannelType, ColocChannelSet> colocChannels = new TreeMap<>();
+    TreeMap<ChannelType, ColocChannelSet> colocChannelsEvInCells = new TreeMap<>();
 
-
-    
     public EVCountInCells(AnalyseSettings settings) {
         super(settings);
     }
@@ -84,7 +82,7 @@ public class EVCountInCells extends EVColoc {
     ///
     /// EV Coloc
     ///
-    void EVColoc(String title, TreeMap<ChannelType,ColocChannelSet> evChannelsToAnalyze) {
+    void EVColoc(String title, TreeMap<ChannelType, ColocChannelSet> evChannelsToAnalyze) {
         TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title, mImage, evChannelsToAnalyze);
         int startIdx = mReturnChannels.size();
         for (Map.Entry<ChannelType, Channel> val : ret.entrySet()) {
@@ -145,13 +143,13 @@ public class EVCountInCells extends EVColoc {
                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod, val.getValue().minThershold,
                         val.getValue().maxThershold, in, true);
                 Filter.Watershed(evSubtracted); // Multi thread problem
-                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
-                        val.getValue().getMinCircularityDouble());
+               // ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
+               //         val.getValue().getMinCircularityDouble());
 
-                /*
-                 * Filter.SaveImage(mask, getPath(mImage) + "_" + val.getValue().type.toString()
-                 * + "_mask" + ".jpg", rm);
-                 */
+                // Save control images of EV channels
+                Filter.SaveImage(evSubtracted, getPath(mImage) + "_" + val.getValue().type.toString()
+                        + "_ev_mask" + ".jpg", rm);
+
                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings, val.getValue(),
                         evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
@@ -160,8 +158,9 @@ public class EVCountInCells extends EVColoc {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
                     setNew.mChannelImg = evSubtracted;
                     mEditedEvs.put(val.getKey(), setNew);
-                    colocChannels.put(val.getValue().type,new ColocChannelSet(evSubtractedOriginal, evSubtracted, val.getValue().type, evCh,
-                            val.getValue()));
+                    colocChannels.put(val.getValue().type,
+                            new ColocChannelSet(evSubtractedOriginal, evSubtracted, val.getValue().type, evCh,
+                                    val.getValue()));
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();
                     IJ.log("ERR");
@@ -219,10 +218,9 @@ public class EVCountInCells extends EVColoc {
             Filter.ApplyThershold(cellsEdited, AutoThresholder.Method.Li, 4, 255, null, true);
             Filter.AddThersholdToROI(cellsEdited, rm);
 
-            /*
-             * Filter.SaveImage(cellsEdited, getPath(mImage) + "_" +
-             * cellChannelSetting.type.toString() + ".jpg", rm);
-             */
+            Filter.SaveImage(cellsEdited, getPath(mImage) + "_" +
+                    cellChannelSetting.type.toString() + "_cell_area.jpg", rm);
+
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
                     rm, false);
             chCell.setThershold(in[0], in[1]);
@@ -292,10 +290,11 @@ public class EVCountInCells extends EVColoc {
             ImagePlus cellsInEv = Filter.ANDImages(cellsEdited, evChannelImg);
             ImagePlus mask = Filter.AnalyzeParticles(cellsInEv, rmEvs, 0, -1,
                     evChannel.getValue().getMinCircularityDouble());
-            /*
-             * Filter.SaveImage(mask, getPath(mImage) + "_" +
-             * evChannel.getValue().type.toString() + "_ev_in_cell_mask.jpg", rmEvs);
-             */
+
+            // Save control image
+            // Filter.SaveImage(mask, getPath(mImage) + "_" +
+            // evChannel.getValue().type.toString() + "_ev_in_cell_mask.jpg", rmEvs);
+
             Channel evsInCells = Filter.MeasureImage(evChannel.getValue().type.toString() + " in Cell", mSettings,
                     evChannel.getValue(), evChannelImgOriginal, mask, rmEvs, true);
 
@@ -305,8 +304,9 @@ public class EVCountInCells extends EVColoc {
             addReturnChannel(evsInCells, inCellEvType, "");
 
             colocChannelsEvInCells
-                    .put(evChannel.getKey(),new ColocChannelSet(evChannelImgOriginal, mask, evChannel.getValue().type, evsInCells,
-                            evChannel.getValue()));
+                    .put(evChannel.getKey(),
+                            new ColocChannelSet(evChannelImgOriginal, mask, evChannel.getValue().type, evsInCells,
+                                    evChannel.getValue()));
 
             Filter.ClearRoiInImage(evChannelImgOriginal);
             Filter.ClearRoiInImage(evChannelImg);

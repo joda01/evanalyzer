@@ -1,5 +1,6 @@
 package org.danmayr.imagej.algorithm;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,13 +47,14 @@ public class AnalyseSettings {
         }
     }
 
+
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
     public ReportType reportType = ReportType.FullReport;
     public Function mSelectedFunction;
     public String mInputFolder;
     public String mOutputFolder;
     public int mSelectedSeries; // series_1 = 0
-    public String mOutputFileName = "";
+    public String mReportName = "";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
 
     /// Autofilled
@@ -71,6 +73,9 @@ public class AnalyseSettings {
     }
 
     public void saveSettings(String fileName, String title, String note) {
+        
+
+        
         JSONObject obj = new JSONObject();
 
         obj.put("title", title);

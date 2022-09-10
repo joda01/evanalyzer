@@ -102,9 +102,8 @@ public class ExcelExport {
             overViewRow = WriteOverviewFolderStatistics(overviewSheet, folder, overViewRow);
         }
 
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmss");
-        LocalDateTime now = LocalDateTime.now();
-        String out = outputFolder + File.separator + dtf.format(now) + "__analysis-report__" + reportFileName + ".xlsx";
+
+        String out = outputFolder + File.separator + reportFileName + ".xlsx";
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(out.trim());
             workBook.write(fileOutputStream);
@@ -149,7 +148,7 @@ public class ExcelExport {
 
         row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
 
-        row = WriteRow(summarySheet, row, "Report filename", String.valueOf(settings.mOutputFileName));
+        row = WriteRow(summarySheet, row, "Report name", String.valueOf(settings.mReportName));
 
         for (int n = 0; n < settings.channelSettings.size(); n++) {
             row = WriteChannelSettingToSummarySheet(summarySheet, row,
