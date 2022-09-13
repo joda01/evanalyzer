@@ -123,10 +123,10 @@ public class EVCountInCells extends EVColoc {
 
         @Override
         public void run() {
-            /*
-             * IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: "
-             * + " - thread: " + Thread.currentThread().getName());
-             */
+
+            IJ.log(LocalTime.now() + " " + val.getValue().type.toString() + " - value: "
+                    + " - thread: " + Thread.currentThread().getName());
+
             RoiManager rm = new RoiManager(false);
 
             ImagePlus evOriginal = val.getValue().mChannelImg;
@@ -143,17 +143,19 @@ public class EVCountInCells extends EVColoc {
                 Filter.ApplyThershold(evSubtracted, val.getValue().mThersholdMethod, val.getValue().minThershold,
                         val.getValue().maxThershold, in, true);
                 Filter.Watershed(evSubtracted); // Multi thread problem
-               // ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
-               //         val.getValue().getMinCircularityDouble());
+                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
+                        val.getValue().getMinCircularityDouble());
 
                 // Save control images of EV channels
+
                 Filter.SaveImage(evSubtracted, getPath(mImage) + "_" + val.getValue().type.toString()
                         + "_ev_mask" + ".jpg", rm);
 
                 Channel evCh = Filter.MeasureImage(val.getValue().type.toString(), mSettings, val.getValue(),
                         evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
-                addReturnChannel(evCh, val.getKey(), "");
+                addReturnChannel(evCh, val.getKey(), getName(mImage) + "_" + val.getValue().type.toString()
+                        + "_ev_mask" + ".jpg");
                 try {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone();
                     setNew.mChannelImg = evSubtracted;
