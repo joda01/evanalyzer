@@ -48,6 +48,7 @@ public class FileProcessor extends Thread {
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
     FolderResults mResuls = new FolderResults();
+    Vector<ProcessImage> mRunningProcesses = new Vector<>();
 
     public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
@@ -58,7 +59,6 @@ public class FileProcessor extends Thread {
      * Start the analyse thread
      */
     public void run() {
-
 
         mStopping = false;
         // Close all open windows
@@ -150,6 +150,9 @@ public class FileProcessor extends Thread {
      */
     public void cancle() {
         mStopping = true;
+        for(ProcessImage i : mRunningProcesses){
+            i.cancel();
+        }
     }
 
     private void walkThroughFiles(ArrayList<File> fileList) {
@@ -160,34 +163,43 @@ public class FileProcessor extends Thread {
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
         mDialog.setAlwaysOnTop(true);
-        ExecutorService exec = Executors.newFixedThreadPool(n-1);
+        ExecutorService exec = Executors.newFixedThreadPool(n - 1);
+        this.mRunningProcesses.clear();
 
         for (File file : fileList) {
             if (true == mStopping) {
                 break;
             }
-             exec.execute(new ProcessImage(file));
+            ProcessImage e = new ProcessImage(file);
+            mRunningProcesses.add(e);
+            exec.execute(e);
         }
-        closeAllWindow();
-
         IJ.log("Wait for finsihed");
         exec.shutdown();
         try {
-        exec.awaitTermination(1, TimeUnit.HOURS);
+            exec.awaitTermination(7, TimeUnit.DAYS);
         } catch (InterruptedException e) {
-        e.printStackTrace();
+            e.printStackTrace();
         }
 
+        closeAllWindow();
         mDialog.setAlwaysOnTop(false);
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
     }
 
+
+
+    //
+    // Process images thread
+    //
     class ProcessImage implements Runnable {
         File fileToAnalyse;
         Pipeline pipeline = null;
+        boolean mCanceled = false;
 
         ProcessImage(File fileToAnalyse) {
+            mCanceled = false;
             this.fileToAnalyse = fileToAnalyse;
 
             if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCount)) {
@@ -219,9 +231,13 @@ public class FileProcessor extends Thread {
             }
         }
 
+        public void cancel(){
+            mCanceled = true;
+        }
+
         @Override
         public void run() {
-            if (this.pipeline != null) {
+            if (this.pipeline != null && false == this.mCanceled) {
                 // TODO Auto-generated method stub
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
                 TreeMap<ChannelType, Channel> images = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
@@ -231,11 +247,8 @@ public class FileProcessor extends Thread {
                 }
             }
             mDialog.incrementProgressBarValue("analyzing ...");
-
         }
-
     }
-
 
     /**
      * List all images in directory and subdirectory
