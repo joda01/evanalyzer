@@ -290,7 +290,7 @@ public class Dialog extends JFrame {
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                AutoThresholder.Method[] thersholds = { AutoThresholder.Method.Li, AutoThresholder.Method.MaxEntropy,
+                AutoThresholder.Method[] thersholds = {AutoThresholder.Method.Default, AutoThresholder.Method.Li, AutoThresholder.Method.MaxEntropy,
                         AutoThresholder.Method.Moments, AutoThresholder.Method.Otsu, AutoThresholder.Method.MinError,
                         AutoThresholder.Method.Triangle };
                 c.fill = GridBagConstraints.HORIZONTAL;
@@ -1613,7 +1613,7 @@ public class Dialog extends JFrame {
         return p;
     }
 
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss");
 
     public void addLogEntry(String text) {
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -1665,7 +1665,7 @@ public class Dialog extends JFrame {
 
             String outputFolder = reportSettings.mReportName.getText();
             if (outputFolder.length() <= 0) {
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss");
                 LocalDateTime now = LocalDateTime.now();
                 outputFolder = dtf.format(now);
             }
@@ -1730,18 +1730,22 @@ public class Dialog extends JFrame {
         if (null != sett) {
             // Creeate folder if not exists
             final File parentFile = new File(sett.mOutputFolder);
+            boolean directoryExists = true;
             if (parentFile != null && !parentFile.exists()) {
-                parentFile.mkdirs();
+                directoryExists = parentFile.mkdirs();
             }
-
-            sett.saveSettings(sett.mOutputFolder + java.io.File.separator + "settings.json",
-                    sett.mReportName, "-");
-            mbStart.setEnabled(false);
-            mCancle.setEnabled(true);
-            mOpenResult.setEnabled(false);
-            tabbedPane.setSelectedIndex(2);
-            mActAnalyzer = new FileProcessor(this, sett);
-            mActAnalyzer.start();
+            if (true == directoryExists) {
+                sett.saveSettings(sett.mOutputFolder + java.io.File.separator + "settings.json",
+                        sett.mReportName, "-");
+                mbStart.setEnabled(false);
+                mCancle.setEnabled(true);
+                mOpenResult.setEnabled(false);
+                tabbedPane.setSelectedIndex(2);
+                mActAnalyzer = new FileProcessor(this, sett);
+                mActAnalyzer.start();
+            } else {
+                IJ.log("Cannnot create directory: " + parentFile);
+            }
         } else {
             finishedAnalyse("");
         }

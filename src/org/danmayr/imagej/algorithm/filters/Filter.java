@@ -261,13 +261,19 @@ public class Filter {
         ImageProcessor ip = img.getProcessor();
         ip.setRoi(img.getRoi());
 
-        if (lowerThershold >= 0 && upperThershold >= 0) {
+        // Default method is manual mode!
+        if (thersholdMethod == AutoThresholder.Method.Default && lowerThershold >= 0 && upperThershold >= 0) {
             ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
-
         } else {
             ip.setAutoThreshold(thersholdMethod, true, ImageProcessor.RED_LUT);
         }
 
+        // If there is a auto threshold set and a manual mode we override the auto detected thershold if it is lower than lowerThershold
+        if(lowerThershold >= 0 && upperThershold >= 0){
+            if(ip.getMinThreshold() < lowerThershold){
+                ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
+            }
+        }
         if (thRet != null) {
             thRet[0] = ip.getMinThreshold();
             thRet[1] = ip.getMaxThreshold();
