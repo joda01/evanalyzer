@@ -47,7 +47,6 @@ public class AnalyseSettings {
         }
     }
 
-
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
     public ReportType reportType = ReportType.FullReport;
     public Function mSelectedFunction;
@@ -69,13 +68,11 @@ public class AnalyseSettings {
     }
 
     public double pixelAreaToMicrometer(double pxl) {
-        return pxl * mOnePixelInMicroMeter*mOnePixelInMicroMeter;
+        return pxl * mOnePixelInMicroMeter * mOnePixelInMicroMeter;
     }
 
     public void saveSettings(String fileName, String title, String note) {
-        
 
-        
         JSONObject obj = new JSONObject();
 
         obj.put("title", title);
@@ -124,7 +121,19 @@ public class AnalyseSettings {
         mSelectedFunction = Function.valueOf(obj.getString("function"));
         mSelectedSeries = obj.getInt("series");
         mSelectedSeries = obj.getInt("series");
-        mOnePixelInMicroMeter = Double.parseDouble(obj.getString("pixel_in_micrometer"));
+        try {
+            mOnePixelInMicroMeter = Double.parseDouble(obj.getString("pixel_in_micrometer"));
+        } catch (Exception ex) {
+            try {
+                mOnePixelInMicroMeter = obj.getDouble("pixel_in_micrometer");
+            } catch (Exception ex1) {
+                try {
+                    mOnePixelInMicroMeter = obj.getInt("pixel_in_micrometer");
+                } catch (Exception ex2) {
+                    mOnePixelInMicroMeter = 1;
+                }
+            }
+        }
 
         try {
             mMinColocFactor = Double.parseDouble(obj.getString("min_coloc_factor"));
