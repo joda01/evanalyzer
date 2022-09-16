@@ -391,72 +391,112 @@ public class EVCountInCells extends EVColoc {
             //
             // Filter.RoiSave(analyzedCells, rm);
             if (true == mSettings.mCountEvsPerCell) {
+                // CellByCellEvCouting
+
+                ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
                 for (Map.Entry<Pipeline.ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                    // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
-                    ImagePlus evImg = val.getValue().mChannelImg;
-                    // ImagePlus evImgOri =getEvChannels().get(val.getKey());
-                    evImg.show();
-                    ResultsTable rt = new ResultsTable();
-
-                    //
-                    // Contains Cell information
-                    //
-                    String valueNames[] = { "area size [µm²]", "intensity", "circularity [0-1]", "valid", "invalid" };
-                    Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
-                            new CellInfoStatistics(), valueNames, 0);
-
-                    //
-                    // Measure the cell
-                    //
-                    Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, val.getValue(), evImg, evImg,
-                            cellRoi, true);
-
-                    //
-                    // Prepare overlays
-                    //
-                    Vector<RoiOverlaySettings> roiOverLay = new Vector<RoiOverlaySettings>();
-                    roiOverLay.add(new RoiOverlaySettings(nucleusRoiAll, Color.BLACK, false));
-                    roiOverLay.add(new RoiOverlaySettings(nucleusRoiFiltered, Color.RED, false));
-                    roiOverLay.add(new RoiOverlaySettings(cellRoi, Color.RED, true));
-
-                    for (int n = 0; n < cellRoi.getCount(); n++) { // Filter.RoiOpen(evImg, rm);
-                                                                   // rm.select(n);
-                        rt.reset();
-                        cellRoi.selectAndMakeVisible(evImg, n);
-                        Filter.SetRoiInImage(evImg, cellRoi, n);
-                        RoiManager evsInCellroi = new RoiManager(false);
-                        Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
-                        roiOverLay.add(new RoiOverlaySettings(evsInCellroi, Color.RED, false));
-                        Channel cell = Filter.createChannelFromMeasurement("evs_per_cell_in_" + Integer.toString(n),
-                                mSettings, val.getValue(), rt, rt, cellRoi, true);
-                        cell.calcStatistics();
-                        Statistics stat = cell.getStatistic();
-                        CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
-                                cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
-                        evsInCell.addRoi(info);
-                    }
-                    evsInCell.calcStatistics();
-                    evImg.hide();
-
-                    ChannelType inCellEvType = ChannelType
-                            .getColocEnum(val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
-                    String fileName = getName(mImage) + "_" + val.getKey().toString() + "_separated_overlay_cells.jpg";
-                    Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
-                            getPath(mImage) + "_" + val.getKey().toString() + "_separated_overlay_cells.jpg");
-                    addReturnChannel(evsInCell, inCellEvType, fileName);
-
+                    exec.execute(new CellByCellEvCountingAndAnalyzing(val, cellRoi, nucleusRoiAll, nucleusRoiFiltered,
+                            analyzedCells));
                 }
+                IJ.log("Wait for finsihed");
+                exec.shutdown();
+                try {
+                    exec.awaitTermination(1, TimeUnit.HOURS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                IJ.log("Finihed");
+
             }
+        }
+
+    }
+
+    class CellByCellEvCountingAndAnalyzing implements Runnable {
+
+        Map.Entry<Pipeline.ChannelType, ChannelSettings> val;
+        RoiManager cellRoi;
+        RoiManager nucleusRoiAll;
+        RoiManager nucleusRoiFiltered;
+        ImagePlus analyzedCells;
+
+        CellByCellEvCountingAndAnalyzing(Map.Entry<Pipeline.ChannelType, ChannelSettings> val, RoiManager cellRoi,
+                RoiManager nucleusRoiAll, RoiManager nucleusRoiFiltered, ImagePlus analyzedCells) {
+            this.val = val;
+            this.cellRoi = cellRoi;
+            this.nucleusRoiAll = nucleusRoiAll;
+            this.nucleusRoiFiltered = nucleusRoiFiltered;
+            this.analyzedCells = analyzedCells;
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
+            ImagePlus evImg = val.getValue().mChannelImg;
+            // ImagePlus evImgOri =getEvChannels().get(val.getKey());
+            evImg.show();
+            ResultsTable rt = new ResultsTable();
+
+            //
+            // Contains Cell information
+            //
+            String valueNames[] = { "area size [µm²]", "intensity", "circularity [0-1]", "valid", "invalid" };
+            Channel evsInCell = new Channel("evs_per_cell_in_" + val.getKey().toString(),
+                    new CellInfoStatistics(), valueNames, 0);
+
+            //
+            // Measure the cell
+            //
+            Channel cellInfo = Filter.MeasureImage("cell_info", mSettings, val.getValue(), evImg, evImg,
+                    cellRoi, true);
+
+            //
+            // Prepare overlays
+            //
+            Vector<RoiOverlaySettings> roiOverLay = new Vector<RoiOverlaySettings>();
+            roiOverLay.add(new RoiOverlaySettings(nucleusRoiAll, Color.BLACK, false));
+            roiOverLay.add(new RoiOverlaySettings(nucleusRoiFiltered, Color.RED, false));
+            roiOverLay.add(new RoiOverlaySettings(cellRoi, Color.RED, true));
+
+            for (int n = 0; n < cellRoi.getCount(); n++) { // Filter.RoiOpen(evImg, rm);
+                                                           // rm.select(n);
+                rt.reset();
+                cellRoi.selectAndMakeVisible(evImg, n);
+                Filter.SetRoiInImage(evImg, cellRoi, n);
+                RoiManager evsInCellroi = new RoiManager(false);
+                Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
+                roiOverLay.add(new RoiOverlaySettings(evsInCellroi, Color.RED, false));
+                Channel cell = Filter.createChannelFromMeasurement("evs_per_cell_in_" + Integer.toString(n),
+                        mSettings, val.getValue(), rt, rt, cellRoi, true);
+                cell.calcStatistics();
+                Statistics stat = cell.getStatistic();
+                CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
+                        cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
+                evsInCell.addRoi(info);
+                IJ.log("Cell: " + n);
+
+            }
+            IJ.log("Foor loop ended");
+
+            evsInCell.calcStatistics();
+            evImg.hide();
+
+            ChannelType inCellEvType = ChannelType
+                    .getColocEnum(val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
+            String fileName = getName(mImage) + "_" + val.getKey().toString() + "_separated_overlay_cells.jpg";
+            Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
+                    getPath(mImage) + "_" + val.getKey().toString() + "_separated_overlay_cells.jpg");
+            addReturnChannel(evsInCell, inCellEvType, fileName);
+            IJ.log("Thread ended");
 
         }
     }
 
-    void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
-        synchronized (this) {
-            if (ch != null && type != null) {
-                ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
-                mReturnChannels.put(type, ch);
-            }
+    synchronized void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
+        if (ch != null && type != null) {
+            ch.addControlImagePath(getName(mImage) + "_separated_overlay_cells.jpg");
+            mReturnChannels.put(type, ch);
         }
     }
 

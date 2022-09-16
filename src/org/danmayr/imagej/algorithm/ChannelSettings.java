@@ -131,10 +131,10 @@ public class ChannelSettings implements Cloneable {
         for (int i = 0; i < ary.length(); i++) {
             preProcessing.add(PreProcessingStep.valueOf(ary.getString(i)));
         }
-        marginToCrop = Double.parseDouble(obj.getString("margin_crop"));
-        mMinCircularity = Double.parseDouble(obj.getString("min_circularity"));
-        mMinParticleSize = Double.parseDouble(obj.getString("min_particle_size"));
-        mMaxParticleSize = Double.parseDouble(obj.getString("max_particle_size"));
-        snapAreaSize = Double.parseDouble(obj.getString("snap_area_size"));
+        marginToCrop = obj.getDouble("margin_crop");
+        mMinCircularity = obj.getDouble("min_circularity");
+        mMinParticleSize = obj.getDouble("min_particle_size");
+        mMaxParticleSize = obj.getDouble("max_particle_size");
+        snapAreaSize = obj.getDouble("snap_area_size");
     }
 }

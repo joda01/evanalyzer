@@ -1637,7 +1637,7 @@ public class Dialog extends JFrame {
                 Integer.toString(value) + "/" + Integer.toString(mProgressbar.getMaximum()) + " " + lable + "");
     }
 
-    public void incrementProgressBarValue(String lable) {
+    synchronized public void incrementProgressBarValue(String lable) {
         int value = mProgressbar.getValue() + 1;
         mProgressbar.setValue(value);
         mProgressbar.setString(

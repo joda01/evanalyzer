@@ -20,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
 import javax.swing.JWindow;
@@ -55,8 +58,7 @@ public class FileProcessor extends Thread {
      * Start the analyse thread
      */
     public void run() {
-        int n = Runtime.getRuntime().availableProcessors();
-        //IJ.log("Available Processors: " + n);
+
 
         mStopping = false;
         // Close all open windows
@@ -77,41 +79,7 @@ public class FileProcessor extends Thread {
         mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
         mDialog.setProgressBarValue(0, "analyzing ...");
 
-        // Analyse images
-        Pipeline pipeline = null;
-
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCount)) {
-            mAnalyseSettings.mCalcColoc = false;
-            mAnalyseSettings.mCountEvsPerCell = false;
-            pipeline = new EVColoc(mAnalyseSettings);
-        }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evColoc)) {
-            mAnalyseSettings.mCalcColoc = true;
-            mAnalyseSettings.mCountEvsPerCell = false;
-            pipeline = new EVColoc(mAnalyseSettings);
-        }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountInTotalCellArea)) {
-            mAnalyseSettings.mCountEvsPerCell = false;
-            mAnalyseSettings.mCalcColoc = false;
-            pipeline = new EVCountInCells(mAnalyseSettings);
-        }
-        if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountPerCell)) {
-            mAnalyseSettings.mCountEvsPerCell = true;
-            mAnalyseSettings.mCalcColoc = false;
-            pipeline = new EVCountInCells(mAnalyseSettings);
-        }
-        if (mAnalyseSettings.mSelectedFunction
-                .equals(AnalyseSettings.Function.evCountPerCellRemoveCropped)) {
-            mAnalyseSettings.mCountEvsPerCell = true;
-            mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
-            mAnalyseSettings.mCalcColoc = false;
-            pipeline = new EVCountInCells(mAnalyseSettings);
-        }
-        if (null == pipeline) {
-            mDialog.finishedAnalyse("");
-            return;
-        }
-        walkThroughFiles(pipeline, mFoundFiles);
+        walkThroughFiles(mFoundFiles);
 
         String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, "report",
                 mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
@@ -184,62 +152,90 @@ public class FileProcessor extends Thread {
         mStopping = true;
     }
 
-    Vector<Pair<File, ImagePlus[]>> mLoadedImages = new Vector<>();
+    private void walkThroughFiles(ArrayList<File> fileList) {
 
-    private void walkThroughFiles(Pipeline algorithm, ArrayList<File> fileList) {
-        mLoadedImages.clear();
-        int fileIdx = 0;
-        int processedFiles = 0;
+        int n = Runtime.getRuntime().availableProcessors();
+        IJ.log("Available Processors: " + n);
+
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
-        fileIdx = loadNextFile(fileList, fileIdx);
-        fileIdx = loadNextFile(fileList, fileIdx);
         mDialog.setAlwaysOnTop(true);
+        ExecutorService exec = Executors.newFixedThreadPool(n-1);
 
-        do {
-            while (mLoadedImages.size() > 0 && false == mStopping && processedFiles < fileList.size()) {
-                if (true == mStopping) {
-                    break;
-                }
-                File file = mLoadedImages.elementAt(0).getFirst();
-                TreeMap<ChannelType, Channel> images = algorithm.ProcessImage(file,
-                        mLoadedImages.elementAt(0).getSecond());
-                mResuls.addImage(file.getParent(), file.getName(), images);
-
-                for (int n = 0; n < mLoadedImages.elementAt(0).getSecond().length; n++) {
-                    mLoadedImages.elementAt(0).getSecond()[n].close();
-                }
-
-                mLoadedImages.removeElementAt(0);
-                closeAllWindow();
-                fileIdx = loadNextFile(fileList, fileIdx);
-                mDialog.incrementProgressBarValue("analyzing ...");
-                processedFiles++;
+        for (File file : fileList) {
+            if (true == mStopping) {
+                break;
             }
-        } while (false == mStopping && processedFiles < fileList.size());
+             exec.execute(new ProcessImage(file));
+        }
+        closeAllWindow();
+
+        IJ.log("Wait for finsihed");
+        exec.shutdown();
+        try {
+        exec.awaitTermination(1, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+        e.printStackTrace();
+        }
+
         mDialog.setAlwaysOnTop(false);
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
     }
 
-    //
-    // Load the next file
-    //
-    int loadNextFile(ArrayList<File> fileList, int fileIdx) {
-        int idx = fileIdx;
-        if (idx < fileList.size()) {
-            Thread t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    ImagePlus[] imagesLoaded = OpenImage(fileList.get(idx), mAnalyseSettings.mSelectedSeries, false);
-                    mLoadedImages.add(new Pair(fileList.get(idx), imagesLoaded));
-                }
-            });
-            t1.start();
+    class ProcessImage implements Runnable {
+        File fileToAnalyse;
+        Pipeline pipeline = null;
+
+        ProcessImage(File fileToAnalyse) {
+            this.fileToAnalyse = fileToAnalyse;
+
+            if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCount)) {
+                mAnalyseSettings.mCalcColoc = false;
+                mAnalyseSettings.mCountEvsPerCell = false;
+                pipeline = new EVColoc(mAnalyseSettings);
+            }
+            if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evColoc)) {
+                mAnalyseSettings.mCalcColoc = true;
+                mAnalyseSettings.mCountEvsPerCell = false;
+                pipeline = new EVColoc(mAnalyseSettings);
+            }
+            if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountInTotalCellArea)) {
+                mAnalyseSettings.mCountEvsPerCell = false;
+                mAnalyseSettings.mCalcColoc = false;
+                pipeline = new EVCountInCells(mAnalyseSettings);
+            }
+            if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountPerCell)) {
+                mAnalyseSettings.mCountEvsPerCell = true;
+                mAnalyseSettings.mCalcColoc = false;
+                pipeline = new EVCountInCells(mAnalyseSettings);
+            }
+            if (mAnalyseSettings.mSelectedFunction
+                    .equals(AnalyseSettings.Function.evCountPerCellRemoveCropped)) {
+                mAnalyseSettings.mCountEvsPerCell = true;
+                mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
+                mAnalyseSettings.mCalcColoc = false;
+                pipeline = new EVCountInCells(mAnalyseSettings);
+            }
         }
-        fileIdx++;
-        return fileIdx;
+
+        @Override
+        public void run() {
+            if (this.pipeline != null) {
+                // TODO Auto-generated method stub
+                ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
+                TreeMap<ChannelType, Channel> images = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
+                mResuls.addImage(this.fileToAnalyse.getParent(), this.fileToAnalyse.getName(), images);
+                for (int n = 0; n < imagesLoaded.length; n++) {
+                    imagesLoaded[n].close();
+                }
+            }
+            mDialog.incrementProgressBarValue("analyzing ...");
+
+        }
+
     }
+
 
     /**
      * List all images in directory and subdirectory

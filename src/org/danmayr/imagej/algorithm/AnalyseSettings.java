@@ -121,19 +121,7 @@ public class AnalyseSettings {
         mSelectedFunction = Function.valueOf(obj.getString("function"));
         mSelectedSeries = obj.getInt("series");
         mSelectedSeries = obj.getInt("series");
-        try {
-            mOnePixelInMicroMeter = Double.parseDouble(obj.getString("pixel_in_micrometer"));
-        } catch (Exception ex) {
-            try {
-                mOnePixelInMicroMeter = obj.getDouble("pixel_in_micrometer");
-            } catch (Exception ex1) {
-                try {
-                    mOnePixelInMicroMeter = obj.getInt("pixel_in_micrometer");
-                } catch (Exception ex2) {
-                    mOnePixelInMicroMeter = 1;
-                }
-            }
-        }
+        mOnePixelInMicroMeter = obj.getDouble("pixel_in_micrometer");
 
         try {
             mMinColocFactor = Double.parseDouble(obj.getString("min_coloc_factor"));
