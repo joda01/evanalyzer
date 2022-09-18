@@ -59,6 +59,7 @@ public class AnalyseSettings{
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
     public double mOnePixelInMicroMeter = 1;
     public double mMinColocFactor = 1;
+    public int mNrOfCpuCoresToUse = 1;
 
 
     /// Autofilled

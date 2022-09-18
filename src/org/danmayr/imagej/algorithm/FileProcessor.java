@@ -157,13 +157,11 @@ public class FileProcessor extends Thread {
 
     private void walkThroughFiles(ArrayList<File> fileList) {
 
-        int n = Runtime.getRuntime().availableProcessors();
-        IJ.log("Available Processors: " + n);
-
+        IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse +  " CPU cores!");
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
         mDialog.setAlwaysOnTop(true);
-        ExecutorService exec = Executors.newFixedThreadPool(n - 1);
+        ExecutorService exec = Executors.newFixedThreadPool(mAnalyseSettings.mNrOfCpuCoresToUse);
         this.mRunningProcesses.clear();
 
         for (File file : fileList) {

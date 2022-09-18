@@ -72,6 +72,13 @@ public class Dialog extends JFrame {
 
     private JButton mClose;
     private JButton mOpenResult;
+
+    SpinnerModel modelCpuCores = new SpinnerNumberModel(1, // initial value
+            1, // min
+            100, // max
+            1); // step
+    private JSpinner mNumberOfCPUs = new JSpinner(modelCpuCores);
+
     private JProgressBar mProgressbar = new JProgressBar();
     SpinnerModel modelMicrometer = new SpinnerNumberModel(1, // initial value
             0.001, // min
@@ -290,7 +297,8 @@ public class Dialog extends JFrame {
                 panel.add(channelType, c);
 
                 ////////////////////////////////////////////////////
-                AutoThresholder.Method[] thersholds = {AutoThresholder.Method.Default, AutoThresholder.Method.Li, AutoThresholder.Method.MaxEntropy,
+                AutoThresholder.Method[] thersholds = { AutoThresholder.Method.Default, AutoThresholder.Method.Li,
+                        AutoThresholder.Method.MaxEntropy,
                         AutoThresholder.Method.Moments, AutoThresholder.Method.Otsu, AutoThresholder.Method.MinError,
                         AutoThresholder.Method.Triangle };
                 c.fill = GridBagConstraints.HORIZONTAL;
@@ -1517,6 +1525,13 @@ public class Dialog extends JFrame {
         mMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         // mMenu.setBackground(Color.WHITE);
 
+        ////////////////////////////////////////////////////
+        int nrOfCpus = Runtime.getRuntime().availableProcessors();
+        mNumberOfCPUs.setModel(new SpinnerNumberModel(nrOfCpus, 1, nrOfCpus, 1));
+        mMenu.add(new JLabel("Nr of CPU cores to use (max. " + nrOfCpus + "):"));
+        mMenu.add(mNumberOfCPUs);
+
+        ////////////////////////////////////////////////////
         mbStart = new JButton();
         mbStart = new JButton(new ImageIcon(getClass().getResource("icons8-play-16.png")));
         mbStart.addActionListener(new java.awt.event.ActionListener() {
@@ -1528,6 +1543,7 @@ public class Dialog extends JFrame {
         mbStart.setText("Start");
         mMenu.add(mbStart);
 
+        ////////////////////////////////////////////////////
         mOpenResult = new JButton();
         mOpenResult = new JButton(new ImageIcon(getClass().getResource("icons8-graph-16.png")));
         mOpenResult.addActionListener(new java.awt.event.ActionListener() {
@@ -1676,6 +1692,11 @@ public class Dialog extends JFrame {
             }
             sett.mSelectedSeries = mSeries.getSelectedIndex();
         }
+
+        //
+        // Nr of CPU cores
+        //
+        sett.mNrOfCpuCoresToUse = (Integer)mNumberOfCPUs.getValue();
 
         //
         // Assign channel settings
