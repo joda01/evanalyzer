@@ -149,12 +149,13 @@ public class EVCountInCells extends EVColoc {
 
                 // Save control images of EV channels
 
-                Filter.SaveImage(evSubtracted, getPath(mImage,"01", val.getValue().getType().toString()+"_ev"), rm);
+                Filter.SaveImage(evSubtracted, getPath(mImage, "01", val.getValue().getType().toString() + "_ev"), rm);
 
                 Channel evCh = Filter.MeasureImage(val.getValue().getType().toString(), mSettings, val.getValue(),
                         evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
-                addReturnChannel(evCh, val.getKey(), getName(mImage,"01", val.getValue().getType().toString()+"_ev"));
+                addReturnChannel(evCh, val.getKey(),
+                        getName(mImage, "01", val.getValue().getType().toString() + "_ev"));
                 try {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone(evSubtracted);
                     mEditedEvs.put(val.getKey(), setNew);
@@ -218,7 +219,8 @@ public class EVCountInCells extends EVColoc {
             Filter.ApplyThershold(cellsEdited, AutoThresholder.Method.Default, 4, 255, null, true);
             Filter.AddThersholdToROI(cellsEdited, rm);
 
-            Filter.SaveImage(cellsEdited, getPath(mImage,"02",cellChannelSetting.getType().toString()+"_cell_area") , rm);
+            Filter.SaveImage(cellsEdited, getPath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"),
+                    rm);
 
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
                     rm, false);
@@ -432,7 +434,7 @@ public class EVCountInCells extends EVColoc {
             // mEditedEvs.entrySet().parallelStream().forEach((val) -> {
             ImagePlus evImg = val.getValue().getImage();
             // ImagePlus evImgOri =getEvChannels().get(val.getKey());
-            //evImg.show();
+            // evImg.show();
             ResultsTable rt = new ResultsTable();
 
             //
@@ -459,7 +461,7 @@ public class EVCountInCells extends EVColoc {
             for (int n = 0; n < cellRoi.getCount(); n++) { // Filter.RoiOpen(evImg, rm);
                                                            // rm.select(n);
                 rt.reset();
-                //cellRoi.selectAndMakeVisible(evImg, n);
+                // cellRoi.selectAndMakeVisible(evImg, n);
                 Filter.SetRoiInImage(evImg, cellRoi, n);
                 RoiManager evsInCellroi = new RoiManager(false);
                 Filter.AnalyzeParticles(evImg, evsInCellroi, 0, -1, 0, rt);
@@ -471,25 +473,28 @@ public class EVCountInCells extends EVColoc {
                 CellInfo info = new CellInfo(n, stat.valid, stat.invalid, cellInfo.getRois().get(n).areaSize,
                         cellInfo.getRois().get(n).areaGrayScale, cellInfo.getRois().get(n).circularity);
                 evsInCell.addRoi(info);
-                //IJ.log("Cell: " + n);
+                // IJ.log("Cell: " + n);
             }
 
             evsInCell.calcStatistics();
-            //evImg.hide();
+            // evImg.hide();
 
             ChannelType inCellEvType = ChannelType
                     .getColocEnum(val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
-            String fileName = getName(mImage,"03", val.getKey().toString() + "_separated_overlay_cells") ;
+            String fileName = getName(mImage, "03", val.getKey().toString() + "_separated_overlay_cells");
             Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
-                    getPath(mImage,"03", val.getKey().toString() + "_separated_overlay_cells"));
+                    getPath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
+
+            roiOverLay.clear();
             addReturnChannel(evsInCell, inCellEvType, fileName);
+            System.gc();
 
         }
     }
 
     synchronized void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
         if (ch != null && type != null) {
-            ch.addControlImagePath(getName(mImage,"03",type.toString() + "_separated_overlay_cells"));
+            ch.addControlImagePath(getName(mImage, "03", type.toString() + "_separated_overlay_cells"));
             mReturnChannels.put(type, ch);
         }
     }

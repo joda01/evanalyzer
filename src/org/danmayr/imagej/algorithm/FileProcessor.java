@@ -84,6 +84,8 @@ public class FileProcessor extends Thread {
         String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, "report",
                 mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
 
+        System.gc();
+
         // Write statistics to file
         /*
          * InputFiles input = new InputFiles(); input.add(analysisOutput,"Results");
@@ -150,14 +152,14 @@ public class FileProcessor extends Thread {
      */
     public void cancle() {
         mStopping = true;
-        for(ProcessImage i : mRunningProcesses){
+        for (ProcessImage i : mRunningProcesses) {
             i.cancel();
         }
     }
 
     private void walkThroughFiles(ArrayList<File> fileList) {
 
-        IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse +  " CPU cores!");
+        IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse + " CPU cores!");
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
         mDialog.setAlwaysOnTop(true);
@@ -184,7 +186,6 @@ public class FileProcessor extends Thread {
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
     }
-
 
     //
     // Process images thread
@@ -227,7 +228,7 @@ public class FileProcessor extends Thread {
             }
         }
 
-        public void cancel(){
+        public void cancel() {
             mCanceled = true;
         }
 
