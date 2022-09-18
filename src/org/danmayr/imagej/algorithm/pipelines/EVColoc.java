@@ -87,6 +87,8 @@ public class EVColoc extends Pipeline {
             e.getValue().ClearRoi();
         }
 
+        colocChannels.clear();
+
         return channels;
     }
 

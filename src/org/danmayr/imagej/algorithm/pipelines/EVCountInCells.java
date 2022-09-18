@@ -76,6 +76,10 @@ public class EVCountInCells extends EVColoc {
             e.getValue().ClearRoi();
         }
 
+        colocChannelsEvInCells.clear();
+        colocChannels.clear();
+        mEditedEvs.clear();
+
         return mReturnChannels;
     }
 
@@ -140,7 +144,7 @@ public class EVCountInCells extends EVColoc {
                 Filter.ApplyThershold(evSubtracted, val.getValue().threholdMethod(), val.getValue().minThershold(),
                         val.getValue().maxThershold(), in, true);
                 Filter.Watershed(evSubtracted); // Multi thread problem
-                ImagePlus mask = Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
+                Filter.AnalyzeParticles(evSubtracted, rm, 0, -1,
                         val.getValue().getMinCircularityDouble());
 
                 // Save control images of EV channels
