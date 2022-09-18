@@ -12,7 +12,9 @@ import org.json.*;
 
 import ij.IJ;
 
-public class AnalyseSettings {
+public class AnalyseSettings{
+
+
 
     public enum ReportType {
         FullReport, FastReport
@@ -55,13 +57,45 @@ public class AnalyseSettings {
     public int mSelectedSeries; // series_1 = 0
     public String mReportName = "";
     public Vector<ChannelSettings> channelSettings = new Vector<ChannelSettings>();
-
-    /// Autofilled
-    public boolean mCountEvsPerCell = false;
-    public boolean mRemoveCellsWithoutNucleus = false;
-    public boolean mCalcColoc = false;
     public double mOnePixelInMicroMeter = 1;
     public double mMinColocFactor = 1;
+
+
+    /// Autofilled
+    boolean mCountEvsPerCell = false;
+    boolean mRemoveCellsWithoutNucleus = false;
+    boolean mCalcColoc = false;
+
+
+    public boolean calcColoc(){
+        return mCalcColoc;
+    }
+
+
+    public boolean countEvsPerCell(){
+        return mCountEvsPerCell;
+    }
+
+    public boolean removeCellsWithoutNucleus(){
+        return mRemoveCellsWithoutNucleus;
+    }
+
+
+    public double minColocFactor(){
+        return mMinColocFactor;
+    }
+
+    public String getOutputFolder(){
+        return mOutputFolder;
+    }
+
+    public final ChannelSettings getChannelSettings(int idx){
+        return channelSettings.get(idx);
+    }
+
+    public int getNrOfChannelSettings(){
+        return channelSettings.size();
+    }
 
     public double pixelToMicrometer(double pxl) {
         return pxl * mOnePixelInMicroMeter;

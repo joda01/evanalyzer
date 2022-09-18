@@ -97,6 +97,11 @@ public class Filter {
         image = retVal;
     }
 
+
+    public static ImagePlus doZProjection(ImagePlus img, String method){
+        return ZProjector.run(img, method);
+    }
+
     ///
     /// https://imagej.nih.gov/ij/developer/source/ij/plugin/ContrastEnhancer.java.html
     ///
@@ -646,5 +651,7 @@ public class Filter {
 
         return s1 != null ? s1.trySimplify() : null;
     }
+
+
 
 }

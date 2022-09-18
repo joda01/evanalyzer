@@ -15,7 +15,7 @@ public class ChannelSettings implements Cloneable {
         None, EdgeDetection,EnhanceContrast
     }
 
-    public ImagePlus mChannelImg;
+    ImagePlus mChannelImg;
     public int mChannelIndex = 0;
     public int mChannelNr = 0;
     public Pipeline.ChannelType type;
@@ -25,14 +25,54 @@ public class ChannelSettings implements Cloneable {
     public int maxThershold = 65535;
     public String ZProjector = "OFF";
     public Vector<PreProcessingStep> preProcessing = new Vector<PreProcessingStep>();
-
-    double snapAreaSize = 0;
-    double marginToCrop = 0;
-    double mMinCircularity = 0.0;
-    double mMinParticleSize = 0;
-    double mMaxParticleSize = 999999999;
+    public double snapAreaSize = 0;
+    public double marginToCrop = 0;
+    public double mMinCircularity = 0.0;
+    public double mMinParticleSize = 0;
+    public double mMaxParticleSize = 999999999;
 
     AnalyseSettings mAnalyzerSettings;
+
+
+    public void setImg(ImagePlus img){
+        this.mChannelImg = img;
+    }
+
+    public int minThershold(){
+        return minThershold;
+    }
+
+    public int maxThershold(){
+        return maxThershold;
+    }
+
+    public AutoThresholder.Method threholdMethod() {
+        return mThersholdMethod;
+    }
+
+    public boolean enhanceContrast(){
+        return enhanceContrast;
+    }
+
+    public ImagePlus getImage(){
+        return mChannelImg;
+    }
+
+    public int getChNr(){
+        return mChannelNr;
+    }
+
+    public Pipeline.ChannelType  getType(){
+        return type;
+    }
+
+    public final Vector<PreProcessingStep> getProcessingStep(){
+        return preProcessing;
+    }
+
+    public String getZProjectionSetting(){
+        return ZProjector;
+    }
 
     public ChannelSettings(AnalyseSettings analyzerSettings) {
         mAnalyzerSettings = analyzerSettings;
@@ -86,9 +126,17 @@ public class ChannelSettings implements Cloneable {
         snapAreaSize = v;
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public Object clone(ImagePlus img) throws CloneNotSupportedException {
+        ChannelSettings newSet = (ChannelSettings) super.clone();
+        newSet.setImg(img);
+        return newSet;
     }
+
+    public ChannelSettings clone() throws CloneNotSupportedException {
+        ChannelSettings newSet = (ChannelSettings) super.clone();
+        return newSet;
+    }
+
 
     JSONObject saveSettings() {
         JSONObject obj = new JSONObject();

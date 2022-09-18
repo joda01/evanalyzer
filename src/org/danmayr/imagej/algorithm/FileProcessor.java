@@ -174,7 +174,6 @@ public class FileProcessor extends Thread {
             mRunningProcesses.add(e);
             exec.execute(e);
         }
-        IJ.log("Wait for finsihed");
         exec.shutdown();
         try {
             exec.awaitTermination(7, TimeUnit.DAYS);
@@ -187,7 +186,6 @@ public class FileProcessor extends Thread {
         mDialog.tabbedPane.setSelectedIndex(0);
         PerformanceAnalyzer.stop("analyze_files");
     }
-
 
 
     //
@@ -238,7 +236,7 @@ public class FileProcessor extends Thread {
         @Override
         public void run() {
             if (this.pipeline != null && false == this.mCanceled) {
-                // TODO Auto-generated method stub
+                // TODO Auto-generated method stu
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
                 TreeMap<ChannelType, Channel> images = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
                 mResuls.addImage(this.fileToAnalyse.getParent(), this.fileToAnalyse.getName(), images);

@@ -146,7 +146,7 @@ public class ExcelExport {
         row = WriteRow(summarySheet, row, "Output folder", String.valueOf(settings.mOutputFolder));
         row = WriteRow(summarySheet, row, "Selected Series", String.valueOf(settings.mSelectedSeries));
 
-        row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.mCountEvsPerCell));
+        row = WriteRow(summarySheet, row, "Count EVs per Cells", String.valueOf(settings.countEvsPerCell()));
 
         row = WriteRow(summarySheet, row, "Report name", String.valueOf(settings.mReportName));
 

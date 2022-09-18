@@ -132,7 +132,7 @@ abstract public class Pipeline {
     private final boolean mIsCellChannel;
   }
 
-  protected static AnalyseSettings mSettings;
+  protected final AnalyseSettings mSettings;
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
@@ -152,16 +152,21 @@ abstract public class Pipeline {
     imgChannel.clear();
     PerformanceAnalyzer.start("preprocessing");
     if (null != imagesLoaded) {
-      for (int n = 0; n < mSettings.channelSettings.size(); n++) {
-        ChannelSettings chSet = mSettings.channelSettings.get(n);
-        if (chSet.mChannelNr >= 0 && imagesLoaded.length > chSet.mChannelNr) {
-          chSet.mChannelImg = preProcessingSteps(imagesLoaded[chSet.mChannelNr], chSet);
-          imgChannel.put(mSettings.channelSettings.get(n).type, chSet);
-          if (true == mSettings.channelSettings.get(n).type.isEvChannel()) {
-            evChannel.put(mSettings.channelSettings.get(n).type, chSet);
-          } else if (true == mSettings.channelSettings.get(n).type.isCellChannel()) {
-            cellChannel = chSet;
+      for (int n = 0; n < mSettings.getNrOfChannelSettings(); n++) {
+        try {
+          ChannelSettings chSet = mSettings.getChannelSettings(n).clone();
+
+          if (chSet.getChNr() >= 0 && imagesLoaded.length > chSet.getChNr()) {
+            chSet.setImg(preProcessingSteps(imagesLoaded[chSet.getChNr()], chSet));
+            imgChannel.put(mSettings.getChannelSettings(n).getType(), chSet);
+            if (true == mSettings.getChannelSettings(n).getType().isEvChannel()) {
+              evChannel.put(mSettings.getChannelSettings(n).getType(), chSet);
+            } else if (true == mSettings.getChannelSettings(n).getType().isCellChannel()) {
+              cellChannel = chSet;
+            }
           }
+        } catch (CloneNotSupportedException ex) {
+          IJ.log("Cannot create channel settings " + ex);
         }
       }
     }
@@ -182,8 +187,8 @@ abstract public class Pipeline {
     IJ.run(imgIn, "Set Scale...", "distance=0 known=0 unit=pixel global");
     Prefs.blackBackground = true;
 
-    if (chSettings.ZProjector != "OFF") {
-      dup = ZProjector.run(dup, chSettings.ZProjector);
+    if (chSettings.getZProjectionSetting() != "OFF") {
+      dup = ZProjector.run(dup, chSettings.getZProjectionSetting());
     }
 
     // Crop Image
@@ -192,8 +197,8 @@ abstract public class Pipeline {
     }
 
     // Preprocessing
-    for (int n = 0; n < chSettings.preProcessing.size(); n++) {
-      ChannelSettings.PreProcessingStep preProcess = chSettings.preProcessing.get(n);
+    for (int n = 0; n < chSettings.getProcessingStep().size(); n++) {
+      ChannelSettings.PreProcessingStep preProcess = chSettings.getProcessingStep().get(n);
       if (preProcess == ChannelSettings.PreProcessingStep.EdgeDetection) {
         Filter.FindEdges(dup);
       }
@@ -267,46 +272,38 @@ abstract public class Pipeline {
       boolean enhanceContrast,
       AutoThresholder.Method thMethod, int thMin, int thMax, double[] thershold, boolean convertToMask) {
 
-        ImagePlus th = img;
-        if (null != backgroundOriginal) {
-          th = Filter.SubtractImages(th, backgroundOriginal);
-        }
-    
-        // if (true == enhanceContrast) {
-        // Filter.EnhanceContrast(th);
-        // }
-    
-        Filter.RollingBall(th);
-        // Filter.ApplyGaus(th);
-        Filter.Smooth(th);
-        Filter.Smooth(th);
-    
-        ImagePlus beforeThershold = Filter.duplicateImage(th);
-        Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
-        img.setImage(th);
-        img = th;
-        return beforeThershold;
+    ImagePlus th = img;
+    if (null != backgroundOriginal) {
+      th = Filter.SubtractImages(th, backgroundOriginal);
+    }
+
+    // if (true == enhanceContrast) {
+    // Filter.EnhanceContrast(th);
+    // }
+
+    Filter.RollingBall(th);
+    // Filter.ApplyGaus(th);
+    Filter.Smooth(th);
+    Filter.Smooth(th);
+
+    ImagePlus beforeThershold = Filter.duplicateImage(th);
+    Filter.ApplyThershold(th, thMethod, thMin, thMax, thershold, convertToMask);
+    img.setImage(th);
+    img = th;
+    return beforeThershold;
   }
 
   abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
 
-  protected static String getPath(File file) {
-    String name = file.getAbsolutePath().replace(java.io.File.separator, "");
-    name = name.replace("%", "");
-    name = name.replace(" ", "");
-    name = name.replace(":", "");
-    name = name.replace("^", "");
-    name = name.replace("+", "");
-    name = name.replace("*", "");
-    name = name.replace("~", "");
-    name = name.replace(".", "_");
-    name = name.toLowerCase();
-
-    return mSettings.mOutputFolder + java.io.File.separator + getName(file);
+  protected String getPath(File file, String fileNamePrefix, String fileNameSufix) {
+    return mSettings.getOutputFolder() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
   }
 
-  protected static String getName(File file) {
-    String name = file.getAbsolutePath().replace(java.io.File.separator, "");
+  protected String getName(File file, String fileNamePrefix, String fileNameSufix) {
+    long timeInNano = System.nanoTime();
+
+    String name = file.getName().replace(java.io.File.separator, "") + "__" + fileNamePrefix + "__" + fileNameSufix
+        + "__" + timeInNano;
     name = name.replace("%", "");
     name = name.replace(" ", "");
     name = name.replace(":", "");
@@ -316,6 +313,7 @@ abstract public class Pipeline {
     name = name.replace("~", "");
     name = name.replace(".", "_");
     name = name.toLowerCase();
+    name = name + ".jpg";
 
     return name;
   }

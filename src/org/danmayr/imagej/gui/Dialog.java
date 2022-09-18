@@ -1729,13 +1729,13 @@ public class Dialog extends JFrame {
     public void startAnalyse(AnalyseSettings sett) {
         if (null != sett) {
             // Creeate folder if not exists
-            final File parentFile = new File(sett.mOutputFolder);
+            final File parentFile = new File(sett.getOutputFolder());
             boolean directoryExists = true;
             if (parentFile != null && !parentFile.exists()) {
                 directoryExists = parentFile.mkdirs();
             }
             if (true == directoryExists) {
-                sett.saveSettings(sett.mOutputFolder + java.io.File.separator + "settings.json",
+                sett.saveSettings(sett.getOutputFolder() + java.io.File.separator + "settings.json",
                         sett.mReportName, "-");
                 mbStart.setEnabled(false);
                 mCancle.setEnabled(true);
