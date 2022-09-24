@@ -80,8 +80,7 @@ public class Filter {
         return sumImage;
     }
 
-    public static ImagePlus FlatFieldCorrection(ImagePlus image, ImagePlus background)
-    {
+    public static ImagePlus FlatFieldCorrection(ImagePlus image, ImagePlus background) {
         CalculatorPlusThreadSafe calcPlus = new CalculatorPlusThreadSafe(CalculatorPlusThreadSafe.DIVIDE);
         ImagePlus retVal = background.duplicate();
         double mean = background.getStatistics().mean;
@@ -89,16 +88,14 @@ public class Filter {
         return retVal;
     }
 
-    public static void Scale(ImagePlus image, double scaleFactor)
-    {
+    public static void Scale(ImagePlus image, double scaleFactor) {
         CalculatorPlusThreadSafe calcPlus = new CalculatorPlusThreadSafe(CalculatorPlusThreadSafe.SCALE);
         ImagePlus retVal = image.duplicate();
         calcPlus.calculate(image, image, scaleFactor, 0);
         image = retVal;
     }
 
-
-    public static ImagePlus doZProjection(ImagePlus img, String method){
+    public static ImagePlus doZProjection(ImagePlus img, String method) {
         return ZProjector.run(img, method);
     }
 
@@ -121,7 +118,7 @@ public class Filter {
         // IJ.run(imp, "Enhance Contrast...", "saturated=0.3");
         ContrastEnhancerThreadSafe filter = new ContrastEnhancerThreadSafe();
         try {
-            filter.normalizeMedian(img.getProcessor(),medianNew,medianOld);
+            filter.normalizeMedian(img.getProcessor(), medianNew, medianOld);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -257,7 +254,7 @@ public class Filter {
     }
 
     public static void ApplyThershold(ImagePlus img, AutoThresholder.Method thersholdMethod) {
-        ApplyThershold(img, thersholdMethod, -1, -1, null, true);
+        ApplyThershold(img, thersholdMethod, 0, 0, null, true);
     }
 
     public static void ApplyThershold(ImagePlus img, AutoThresholder.Method thersholdMethod, double lowerThershold,
@@ -267,17 +264,16 @@ public class Filter {
         ip.setRoi(img.getRoi());
 
         // Default method is manual mode!
-        if (thersholdMethod == AutoThresholder.Method.Default && lowerThershold >= 0 && upperThershold >= 0) {
+        if (thersholdMethod == AutoThresholder.Method.Default) {
             ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
         } else {
             ip.setAutoThreshold(thersholdMethod, true, ImageProcessor.RED_LUT);
         }
 
-        // If there is a auto threshold set and a manual mode we override the auto detected thershold if it is lower than lowerThershold
-        if(lowerThershold >= 0 && upperThershold >= 0){
-            if(ip.getMinThreshold() < lowerThershold){
-                ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
-            }
+        // If there is a auto threshold set and a manual mode we override the auto
+        // detected thershold if it is lower than lowerThershold
+        if (ip.getMinThreshold() < lowerThershold) {
+            ip.setThreshold(lowerThershold, upperThershold, ImageProcessor.RED_LUT);
         }
         if (thRet != null) {
             thRet[0] = ip.getMinThreshold();
@@ -651,7 +647,5 @@ public class Filter {
 
         return s1 != null ? s1.trySimplify() : null;
     }
-
-
 
 }

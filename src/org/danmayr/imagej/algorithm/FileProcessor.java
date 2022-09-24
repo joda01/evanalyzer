@@ -238,11 +238,22 @@ public class FileProcessor extends Thread {
                 // TODO Auto-generated method stu
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
                 if(imagesLoaded != null && imagesLoaded.length > 0){
+
+                    // Process images
                     Image image = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
-                    ExcelExport.WriteImageSheet(mAnalyseSettings.mOutputFolder, image);
+                    
+                    // Only write details if full report should be created
+                    if(mAnalyseSettings.reportType == AnalyseSettings.ReportType.FullReport){
+                        ExcelExport.WriteImageSheet(mAnalyseSettings.mOutputFolder, image);
+                    }
+
+                    // Cleanup RAM
                     image.ClearParticleInf();
                     
+                    // Add to results for summary report at the end
                     mResuls.addImage(this.fileToAnalyse.getParent(), image);
+
+                    // Close all open windows
                     for (int n = 0; n < imagesLoaded.length; n++) {
                         imagesLoaded[n].close();
                     }
