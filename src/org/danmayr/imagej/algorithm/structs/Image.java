@@ -2,6 +2,7 @@ package org.danmayr.imagej.algorithm.structs;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
@@ -14,6 +15,7 @@ import org.danmayr.imagej.algorithm.structs.Pair;
 ///
 public class Image {
     String mImageName;
+    String mUUID;
     TreeMap<ChannelType, Channel> mChannels = new TreeMap<>(); // Channel Nr, Channel
     TreeMap<ChannelType, Pair<String,String[]>> mStatisticTitles = new TreeMap<>();
     TreeMap<ChannelType, Pair<String,String[]>> mTitle = new TreeMap<>();
@@ -24,8 +26,13 @@ public class Image {
     ///
     /// \brief Constructor
     ///
-    public Image(String name) {
+    public Image(String name, String uuid) {
         mImageName = name;
+        mUUID = uuid;
+    }
+
+    public String getUUID(){
+        return mUUID;
     }
 
     ///
@@ -52,6 +59,10 @@ public class Image {
         return mImageName;
     }
 
+    public String getImageName(){
+        return mImageName;
+    }
+
     ///
     /// \brief Returns the channels of the image
     ///
@@ -73,6 +84,12 @@ public class Image {
 
     public TreeMap<ChannelType, Pair<String,String[]>> getTitle(){
         return mTitle;
+    }
+
+    public void ClearParticleInf() {
+        for (Map.Entry<ChannelType, Channel> e : mChannels.entrySet()) {
+            e.getValue().ClearParticleInf();
+        }
     }
 
 }

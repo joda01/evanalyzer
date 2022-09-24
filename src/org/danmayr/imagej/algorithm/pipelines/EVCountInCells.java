@@ -155,7 +155,7 @@ public class EVCountInCells extends EVColoc {
                         evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
                 addReturnChannel(evCh, val.getKey(),
-                        getName(mImage, "01", val.getValue().getType().toString() + "_ev"));
+                        getRelativeImagePath(mImage, "01", val.getValue().getType().toString() + "_ev"));
                 try {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone(evSubtracted);
                     mEditedEvs.put(val.getKey(), setNew);
@@ -225,7 +225,7 @@ public class EVCountInCells extends EVColoc {
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
                     rm, false);
             chCell.setThershold(in[0], in[1]);
-            addReturnChannel(chCell, cellChannelSetting.getType(), "");
+            addReturnChannel(chCell, cellChannelSetting.getType(), getRelativeImagePath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"));
 
             ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
             for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
@@ -397,14 +397,14 @@ public class EVCountInCells extends EVColoc {
                     exec.execute(new CellByCellEvCountingAndAnalyzing(val, cellRoi, nucleusRoiAll, nucleusRoiFiltered,
                             analyzedCells));
                 }
-                IJ.log("Wait for finsihed");
+                // IJ.log("Wait for finsihed");
                 exec.shutdown();
                 try {
                     exec.awaitTermination(1, TimeUnit.HOURS);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                IJ.log("Finihed");
+                // IJ.log("Finihed");
 
             }
         }
@@ -481,20 +481,18 @@ public class EVCountInCells extends EVColoc {
 
             ChannelType inCellEvType = ChannelType
                     .getColocEnum(val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
-            String fileName = getName(mImage, "03", val.getKey().toString() + "_separated_overlay_cells");
             Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
                     getPath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
             roiOverLay.clear();
-            addReturnChannel(evsInCell, inCellEvType, fileName);
-            System.gc();
+            addReturnChannel(evsInCell, inCellEvType, getRelativeImagePath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
         }
     }
 
     synchronized void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
         if (ch != null && type != null) {
-            ch.addControlImagePath(getName(mImage, "03", type.toString() + "_separated_overlay_cells"));
+            ch.addControlImagePath(pathToCtrlImage);
             mReturnChannels.put(type, ch);
         }
     }

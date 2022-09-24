@@ -135,7 +135,7 @@ public class EVColoc extends Pipeline {
             channelsToPrint
                     .add(new ChannelInfoOverlaySettings(colocAll.ch.getRois(), new Color(255, 255, 255, 80), false,
                             true));
-            String imageName = getName(file,"05","coloc_all_channels");
+            String imageName = getRelativeImagePath(file,"05","coloc_all_channels");
             String imagePath = getPath(file,"05","coloc_all_channels");
             Filter.SaveImageWithOverlayFromChannel(colocAll.imageAfterThershold, channelsToPrint, imagePath);
 
@@ -247,7 +247,7 @@ public class EVColoc extends Pipeline {
                 channelsToPrint
                         .add(new ChannelInfoOverlaySettings(coloc.getRois(), new Color(255, 255, 255, 80), false,
                                 true));
-                String imageName = getName(file, "04", name + "coloc");
+                String imageName = getRelativeImagePath(file, "04", name + "coloc");
                 String imagePath = getPath(file, "04", name + "coloc");
 
                 Filter.SaveImageWithOverlayFromChannel(ch1.imageAfterThershold, channelsToPrint, imagePath);
@@ -306,7 +306,7 @@ public class EVColoc extends Pipeline {
             //
             String pathor = getPath(mImage, "01", img0.getType().toString() + "_original");
             String path = getPath(mImage, "02", img0.getType().toString() + "_edited");
-            measCh0.addControlImagePath(getName(mImage, "02", img0.getType().toString() + "_edited"));
+            measCh0.addControlImagePath(getRelativeImagePath(mImage, "02", img0.getType().toString() + "_edited"));
             channels.put(img0.getType(), measCh0);
 
             Vector<ChannelInfoOverlaySettings> channelsToPrint = new Vector<ChannelInfoOverlaySettings>();
@@ -384,7 +384,7 @@ public class EVColoc extends Pipeline {
                 imageWithTetraSpeckBeads.getImage(), thershodlImg, rm, true);
         tetraSpeckBeads.setThershold(retTh[0], retTh[1]);
         String path = getPath(mImage, "03", "tetraspeck");
-        tetraSpeckBeads.addControlImagePath(getName(mImage, "03", "tetraspeck"));
+        tetraSpeckBeads.addControlImagePath(getRelativeImagePath(mImage, "03", "tetraspeck"));
         channels.put(ChannelType.TETRASPECK_BEAD, tetraSpeckBeads);
         Filter.SaveImageWithOverlay(imageWithTetraSpeckBeads.getImage(), rm, path);
         return tetraSpeckBeads;

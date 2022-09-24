@@ -1527,7 +1527,11 @@ public class Dialog extends JFrame {
 
         ////////////////////////////////////////////////////
         int nrOfCpus = Runtime.getRuntime().availableProcessors();
-        mNumberOfCPUs.setModel(new SpinnerNumberModel(nrOfCpus, 1, nrOfCpus, 1));
+        int defaultNrToUse = nrOfCpus / 2;
+        if (defaultNrToUse <= 0) {
+            defaultNrToUse = 1;
+        }
+        mNumberOfCPUs.setModel(new SpinnerNumberModel(defaultNrToUse, 1, nrOfCpus, 1));
         mMenu.add(new JLabel("Nr of CPU cores to use (max. " + nrOfCpus + "):"));
         mMenu.add(mNumberOfCPUs);
 
@@ -1696,7 +1700,7 @@ public class Dialog extends JFrame {
         //
         // Nr of CPU cores
         //
-        sett.mNrOfCpuCoresToUse = (Integer)mNumberOfCPUs.getValue();
+        sett.mNrOfCpuCoresToUse = (Integer) mNumberOfCPUs.getValue();
 
         //
         // Assign channel settings

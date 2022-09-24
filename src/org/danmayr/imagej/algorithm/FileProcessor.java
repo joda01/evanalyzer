@@ -33,6 +33,7 @@ import ij.plugin.frame.*;
 import java.awt.*;
 
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.algorithm.structs.Image;
 import org.danmayr.imagej.exports.*;
 
 import org.danmayr.imagej.algorithm.*;
@@ -84,7 +85,6 @@ public class FileProcessor extends Thread {
         String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, "report",
                 mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
 
-        System.gc();
 
         // Write statistics to file
         /*
@@ -237,10 +237,17 @@ public class FileProcessor extends Thread {
             if (this.pipeline != null && false == this.mCanceled) {
                 // TODO Auto-generated method stu
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
-                TreeMap<ChannelType, Channel> images = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
-                mResuls.addImage(this.fileToAnalyse.getParent(), this.fileToAnalyse.getName(), images);
-                for (int n = 0; n < imagesLoaded.length; n++) {
-                    imagesLoaded[n].close();
+                if(imagesLoaded != null && imagesLoaded.length > 0){
+                    Image image = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
+                    ExcelExport.WriteImageSheet(mAnalyseSettings.mOutputFolder, image);
+                    image.ClearParticleInf();
+                    
+                    mResuls.addImage(this.fileToAnalyse.getParent(), image);
+                    for (int n = 0; n < imagesLoaded.length; n++) {
+                        imagesLoaded[n].close();
+                    }
+                }else{
+                    IJ.log("WARN: There was a problem loading the image: " + this.fileToAnalyse);
                 }
             }
             mDialog.incrementProgressBarValue("analyzing ...");

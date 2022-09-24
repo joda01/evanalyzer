@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -75,7 +76,7 @@ public class ExcelExport {
             //
             for (Map.Entry<String, Image> imageMap : folder.getImages().entrySet()) {
                 imgSheetCount++;
-                String imageName = imageMap.getKey();
+                String imageName = imageMap.getValue().getImageName();
                 Image image = imageMap.getValue();
                 String sheetName = Integer.toString(imgSheetCount);
 
@@ -85,13 +86,6 @@ public class ExcelExport {
                 overViewRow = WriteOverviewImageSummery(overviewSheet, sheetName, createHelper, image, folderName,
                         imageName, overViewRow);
 
-                //
-                // Write image Particles
-                //
-                if (reportType == AnalyseSettings.ReportType.FullReport) {
-                    SXSSFSheet imageSheet = (SXSSFSheet) workBook.createSheet(sheetName);
-                    WriteImageSheet(imageSheet, image);
-                }
                 mDialog.incrementProgressBarValue("generating report ...");
 
             }
@@ -101,7 +95,6 @@ public class ExcelExport {
             //
             overViewRow = WriteOverviewFolderStatistics(overviewSheet, folder, overViewRow);
         }
-
 
         String out = outputFolder + File.separator + reportFileName + ".xlsx";
         try {
@@ -127,7 +120,7 @@ public class ExcelExport {
 
     }
 
-    static int OVERVIEW_SHEET_START_STATISTIC_COLUMN = 3;
+    static int OVERVIEW_SHEET_START_STATISTIC_COLUMN = 4;
 
     ///
     /// Write summary
@@ -252,14 +245,27 @@ public class ExcelExport {
         cellFolderName.setCellValue(folderName);
         cellFolderName.setCellStyle(actStyleThinLine);
 
+        ///
+        /// Original image name
+        ///
         Cell cellImgName = rowImgSummary.createCell(1);
         cellImgName.setCellValue(imageName);
         cellImgName.setCellStyle(actStyleThinLine);
 
-        Cell linkCell = rowImgSummary.createCell(2);
-        linkCell.setCellValue("Go to " + sheetName);
-        Hyperlink link2 = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
-        link2.setAddress("'" + sheetName + "'!A1");
+        ///
+        /// Internal image name
+        ///
+        Cell cellInternalImageName = rowImgSummary.createCell(2);
+        cellInternalImageName.setCellValue(image.getUUID());
+        cellInternalImageName.setCellStyle(actStyleThinLine);
+
+        ///
+        /// Link to details XLSX
+        ///
+        Cell linkCell = rowImgSummary.createCell(3);
+        linkCell.setCellValue("Open Details " + sheetName);
+        Hyperlink link2 = createHelper.createHyperlink(HyperlinkType.FILE);
+        link2.setAddress(image.getUUID()+".xlsx");
         linkCell.setHyperlink(link2);
         linkCell.setCellStyle(actStyleThinLine);
 
@@ -272,9 +278,15 @@ public class ExcelExport {
         int column = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
         for (Map.Entry<ChannelType, double[]> value : values.entrySet()) {
             Cell picCell = rowImgSummary.createCell(column);
-            picCell.setCellValue("Open pic");
+            String rlativePath = ctrlImages.get(value.getKey());
+
+            if(rlativePath.length() > 0){
+                picCell.setCellValue("Open pic");
+            }else{
+                picCell.setCellValue("-");
+            }
             Hyperlink picLik = createHelper.createHyperlink(HyperlinkType.FILE);
-            picLik.setAddress(ctrlImages.get(value.getKey()));
+            picLik.setAddress(rlativePath);
             picCell.setHyperlink(picLik);
             picCell.setCellStyle(actStyleThickLine);
             column++;
@@ -391,7 +403,16 @@ public class ExcelExport {
     ///
     /// Write image statistics
     ///
-    private static void WriteImageSheet(SXSSFSheet imgSheet, Image image) {
+    public static void WriteImageSheet(String outputFolder,Image image) {
+
+        //
+        // Create workbook
+        //
+        String fileName = image.getUUID();
+        Workbook workBook = new SXSSFWorkbook(2000);
+        SXSSFSheet imgSheet = (SXSSFSheet) workBook.createSheet(fileName);
+
+
         CellStyle actStyleThinLine = createCellStyleHeader(imgSheet, false);
         CellStyle actStyleThickLine = createCellStyleHeader(imgSheet, true);
 
@@ -407,7 +428,7 @@ public class ExcelExport {
         // Write back button
         //
         Cell rowBackButton = rowChName.createCell(0);
-        //rowBackButton.
+        // rowBackButton.
 
         TreeMap<ChannelType, Pair<String, String[]>> titles = image.getTitle();
         TreeMap<ChannelType, Integer> channelColumnSize = new TreeMap<>(); // Stores the number of Columns per channel
@@ -509,6 +530,14 @@ public class ExcelExport {
                 }
             }
             row++;
+        }
+
+        String out = outputFolder + File.separator + fileName + ".xlsx";
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(out.trim());
+            workBook.write(fileOutputStream);
+            workBook.close();
+        } catch (Exception exObj) {
         }
     }
 

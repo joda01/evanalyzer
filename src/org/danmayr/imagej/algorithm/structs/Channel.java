@@ -117,4 +117,10 @@ public class Channel {
 
         }
     }
+
+    public void ClearParticleInf() {
+        mRois.clear();
+        mRois = null;
+    }
+
 }
