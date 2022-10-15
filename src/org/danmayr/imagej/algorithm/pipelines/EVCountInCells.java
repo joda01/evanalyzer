@@ -404,10 +404,15 @@ public class EVCountInCells extends EVColoc {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                // IJ.log("Finihed");
-
             }
+            // New
+            filteredCells = null;
+
         }
+        // new
+        cellRoi = null;
+        nucleusRoiAll = null;
+        nucleusRoiFiltered = null;
 
     }
 
