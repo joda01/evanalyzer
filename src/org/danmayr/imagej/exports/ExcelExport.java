@@ -20,12 +20,12 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.IndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
@@ -45,7 +45,7 @@ public class ExcelExport {
 
 
 
-    static int WriteRow(SXSSFSheet summarySheet, int row, String title, String value) {
+    static int WriteRow(XSSFSheet summarySheet, int row, String title, String value) {
         Row rowChName = summarySheet.createRow(row);
         rowChName.createCell(0).setCellValue(title);
         rowChName.createCell(1).setCellValue(value);
@@ -56,7 +56,7 @@ public class ExcelExport {
 
 
 
-    static CellStyle createCellStyleNumberEven(SXSSFSheet sheet, boolean thickLine) {
+    static CellStyle createCellStyleNumberEven(XSSFSheet sheet, boolean thickLine) {
         Font defaultFont = sheet.getWorkbook().createFont();
         defaultFont.setFontHeightInPoints((short) 10);
         defaultFont.setFontName("Arial");
@@ -79,7 +79,7 @@ public class ExcelExport {
         return cellStyle;
     }
 
-    static CellStyle createCellStyleNumberOdd(SXSSFSheet sheet, boolean thickLine) {
+    static CellStyle createCellStyleNumberOdd(XSSFSheet sheet, boolean thickLine) {
         Font defaultFont = sheet.getWorkbook().createFont();
         defaultFont.setFontHeightInPoints((short) 10);
         defaultFont.setFontName("Arial");
@@ -103,7 +103,7 @@ public class ExcelExport {
         return cellStyle;
     }
 
-    static CellStyle createCellStyleHeader(SXSSFSheet sheet, boolean thickLine) {
+    static CellStyle createCellStyleHeader(XSSFSheet sheet, boolean thickLine) {
         Font defaultFont = sheet.getWorkbook().createFont();
         defaultFont.setFontHeightInPoints((short) 10);
         defaultFont.setFontName("Arial");
@@ -127,7 +127,7 @@ public class ExcelExport {
         return cellStyle;
     }
 
-    private static CellStyle createCellStyleFooter(SXSSFSheet sheet, boolean thickLine) {
+    private static CellStyle createCellStyleFooter(XSSFSheet sheet, boolean thickLine) {
         Font defaultFont = sheet.getWorkbook().createFont();
         defaultFont.setFontHeightInPoints((short) 10);
         defaultFont.setFontName("Arial");
@@ -160,8 +160,8 @@ public class ExcelExport {
         // Create workbook
         //
         String fileName = image.getUUID();
-        Workbook workBook = new SXSSFWorkbook(2000);
-        SXSSFSheet imgSheet = (SXSSFSheet) workBook.createSheet(fileName);
+        XSSFWorkbook workBook = new XSSFWorkbook();
+        XSSFSheet imgSheet = (XSSFSheet) workBook.createSheet(fileName);
 
 
         CellStyle actStyleThinLine = createCellStyleHeader(imgSheet, false);
@@ -297,7 +297,7 @@ public class ExcelExport {
     /// Write folder statistics
     ///
     static int OVERVIEW_SHEET_START_STATISTIC_COLUMN = 4;
-    private static int WriteOverviewFolderStatistics(SXSSFSheet overviewSheet, Folder folder, int row) {
+    private static int WriteOverviewFolderStatistics(XSSFSheet overviewSheet, Folder folder, int row) {
         Row rowFolderStatistics = overviewSheet.createRow(row);
 
         TreeMap<ChannelType, double[]> statistics = folder.calcStatistic();

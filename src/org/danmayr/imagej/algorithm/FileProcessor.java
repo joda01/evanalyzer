@@ -49,7 +49,6 @@ public class FileProcessor extends Thread {
     Dialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
-    FolderResults mResuls = new FolderResults();
 
     public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
@@ -69,8 +68,8 @@ public class FileProcessor extends Thread {
         // Prepare results folder
         prepareOutputFolder();
 
-        mDialog.setProgressBarMaxSize(0, "look for images ...");
-        mDialog.setProgressBarValue(0, "look for images ...");
+        mDialog.setProgressBarMaxSize(0, "lookink for images ...");
+        mDialog.setProgressBarValue(0, "lookink for images ...");
 
         //
         // List all files in folders and subfolders
@@ -161,21 +160,21 @@ public class FileProcessor extends Thread {
         IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse + " CPU cores!");
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
-        mDialog.setAlwaysOnTop(true);
+        //mDialog.setAlwaysOnTop(true);
 
         int parallelWorkers = mAnalyseSettings.mNrOfCpuCoresToUse - fileList.size();
         if (parallelWorkers < 1) {
             parallelWorkers = 1;
         }
 
-        IJ.log("Parallel workers " + parallelWorkers + " CPU cores!");
+        IJ.log("Number of reserved cores for channel analysis: " + parallelWorkers + ".");
 
         int nrOfCPUS = mAnalyseSettings.mNrOfCpuCoresToUse - parallelWorkers;
         if (nrOfCPUS < 1) {
             nrOfCPUS = 1;
         }
 
-        IJ.log("CPU workers " + nrOfCPUS + " CPU cores!");
+        IJ.log("Number of parallel processed images: " + nrOfCPUS + ".");
 
         ThreadPoolExecutor exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfCPUS);
 
@@ -185,10 +184,10 @@ public class FileProcessor extends Thread {
             }
             ProcessImage e = new ProcessImage(file, parallelWorkers,exporter);
             exec.execute(e);
-            IJ.log("TH: " + exec.getQueue().size());
-            while (exec.getQueue().size() >= mAnalyseSettings.mNrOfCpuCoresToUse) {
+            //IJ.log("TH: " + exec.getQueue().size());
+            while (exec.getQueue().size() >= (mAnalyseSettings.mNrOfCpuCoresToUse+5)) {
                 try {
-                    sleep(1000);
+                    sleep(256);
                 } catch (InterruptedException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -270,11 +269,14 @@ public class FileProcessor extends Thread {
                         ExcelExport.WriteImageSheet(mAnalyseSettings.mOutputFolder, image);
                     }
 
-                    exporter.writeRow(this.fileToAnalyse.getParent().toString(), image);
-
+                    String folderNAme = this.fileToAnalyse.getParent().toString();
+                    exporter.writeHeader(folderNAme, image);
+                    exporter.writeRow(folderNAme, image);
+                   
                     // Cleanup RAM
                     image.ClearParticleInf();
                     image = null;
+                    this.pipeline = null;
 
                     // Add to results for summary report at the end
                     // mResuls.addImage(this.fileToAnalyse.getParent(), image);

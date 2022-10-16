@@ -4,50 +4,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import org.apache.poi.common.usermodel.HyperlinkType;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.IndexedColorMap;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFFont;
-import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.danmayr.imagej.Version;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
 import org.danmayr.imagej.algorithm.pipelines.Pipeline.ChannelType;
-import org.danmayr.imagej.algorithm.structs.Channel;
-import org.danmayr.imagej.algorithm.structs.Folder;
-import org.danmayr.imagej.algorithm.structs.FolderResults;
 import org.danmayr.imagej.algorithm.structs.Image;
 import org.danmayr.imagej.algorithm.structs.Pair;
-import org.danmayr.imagej.algorithm.structs.ParticleInfo;
-import org.danmayr.imagej.gui.Dialog;
 
 import ij.IJ;
-
-import org.danmayr.imagej.Version;
 
 public class ExcelExportStream {
 
@@ -56,14 +34,13 @@ public class ExcelExportStream {
 
     public ExcelExportStream(String outputFolder, String reportFileName, AnalyseSettings settings) {
 
-        SXSSFWorkbook workBook = new SXSSFWorkbook(10);
-        CreationHelper createHelper = workBook.getCreationHelper();
+        XSSFWorkbook workBook = new XSSFWorkbook();
 
         // Overview Sheet
-        SXSSFSheet overviewSheet = (SXSSFSheet) workBook.createSheet("overview");
+        XSSFSheet overviewSheet = workBook.createSheet("overview");
 
         // Summary Sheet
-        SXSSFSheet summerySheet = (SXSSFSheet) workBook.createSheet("settings");
+        XSSFSheet summerySheet = workBook.createSheet("settings");
         WriteSummary(summerySheet, settings);
 
         fileName = outputFolder + File.separator + reportFileName + ".xlsx".trim();
@@ -80,43 +57,52 @@ public class ExcelExportStream {
         return fileName;
     }
 
-    public void writeHeader(String folderName, Folder folder)
-            throws IOException, InvalidFormatException {
-        SXSSFWorkbook workbook = new SXSSFWorkbook(new XSSFWorkbook(new FileInputStream(fileName)));
-        SXSSFSheet sheet = workbook.getSheetAt(0);
+    boolean folderWritten = false;
 
-        //
-        // Write header
+    public synchronized void writeHeader(String folderName, Image folder) {
+        if (false == folderWritten) {
+            try {
+                XSSFWorkbook original = (XSSFWorkbook) WorkbookFactory.create(new FileInputStream(fileName));
+                XSSFSheet sheet = original.getSheetAt(0);
 
-        WriteOverviewHeaderForFolder(sheet, folder, 0);
+                //
+                // Write header
+                WriteOverviewHeaderForFolder(sheet, folder, 0);
+                try {
+                    FileOutputStream out = new FileOutputStream(fileName);
+                    original.write(out);
+                    out.close();
+                    folderWritten = true;
 
-        try {
-            FileOutputStream out = new FileOutputStream(fileName);
-            workbook.write(out);
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                original.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
-
     }
 
     //
     // Append a row to the overview excel
     //
-    public void writeRow(String folderName, Image img) {
-
+    public synchronized void writeRow(String folderName, Image img) {
+        IJ.log("Write");
         try {
-            //SXSSFWorkbook workbook = new SXSSFWorkbook(new XSSFWorkbook(new FileInputStream(fileName)));
-            XSSFWorkbook original = (XSSFWorkbook)WorkbookFactory.create(new FileInputStream(fileName));
+            // XSSFWorkbook workbook = new XSSFWorkbook(new XSSFWorkbook(new
+            // FileInputStream(fileName)));
+            ZipSecureFile.setMinInflateRatio((double) 0);
+            File f = new File(fileName);
+            XSSFWorkbook original = (XSSFWorkbook) WorkbookFactory.create(f);
             XSSFSheet orgSheet = original.getSheetAt(0);
-            //XSSFRow baseRow = orgSheet.getRow(orgSheet.getLastRowNum());	//Reference row: Copy the style of each cell
+            // XSSFRow baseRow = orgSheet.getRow(orgSheet.getLastRowNum()); //Reference row:
+            // Copy the style of each cell
             int rowNum = orgSheet.getLastRowNum() + 1;
-            SXSSFWorkbook workbook = new SXSSFWorkbook(original);
-            SXSSFSheet sheet = workbook.getSheetAt(0);
-            
-            
-            IJ.log("Row " + rowNum);
-            CreationHelper createHelper = workbook.getCreationHelper();
+            if (rowNum < 1) {
+                rowNum = 1;
+            }
+            CreationHelper createHelper = original.getCreationHelper();
 
             String imageName = img.getImageName();
             String sheetName = Integer.toString(rowNum);
@@ -124,43 +110,32 @@ public class ExcelExportStream {
             //
             // Write image sumary to overview sheet
             //
-            WriteOverviewImageSummery(sheet, sheetName, createHelper, img, folderName,
+            WriteOverviewImageSummery(orgSheet, sheetName, createHelper, img, folderName,
                     imageName, rowNum);
 
             try {
-                FileOutputStream out = new FileOutputStream(fileName);
-                workbook.write(out);
+                FileOutputStream out = new FileOutputStream(fileName+"_tmp");
+                original.write(out);
+                original.close(); // Loaded into SXSSF Workbook(?)Close for
                 out.close();
-                workbook.close();
-                original.close();	//Loaded into SXSSF Workbook(?)Close for
-
+                f.delete();
+                File oldFile = new File(fileName+"_tmp");
+                oldFile.renameTo(new File(fileName));
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } catch (IOException ex) {
+            ex.printStackTrace();
         }
-    }
-
-    ///
-    /// Calculate how many loop iterations will be done
-    ///
-    private static int getLoopCount(FolderResults results) {
-        int max = 0;
-        for (Map.Entry<String, Folder> folderMap : results.getFolders().entrySet()) {
-            Folder folder = folderMap.getValue();
-
-            max = max + folder.getImages().size();
-
-        }
-        return max;
+        IJ.log("Write finished");
 
     }
 
     ///
     /// Write image summary
     ///
-    private static int WriteOverviewImageSummery(SXSSFSheet overviewSheet, String sheetName,
+    private synchronized int WriteOverviewImageSummery(XSSFSheet overviewSheet, String sheetName,
             CreationHelper createHelper, Image image, String folderName, String imageName, int row) {
         Row rowImgSummary = overviewSheet.createRow(row);
 
@@ -245,6 +220,9 @@ public class ExcelExportStream {
                                                                                                                // number
                 column++;
             }
+
+            actStyleThinLine = null;
+            actStyleThickLine = null;
         }
         return row + 1;
     }
@@ -252,7 +230,7 @@ public class ExcelExportStream {
     ///
     /// Write overview header
     ///
-    private static int WriteOverviewHeaderForFolder(SXSSFSheet overviewSheet, Folder folder, int row) {
+    private synchronized int WriteOverviewHeaderForFolder(XSSFSheet overviewSheet, Image folder, int row) {
         ///
         /// Cell Styles
         ///
@@ -291,7 +269,7 @@ public class ExcelExportStream {
     ///
     /// Write summary
     ///
-    private static int WriteSummary(SXSSFSheet summarySheet, AnalyseSettings settings) {
+    private static int WriteSummary(XSSFSheet summarySheet, AnalyseSettings settings) {
         int row = 0;
         summarySheet.setDefaultColumnWidth(25);
         row = ExcelExport.WriteRow(summarySheet, row, "Used program Version", Version.getVersion());
@@ -318,7 +296,7 @@ public class ExcelExportStream {
         return row;
     }
 
-    private static int WriteChannelSettingToSummarySheet(SXSSFSheet summarySheet, int row, String chName,
+    private static int WriteChannelSettingToSummarySheet(XSSFSheet summarySheet, int row, String chName,
             ChannelSettings ch) {
         row = ExcelExport.WriteRow(summarySheet, row, chName + " type", String.valueOf(ch.type));
         row = ExcelExport.WriteRow(summarySheet, row, chName + " thresholding", String.valueOf(ch.mThersholdMethod));
