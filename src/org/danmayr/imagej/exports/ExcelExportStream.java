@@ -88,7 +88,6 @@ public class ExcelExportStream {
     // Append a row to the overview excel
     //
     public synchronized void writeRow(String folderName, Image img) {
-        IJ.log("Write");
         try {
             // XSSFWorkbook workbook = new XSSFWorkbook(new XSSFWorkbook(new
             // FileInputStream(fileName)));
@@ -128,8 +127,6 @@ public class ExcelExportStream {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        IJ.log("Write finished");
-
     }
 
     ///
