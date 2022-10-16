@@ -23,6 +23,9 @@ import java.awt.*;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
+  
+  public final int PARALLEL_WORKERS;
+  
   // protected RoiManager rm = new RoiManager(false);
 
   // Enum which contains the color indexes for a RGBStackMerge
@@ -140,7 +143,8 @@ abstract public class Pipeline {
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
   ChannelSettings cellChannel;
 
-  Pipeline(AnalyseSettings settings) {
+  Pipeline(AnalyseSettings settings, int parallelWorkers) {
+    PARALLEL_WORKERS = parallelWorkers;
     mSettings = settings;
     cellChannel = new ChannelSettings(settings);
   }
@@ -321,8 +325,8 @@ abstract public class Pipeline {
     return path;
   }
 
-  protected String getRelativeImagePath(File file, String fileNamePrefix, String fileNameSufix){
-    return  getUUID() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
+  protected String getRelativeImagePath(File file, String fileNamePrefix, String fileNameSufix) {
+    return getUUID() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
   }
 
 

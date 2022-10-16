@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
@@ -49,7 +50,6 @@ public class FileProcessor extends Thread {
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
     FolderResults mResuls = new FolderResults();
-    Vector<ProcessImage> mRunningProcesses = new Vector<>();
 
     public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings) {
         mDialog = dialog;
@@ -80,11 +80,13 @@ public class FileProcessor extends Thread {
         mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
         mDialog.setProgressBarValue(0, "analyzing ...");
 
-        walkThroughFiles(mFoundFiles);
+        ExcelExportStream expStream = new ExcelExportStream(mAnalyseSettings.mOutputFolder, "report", mAnalyseSettings);
 
-        String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder, "report",
-                mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
+        walkThroughFiles(mFoundFiles, expStream);
 
+        // String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder,
+        // "report",
+        // mResuls, mAnalyseSettings.reportType, mAnalyseSettings, mDialog);
 
         // Write statistics to file
         /*
@@ -94,7 +96,7 @@ public class FileProcessor extends Thread {
          * String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
          */
 
-        mDialog.finishedAnalyse(reportFileName);
+        mDialog.finishedAnalyse(expStream.getFileName());
     }
 
     ///
@@ -152,27 +154,46 @@ public class FileProcessor extends Thread {
      */
     public void cancle() {
         mStopping = true;
-        for (ProcessImage i : mRunningProcesses) {
-            i.cancel();
-        }
     }
 
-    private void walkThroughFiles(ArrayList<File> fileList) {
+    private void walkThroughFiles(ArrayList<File> fileList, ExcelExportStream exporter) {
 
         IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse + " CPU cores!");
         mDialog.addLogEntryNewLine();
         PerformanceAnalyzer.start("analyze_files");
         mDialog.setAlwaysOnTop(true);
-        ExecutorService exec = Executors.newFixedThreadPool(mAnalyseSettings.mNrOfCpuCoresToUse);
-        this.mRunningProcesses.clear();
+
+        int parallelWorkers = mAnalyseSettings.mNrOfCpuCoresToUse - fileList.size();
+        if (parallelWorkers < 1) {
+            parallelWorkers = 1;
+        }
+
+        IJ.log("Parallel workers " + parallelWorkers + " CPU cores!");
+
+        int nrOfCPUS = mAnalyseSettings.mNrOfCpuCoresToUse - parallelWorkers;
+        if (nrOfCPUS < 1) {
+            nrOfCPUS = 1;
+        }
+
+        IJ.log("CPU workers " + nrOfCPUS + " CPU cores!");
+
+        ThreadPoolExecutor exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(nrOfCPUS);
 
         for (File file : fileList) {
             if (true == mStopping) {
                 break;
             }
-            ProcessImage e = new ProcessImage(file);
-            mRunningProcesses.add(e);
+            ProcessImage e = new ProcessImage(file, parallelWorkers,exporter);
             exec.execute(e);
+            IJ.log("TH: " + exec.getQueue().size());
+            while (exec.getQueue().size() >= mAnalyseSettings.mNrOfCpuCoresToUse) {
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
         }
         exec.shutdown();
         try {
@@ -194,37 +215,39 @@ public class FileProcessor extends Thread {
         File fileToAnalyse;
         Pipeline pipeline = null;
         boolean mCanceled = false;
+        ExcelExportStream exporter;
 
-        ProcessImage(File fileToAnalyse) {
+        ProcessImage(File fileToAnalyse, int parallelWorkers, ExcelExportStream exporter) {
             mCanceled = false;
             this.fileToAnalyse = fileToAnalyse;
+            this.exporter = exporter;
 
             if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCount)) {
                 mAnalyseSettings.mCalcColoc = false;
                 mAnalyseSettings.mCountEvsPerCell = false;
-                pipeline = new EVColoc(mAnalyseSettings);
+                pipeline = new EVColoc(mAnalyseSettings, parallelWorkers);
             }
             if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evColoc)) {
                 mAnalyseSettings.mCalcColoc = true;
                 mAnalyseSettings.mCountEvsPerCell = false;
-                pipeline = new EVColoc(mAnalyseSettings);
+                pipeline = new EVColoc(mAnalyseSettings, parallelWorkers);
             }
             if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountInTotalCellArea)) {
                 mAnalyseSettings.mCountEvsPerCell = false;
                 mAnalyseSettings.mCalcColoc = false;
-                pipeline = new EVCountInCells(mAnalyseSettings);
+                pipeline = new EVCountInCells(mAnalyseSettings, parallelWorkers);
             }
             if (mAnalyseSettings.mSelectedFunction.equals(AnalyseSettings.Function.evCountPerCell)) {
                 mAnalyseSettings.mCountEvsPerCell = true;
                 mAnalyseSettings.mCalcColoc = false;
-                pipeline = new EVCountInCells(mAnalyseSettings);
+                pipeline = new EVCountInCells(mAnalyseSettings, parallelWorkers);
             }
             if (mAnalyseSettings.mSelectedFunction
                     .equals(AnalyseSettings.Function.evCountPerCellRemoveCropped)) {
                 mAnalyseSettings.mCountEvsPerCell = true;
                 mAnalyseSettings.mRemoveCellsWithoutNucleus = true;
                 mAnalyseSettings.mCalcColoc = false;
-                pipeline = new EVCountInCells(mAnalyseSettings);
+                pipeline = new EVCountInCells(mAnalyseSettings, parallelWorkers);
             }
         }
 
@@ -237,27 +260,30 @@ public class FileProcessor extends Thread {
             if (this.pipeline != null && false == this.mCanceled) {
                 // TODO Auto-generated method stu
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
-                if(imagesLoaded != null && imagesLoaded.length > 0){
+                if (imagesLoaded != null && imagesLoaded.length > 0) {
 
                     // Process images
                     Image image = this.pipeline.ProcessImage(this.fileToAnalyse, imagesLoaded);
-                    
+
                     // Only write details if full report should be created
-                    if(mAnalyseSettings.reportType == AnalyseSettings.ReportType.FullReport){
+                    if (mAnalyseSettings.reportType == AnalyseSettings.ReportType.FullReport) {
                         ExcelExport.WriteImageSheet(mAnalyseSettings.mOutputFolder, image);
                     }
 
+                    exporter.writeRow(this.fileToAnalyse.getParent().toString(), image);
+
                     // Cleanup RAM
                     image.ClearParticleInf();
-                    
+                    image = null;
+
                     // Add to results for summary report at the end
-                    mResuls.addImage(this.fileToAnalyse.getParent(), image);
+                    // mResuls.addImage(this.fileToAnalyse.getParent(), image);
 
                     // Close all open windows
                     for (int n = 0; n < imagesLoaded.length; n++) {
                         imagesLoaded[n].close();
                     }
-                }else{
+                } else {
                     IJ.log("WARN: There was a problem loading the image: " + this.fileToAnalyse);
                 }
             }

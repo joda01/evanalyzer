@@ -38,8 +38,8 @@ public class EVColoc extends Pipeline {
 
     static int MAX_THERSHOLD = 255;
 
-    public EVColoc(AnalyseSettings settings) {
-        super(settings);
+    public EVColoc(AnalyseSettings settings, int parallelWorkers) {
+        super(settings,parallelWorkers);
     }
 
     TreeMap<ChannelType, Channel> channels;
@@ -67,7 +67,7 @@ public class EVColoc extends Pipeline {
         // Count EVS and create threshold pictures
         //
         TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
-        ExecutorService exec = Executors.newFixedThreadPool(evs.size());
+        ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
         for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
             exec.execute(new EvCounting(channelWithTetraSpeckBeats, val));
         }
