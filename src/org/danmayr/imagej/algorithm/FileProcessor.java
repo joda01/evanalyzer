@@ -79,7 +79,8 @@ public class FileProcessor extends Thread {
         mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
         mDialog.setProgressBarValue(0, "analyzing ...");
 
-        ExcelExportStream expStream = new ExcelExportStream(mAnalyseSettings.mOutputFolder, "report", mAnalyseSettings);
+        //ExcelExportStream expStream = new ExcelExportStream(mAnalyseSettings.mOutputFolder, "report", mAnalyseSettings);
+        CSVExportStream expStream = new CSVExportStream(mAnalyseSettings.mOutputFolder, "report", mAnalyseSettings);
 
         walkThroughFiles(mFoundFiles, expStream);
 
@@ -155,7 +156,7 @@ public class FileProcessor extends Thread {
         mStopping = true;
     }
 
-    private void walkThroughFiles(ArrayList<File> fileList, ExcelExportStream exporter) {
+    private void walkThroughFiles(ArrayList<File> fileList, CSVExportStream exporter) {
 
         IJ.log("Using " + mAnalyseSettings.mNrOfCpuCoresToUse + " CPU cores!");
         mDialog.addLogEntryNewLine();
@@ -214,9 +215,9 @@ public class FileProcessor extends Thread {
         File fileToAnalyse;
         Pipeline pipeline = null;
         boolean mCanceled = false;
-        ExcelExportStream exporter;
+        CSVExportStream exporter;
 
-        ProcessImage(File fileToAnalyse, int parallelWorkers, ExcelExportStream exporter) {
+        ProcessImage(File fileToAnalyse, int parallelWorkers, CSVExportStream exporter) {
             mCanceled = false;
             this.fileToAnalyse = fileToAnalyse;
             this.exporter = exporter;
