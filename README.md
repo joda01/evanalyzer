@@ -31,6 +31,11 @@ EVAnalyzer is a Fiji ImageJ plugin designed for analyzing microscope pictures of
 
 
 ## Contributing
+
+If you have some questions, feature requests or if you found a bug, please just create an issue in the Issues tab.
+
+## Coding
+
 For development Visual Studio Code is used. Compiling is done within a docker image (dev container).
 *  Download and install [Visual Studio Code](https://code.visualstudio.com/)
 *  Install ```Remote Container``` plugin.
