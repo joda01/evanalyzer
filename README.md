@@ -1,5 +1,8 @@
 # EVAnalyzer
 
+
+![./doc/screenshot_v80.png](./doc/screenshot_v80.png)
+
 ## Description
 EVAnalyzer is a Fiji ImageJ plugin designed for analyzing microscope pictures of EVs. This plugin can be used for:
 *  Counting the number of EVs.
@@ -52,6 +55,4 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 *  Images used in the plugin cannot be in the RGB format, and must be monochromatic.
 *  Actually VSI, TIFF, ICS, and CZI images can be processed.
 
-## Screenshot
 
-![./doc/screenshot_v80.png](./doc/screenshot_v80.png)
