@@ -1042,7 +1042,7 @@ public class Dialog extends JFrame {
 
             AnalyseSettings.ReportFormat[] reportFormats = { AnalyseSettings.ReportFormat.XLSX,
                     AnalyseSettings.ReportFormat.CSV };
-                    mReportFormat = new JComboBox<AnalyseSettings.ReportFormat>(reportFormats);
+            mReportFormat = new JComboBox<AnalyseSettings.ReportFormat>(reportFormats);
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 1;
             c.weightx = 1;
@@ -1155,6 +1155,14 @@ public class Dialog extends JFrame {
         JMenu helpMenu = new JMenu("Help");
         {
             JMenuItem it1 = new JMenuItem("Help");
+            it1.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+
+                    openHelpDialog();
+                }
+            });
+            
             JMenuItem it2 = new JMenuItem("About");
             it2.setIcon(new ImageIcon(getClass().getResource("icons8-info-16.png")));
             it2.addActionListener(new java.awt.event.ActionListener() {
@@ -1903,12 +1911,16 @@ public class Dialog extends JFrame {
 
     private void openAboutDialog() {
         JOptionPane.showMessageDialog(this, "EVAnalyzer v" + Version.getVersion()
-                + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz, Maria Jaritsch and Anna Müller for their support.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\nSupport us on github: https://github.com/joda01/evanalyzer",
                 "About", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private void openHelpDialog() {
+        JOptionPane.showMessageDialog(this, "In development ...",
+                "About", JOptionPane.QUESTION_MESSAGE);
+    }
 
-    public void TriggerMessageDialog(String message){
+    public void TriggerMessageDialog(String message) {
         JOptionPane.showMessageDialog(new JFrame(), message, "Info ...", JOptionPane.INFORMATION_MESSAGE);
     }
 

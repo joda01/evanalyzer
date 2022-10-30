@@ -27,11 +27,11 @@ EVAnalyzer is a Fiji ImageJ plugin designed for analyzing microscope pictures of
 ## Roadmap
 
 - [ ] Make it possible to automatically generate reports for 10'000 and more images per run.
-- [ ] Allow to choose if report should be generated in `XLSX` or `CSV` format.
+- [ ] Export of `R` files and automatic diagram generation.
 - [ ] Implement automatic unit test as positive and negative control reference to be sure that an update does not influence future analysis results.
 - [ ] Improve preview functionaltity to be more detailed.
-- [ ] Extend to more than 5 channels.
-- [ ] Include handbook and help functionality.
+- [ ] Extend to support more than 5 channels.
+- [ ] Include handbook and Help functionality directly from the PlugIn.
 
 
 ## Contributing
@@ -54,4 +54,4 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 
 ## Screenshot
 
-![myimage-alt-tag](./doc/screenshot.png)
+![./doc/screenshot_v80.png](./doc/screenshot_v80.png)

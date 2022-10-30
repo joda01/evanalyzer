@@ -67,7 +67,8 @@ public class FileProcessor extends Thread {
             } else {
                 mDialog.TriggerMessageDialog(
                         "XLSX report format can only be used for runs with lower than 1000 images! EVAanalyzer found "
-                                + mFoundFiles.size() + " images. EVAanalyzer is automatically switching to CSV export!");
+                                + mFoundFiles.size()
+                                + " images. EVAanalyzer is automatically switching to CSV export!");
                 reportGenerator = new ReportCSV(mAnalyseSettings.mOutputFolder, "report", mAnalyseSettings);
             }
         }
@@ -178,7 +179,7 @@ public class FileProcessor extends Thread {
             // IJ.log("TH: " + exec.getQueue().size());
             while (exec.getQueue().size() >= (mAnalyseSettings.mNrOfCpuCoresToUse + 5)) {
                 try {
-                    sleep(256);
+                    sleep(100);
                 } catch (InterruptedException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -204,11 +205,9 @@ public class FileProcessor extends Thread {
     class ProcessImage implements Runnable {
         File fileToAnalyse;
         Pipeline pipeline = null;
-        boolean mCanceled = false;
         ReportGenerator exporter;
 
         ProcessImage(File fileToAnalyse, int parallelWorkers, ReportGenerator exporter) {
-            mCanceled = false;
             this.fileToAnalyse = fileToAnalyse;
             this.exporter = exporter;
 
@@ -241,13 +240,9 @@ public class FileProcessor extends Thread {
             }
         }
 
-        public void cancel() {
-            mCanceled = true;
-        }
-
         @Override
         public void run() {
-            if (this.pipeline != null && false == this.mCanceled) {
+            if (this.pipeline != null && false == mStopping) {
                 // TODO Auto-generated method stu
                 ImagePlus[] imagesLoaded = OpenImage(this.fileToAnalyse, mAnalyseSettings.mSelectedSeries, false);
                 if (imagesLoaded != null && imagesLoaded.length > 0) {
