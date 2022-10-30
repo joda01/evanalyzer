@@ -1,3 +1,4 @@
+[![Release to Update Site](https://github.com/joda01/evanalyzer/actions/workflows/release.yaml/badge.svg)](https://github.com/joda01/evanalyzer/actions/workflows/release.yaml)
 # EVAnalyzer
 
 
