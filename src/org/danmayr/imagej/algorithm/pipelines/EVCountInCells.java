@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -37,8 +38,8 @@ public class EVCountInCells extends EVColoc {
     TreeMap<ChannelType, ColocChannelSet> colocChannels = new TreeMap<>();
     TreeMap<ChannelType, ColocChannelSet> colocChannelsEvInCells = new TreeMap<>();
 
-    public EVCountInCells(AnalyseSettings settings) {
-        super(settings);
+    public EVCountInCells(AnalyseSettings settings, int parallelWorkers) {
+        super(settings,parallelWorkers);
     }
 
     @Override
@@ -104,12 +105,12 @@ public class EVCountInCells extends EVColoc {
         // Vector<Thread> threads = new Vector<>();
         TreeMap<ChannelType, ChannelSettings> evs = getEvChannels();
 
-        ExecutorService exec = Executors.newFixedThreadPool(evs.size());
+        ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
         for (Map.Entry<ChannelType, ChannelSettings> val : evs.entrySet()) {
             exec.execute(new EvSeperatorRunner(val));
         }
         exec.shutdown();
-        try {
+            try {
             exec.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -155,7 +156,7 @@ public class EVCountInCells extends EVColoc {
                         evSubtractedOriginal, evSubtracted, rm, true);
                 evCh.setThershold(in[0], in[1]);
                 addReturnChannel(evCh, val.getKey(),
-                        getName(mImage, "01", val.getValue().getType().toString() + "_ev"));
+                        getRelativeImagePath(mImage, "01", val.getValue().getType().toString() + "_ev"));
                 try {
                     ChannelSettings setNew = (ChannelSettings) val.getValue().clone(evSubtracted);
                     mEditedEvs.put(val.getKey(), setNew);
@@ -225,14 +226,14 @@ public class EVCountInCells extends EVColoc {
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
                     rm, false);
             chCell.setThershold(in[0], in[1]);
-            addReturnChannel(chCell, cellChannelSetting.getType(), "");
+            addReturnChannel(chCell, cellChannelSetting.getType(), getRelativeImagePath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"));
 
-            ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
+            ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
             for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                 exec.execute(new CellShapeDetectionRunner(val, rm, cellsEdited, cellChannelSetting));
             }
             exec.shutdown();
-            try {
+                try {
                 exec.awaitTermination(1, TimeUnit.HOURS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -373,12 +374,14 @@ public class EVCountInCells extends EVColoc {
                 for (int n = 0; n < nucleusRoiFiltered.getCount(); n++) {
                     if (true == cellRoi.getRoi(c).getBounds().intersects(nucleusRoiFiltered.getRoi(n).getBounds())) {
                         Roi result = Filter.and(cellRoi.getRoi(c), nucleusRoiFiltered.getRoi(n));
-                        if (result != null && result.getContainedPoints().length > 0) {
+                        if (result != null && result.size() > 0) {
                             // Cell has nucles. Add cell to the ROIManager for cell
                             // analyzing
                             filteredCells.addRoi(cellRoi.getRoi(c));
+                            result = null;
                             break;
                         }
+                        result = null;
                     }
                 }
             }
@@ -392,22 +395,27 @@ public class EVCountInCells extends EVColoc {
             if (true == mSettings.countEvsPerCell()) {
                 // CellByCellEvCouting
 
-                ExecutorService exec = Executors.newFixedThreadPool(mEditedEvs.size());
+                ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
                 for (Map.Entry<Pipeline.ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                     exec.execute(new CellByCellEvCountingAndAnalyzing(val, cellRoi, nucleusRoiAll, nucleusRoiFiltered,
                             analyzedCells));
                 }
-                IJ.log("Wait for finsihed");
+                // IJ.log("Wait for finsihed");
                 exec.shutdown();
-                try {
+                    try {
                     exec.awaitTermination(1, TimeUnit.HOURS);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                IJ.log("Finihed");
-
             }
+            // New
+            filteredCells = null;
+
         }
+        // new
+        cellRoi = null;
+        nucleusRoiAll = null;
+        nucleusRoiFiltered = null;
 
     }
 
@@ -481,20 +489,18 @@ public class EVCountInCells extends EVColoc {
 
             ChannelType inCellEvType = ChannelType
                     .getColocEnum(val.getKey().idx + ChannelType.getFirstFreeChannel() * 2);
-            String fileName = getName(mImage, "03", val.getKey().toString() + "_separated_overlay_cells");
             Filter.SaveImageWithOverlay(analyzedCells, roiOverLay,
                     getPath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
             roiOverLay.clear();
-            addReturnChannel(evsInCell, inCellEvType, fileName);
-            System.gc();
+            addReturnChannel(evsInCell, inCellEvType, getRelativeImagePath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
         }
     }
 
     synchronized void addReturnChannel(Channel ch, ChannelType type, String pathToCtrlImage) {
         if (ch != null && type != null) {
-            ch.addControlImagePath(getName(mImage, "03", type.toString() + "_separated_overlay_cells"));
+            ch.addControlImagePath(pathToCtrlImage);
             mReturnChannels.put(type, ch);
         }
     }

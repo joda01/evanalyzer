@@ -14,7 +14,7 @@
       "snap_area_size": 0,
       "thershold": "Li",
       "thershold_max": 65535,
-      "thershold_min": -1,
+      "thershold_min": 0,
       "type": "EV_DAPI",
       "zprojection": "OFF"
     },
@@ -30,7 +30,7 @@
       "snap_area_size": 0,
       "thershold": "Li",
       "thershold_max": 65535,
-      "thershold_min": -1,
+      "thershold_min": 0,
       "type": "EV_GFP",
       "zprojection": "OFF"
     },
@@ -46,7 +46,7 @@
       "snap_area_size": 0,
       "thershold": "Li",
       "thershold_max": 65535,
-      "thershold_min": -1,
+      "thershold_min": 0,
       "type": "EV_CY3",
       "zprojection": "OFF"
     },
@@ -62,7 +62,7 @@
       "snap_area_size": 0,
       "thershold": "Li",
       "thershold_max": 65535,
-      "thershold_min": -1,
+      "thershold_min": 0,
       "type": "EV_DAPI",
       "zprojection": "OFF"
     },
@@ -78,7 +78,7 @@
       "snap_area_size": 0,
       "thershold": "Li",
       "thershold_max": 65535,
-      "thershold_min": -1,
+      "thershold_min": 0,
       "type": "EV_DAPI",
       "zprojection": "OFF"
     }

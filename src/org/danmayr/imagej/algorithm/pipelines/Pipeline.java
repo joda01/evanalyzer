@@ -11,6 +11,7 @@ import ij.plugin.frame.RoiManager;
 
 import java.util.*;
 import org.danmayr.imagej.algorithm.structs.*;
+import org.danmayr.imagej.algorithm.structs.Image;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 import org.danmayr.imagej.algorithm.AnalyseSettings;
 import org.danmayr.imagej.algorithm.ChannelSettings;
@@ -22,6 +23,9 @@ import java.awt.*;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
+  
+  public final int PARALLEL_WORKERS;
+  
   // protected RoiManager rm = new RoiManager(false);
 
   // Enum which contains the color indexes for a RGBStackMerge
@@ -133,12 +137,14 @@ abstract public class Pipeline {
   }
 
   protected final AnalyseSettings mSettings;
+  protected String mUUID = "";
 
   private TreeMap<ChannelType, ChannelSettings> imgChannel = new TreeMap<>();
   TreeMap<ChannelType, ChannelSettings> evChannel = new TreeMap<ChannelType, ChannelSettings>();
   ChannelSettings cellChannel;
 
-  Pipeline(AnalyseSettings settings) {
+  Pipeline(AnalyseSettings settings, int parallelWorkers) {
+    PARALLEL_WORKERS = parallelWorkers;
     mSettings = settings;
     cellChannel = new ChannelSettings(settings);
   }
@@ -147,8 +153,16 @@ abstract public class Pipeline {
   /// \brief Process the image
   /// \author Joachim Danmayr
   ///
-  public TreeMap<ChannelType, Channel> ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
+  public Image ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
+    UUID uuid = UUID.randomUUID();
+    mUUID = uuid.toString();
     // String[] imageTitles = WindowManager.getImageTitles();
+
+    File path = new File(getPath(imageFile));
+    if (path != null && !path.exists()) {
+      path.mkdirs();
+    }
+
     imgChannel.clear();
     PerformanceAnalyzer.start("preprocessing");
     if (null != imagesLoaded) {
@@ -175,8 +189,13 @@ abstract public class Pipeline {
     PerformanceAnalyzer.start("analyze_img");
     TreeMap<ChannelType, Channel> result = startPipeline(imageFile);
     PerformanceAnalyzer.stop("analyze_img");
+    Image im = new Image(imageFile.getName(), getUUID());
+    im.addChannel(result);
+    return im;
+  }
 
-    return result;
+  public String getUUID() {
+    return mUUID;
   }
 
   ///
@@ -295,15 +314,24 @@ abstract public class Pipeline {
 
   abstract protected TreeMap<ChannelType, Channel> startPipeline(File imageFile);
 
-  protected String getPath(File file, String fileNamePrefix, String fileNameSufix) {
-    return mSettings.getOutputFolder() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
+  protected String getPath(File file) {
+    return mSettings.getOutputFolder() + java.io.File.separator + getUUID();
   }
 
-  protected String getName(File file, String fileNamePrefix, String fileNameSufix) {
-    long timeInNano = System.nanoTime();
+  protected String getPath(File file, String fileNamePrefix, String fileNameSufix) {
+    String path = mSettings.getOutputFolder() + java.io.File.separator + getUUID() + java.io.File.separator
+        + getName(file, fileNamePrefix, fileNameSufix);
 
-    String name = file.getName().replace(java.io.File.separator, "") + "__" + fileNamePrefix + "__" + fileNameSufix
-        + "__" + timeInNano;
+    return path;
+  }
+
+  protected String getRelativeImagePath(File file, String fileNamePrefix, String fileNameSufix) {
+    return getUUID() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
+  }
+
+
+  protected String getName(File file, String fileNamePrefix, String fileNameSufix) {
+    String name = file.getName().replace(java.io.File.separator, "") + "__" + fileNamePrefix + "__" + fileNameSufix;
     name = name.replace("%", "");
     name = name.replace(" ", "");
     name = name.replace(":", "");

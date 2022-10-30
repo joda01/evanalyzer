@@ -109,8 +109,8 @@ public class Dialog extends JFrame {
         class ChannelElements {
             int mNr = 0;
 
-            SpinnerModel model = new SpinnerNumberModel(-1, // initial value
-                    -1, // min
+            SpinnerModel model = new SpinnerNumberModel(0, // initial value
+                    0, // min
                     65535, // max
                     1); // step
             private JSpinner minTheshold = new JSpinner(model);
@@ -304,6 +304,7 @@ public class Dialog extends JFrame {
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.gridy++;
                 thersholdMethod = new JComboBox<AutoThresholder.Method>(thersholds);
+                thersholdMethod.setRenderer(new ThersholdItemRenderer());
                 thersholdMethod.addItemListener(new ItemListener() {
                     @Override
                     public void itemStateChanged(ItemEvent e) {
@@ -544,7 +545,7 @@ public class Dialog extends JFrame {
             c.gridx = 0;
             c.gridy++;
             c.weightx = 0.0;
-            JLabel l1 = new JLabel("Thershold algorithm:");
+            JLabel l1 = new JLabel("Thershold method:");
             l1.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l1.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l1.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
@@ -560,8 +561,8 @@ public class Dialog extends JFrame {
             c.weightx = 1;
             c.weightx = 0.0;
             c.gridwidth = 1;
-            JLabel l2 = new JLabel("Manual thershold:");
-            l2.setToolTipText("Range [-1 to 65535]\nA value of -1 means automatic threshold detection.");
+            JLabel l2 = new JLabel("Minimum thershold:");
+            l2.setToolTipText("Range [0 to 65535]");
             l2.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l2.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l2.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
@@ -992,8 +993,8 @@ public class Dialog extends JFrame {
     class PanelReport extends JPanel {
 
         private JComboBox mComboReportGenerator;
+        private JComboBox mReportFormat;
         private JComboBox mControlPictures;
-        private JTextField mReportName = new JTextField(30);
 
         public PanelReport(Container parent) {
             GridBagLayout layout = new GridBagLayout();
@@ -1003,25 +1004,6 @@ public class Dialog extends JFrame {
             GridBagConstraints c = new GridBagConstraints();
             c.insets = new Insets(4, 4, 4, 4); // top padding
             c.anchor = GridBagConstraints.WEST;
-
-            ////////////////////////////////////////////////////
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy = 0;
-            c.weightx = 0;
-            JLabel l2 = new JLabel("Report name:");
-            ImageIcon diamter2 = new ImageIcon(getClass().getResource("icons8-rename-16.png"));
-            l2.setIcon(diamter2);
-            l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
-            l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
-            l2.setPreferredSize(new Dimension(200, l2.getPreferredSize().height));
-            l2.setSize(new Dimension(200, l2.getSize().height));
-            this.add(l2, c);
-
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 1;
-            c.weightx = 1;
-            this.add(mReportName, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -1044,6 +1026,27 @@ public class Dialog extends JFrame {
             c.gridx = 1;
             c.weightx = 1;
             this.add(mComboReportGenerator, c);
+
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l2 = new JLabel("Report format:");
+            l2.setIcon(new ImageIcon(getClass().getResource("icons8-google-sheets-16.png")));
+            l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
+            l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
+            l2.setPreferredSize(new Dimension(200, l2.getPreferredSize().height));
+            l2.setSize(new Dimension(200, l2.getSize().height));
+            this.add(l2, c);
+
+            AnalyseSettings.ReportFormat[] reportFormats = { AnalyseSettings.ReportFormat.XLSX,
+                    AnalyseSettings.ReportFormat.CSV };
+            mReportFormat = new JComboBox<AnalyseSettings.ReportFormat>(reportFormats);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            this.add(mReportFormat, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -1136,7 +1139,7 @@ public class Dialog extends JFrame {
                     if (sett != null) {
                         String file = OpenJsonFileChooser(true);
                         if (file.length() > 0) {
-                            sett.saveSettings(file, "title", "note");
+                            sett.saveSettings(file, file, "note");
                         }
                     }
                 }
@@ -1152,6 +1155,14 @@ public class Dialog extends JFrame {
         JMenu helpMenu = new JMenu("Help");
         {
             JMenuItem it1 = new JMenuItem("Help");
+            it1.addActionListener(new java.awt.event.ActionListener() {
+                // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+
+                    openHelpDialog();
+                }
+            });
+            
             JMenuItem it2 = new JMenuItem("About");
             it2.setIcon(new ImageIcon(getClass().getResource("icons8-info-16.png")));
             it2.addActionListener(new java.awt.event.ActionListener() {
@@ -1443,6 +1454,7 @@ public class Dialog extends JFrame {
             c.gridy++;
             c.weightx = 0;
             JLabel l = new JLabel("Min Coloc factor [%]");
+            l.setToolTipText("Two particles are marked as colocalzing if at least x % of the area overlaps.");
             l.setMinimumSize(new Dimension(200, l.getMinimumSize().height));
             l.setMaximumSize(new Dimension(200, l.getMaximumSize().height));
             l.setPreferredSize(new Dimension(200, l.getPreferredSize().height));
@@ -1526,8 +1538,14 @@ public class Dialog extends JFrame {
         // mMenu.setBackground(Color.WHITE);
 
         ////////////////////////////////////////////////////
+        // long maxMemory = Runtime.getRuntime().maxMemory();
+        // long freeMemory = Runtime.getRuntime().freeMemory();
         int nrOfCpus = Runtime.getRuntime().availableProcessors();
-        mNumberOfCPUs.setModel(new SpinnerNumberModel(nrOfCpus, 1, nrOfCpus, 1));
+        int defaultNrToUse = nrOfCpus / 2;
+        if (defaultNrToUse <= 0) {
+            defaultNrToUse = 1;
+        }
+        mNumberOfCPUs.setModel(new SpinnerNumberModel(defaultNrToUse, 1, nrOfCpus, 1));
         mMenu.add(new JLabel("Nr of CPU cores to use (max. " + nrOfCpus + "):"));
         mMenu.add(mNumberOfCPUs);
 
@@ -1679,12 +1697,9 @@ public class Dialog extends JFrame {
                 error = "Please select an existing input folder!\n";
             }
 
-            String outputFolder = reportSettings.mReportName.getText();
-            if (outputFolder.length() <= 0) {
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss");
-                LocalDateTime now = LocalDateTime.now();
-                outputFolder = dtf.format(now);
-            }
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss");
+            LocalDateTime now = LocalDateTime.now();
+            String outputFolder = dtf.format(now);
 
             sett.mOutputFolder = mOutputFolder.getText() + java.io.File.separator + outputFolder;
             if (sett.mOutputFolder.length() <= 0) {
@@ -1696,7 +1711,7 @@ public class Dialog extends JFrame {
         //
         // Nr of CPU cores
         //
-        sett.mNrOfCpuCoresToUse = (Integer)mNumberOfCPUs.getValue();
+        sett.mNrOfCpuCoresToUse = (Integer) mNumberOfCPUs.getValue();
 
         //
         // Assign channel settings
@@ -1716,6 +1731,7 @@ public class Dialog extends JFrame {
 
         sett.mSaveDebugImages = (AnalyseSettings.CotrolPicture) reportSettings.mControlPictures.getSelectedItem();
         sett.reportType = (AnalyseSettings.ReportType) reportSettings.mComboReportGenerator.getSelectedItem();
+        sett.reportFormat = (AnalyseSettings.ReportFormat) reportSettings.mReportFormat.getSelectedItem();
 
         if (error.length() <= 0) {
 
@@ -1735,6 +1751,7 @@ public class Dialog extends JFrame {
         mFunctionSelection.setSelectedItem(sett.mSelectedFunction);
         reportSettings.mControlPictures.setSelectedItem(sett.mSaveDebugImages);
         reportSettings.mComboReportGenerator.setSelectedItem(sett.reportType);
+        reportSettings.mReportFormat.setSelectedItem(sett.reportFormat);
         mPixelInMicrometer.setValue(sett.mOnePixelInMicroMeter);
         mMinColocFactor.setValue(sett.mMinColocFactor);
 
@@ -1757,7 +1774,7 @@ public class Dialog extends JFrame {
             }
             if (true == directoryExists) {
                 sett.saveSettings(sett.getOutputFolder() + java.io.File.separator + "settings.json",
-                        sett.mReportName, "-");
+                        "auto-save", "-");
                 mbStart.setEnabled(false);
                 mCancle.setEnabled(true);
                 mOpenResult.setEnabled(false);
@@ -1894,8 +1911,17 @@ public class Dialog extends JFrame {
 
     private void openAboutDialog() {
         JOptionPane.showMessageDialog(this, "EVAnalyzer v" + Version.getVersion()
-                + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
+                + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz, Maria Jaritsch and Anna Müller for their support.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\nSupport us on github: https://github.com/joda01/evanalyzer",
                 "About", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void openHelpDialog() {
+        JOptionPane.showMessageDialog(this, "In development ...",
+                "About", JOptionPane.QUESTION_MESSAGE);
+    }
+
+    public void TriggerMessageDialog(String message) {
+        JOptionPane.showMessageDialog(new JFrame(), message, "Info ...", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

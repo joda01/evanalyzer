@@ -21,13 +21,13 @@ public class FolderResults {
     ///
     /// Add an image to the folder
     ///
-    public void addImage(String folderName, String imageName, TreeMap<ChannelType, Channel> channels) {
+    public void addImage(String folderName, Image img) {
         Folder actFolder = mFolders.get(folderName);
         if (null == actFolder) {
             actFolder = new Folder(folderName);
             mFolders.put(folderName, actFolder);
         }
-        actFolder.addImage(imageName, channels);
+        actFolder.addImage(img);
     }
 
     public TreeMap<String, Folder> getFolders(){
