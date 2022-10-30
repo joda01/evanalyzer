@@ -27,12 +27,13 @@ import org.danmayr.imagej.algorithm.structs.Pair;
 
 import ij.IJ;
 
-public class ExcelExportStream {
+public class ReportXLSX extends ReportGenerator{
 
     static int OVERVIEW_SHEET_START_STATISTIC_COLUMN = 4;
     private String fileName = "";
 
-    public ExcelExportStream(String outputFolder, String reportFileName, AnalyseSettings settings) {
+    public ReportXLSX(String outputFolder, String reportFileName, AnalyseSettings settings) {
+        super(outputFolder,reportFileName,settings);
 
         XSSFWorkbook workBook = new XSSFWorkbook();
 
@@ -59,6 +60,7 @@ public class ExcelExportStream {
 
     boolean folderWritten = false;
 
+    @Override
     public synchronized void writeHeader(String folderName, Image folder) {
         if (false == folderWritten) {
             try {
@@ -87,6 +89,7 @@ public class ExcelExportStream {
     //
     // Append a row to the overview excel
     //
+    @Override
     public synchronized void writeRow(String folderName, Image img) {
         try {
             // XSSFWorkbook workbook = new XSSFWorkbook(new XSSFWorkbook(new
@@ -141,16 +144,16 @@ public class ExcelExportStream {
         ///
         CellStyle actStyleThinLine;
         if (row % 2 == 0) {
-            actStyleThinLine = ExcelExport.createCellStyleNumberEven(overviewSheet, false);
+            actStyleThinLine = DetailReportExcel.createCellStyleNumberEven(overviewSheet, false);
         } else {
-            actStyleThinLine = ExcelExport.createCellStyleNumberOdd(overviewSheet, false);
+            actStyleThinLine = DetailReportExcel.createCellStyleNumberOdd(overviewSheet, false);
         }
 
         CellStyle actStyleThickLine;
         if (row % 2 == 0) {
-            actStyleThickLine = ExcelExport.createCellStyleNumberEven(overviewSheet, true);
+            actStyleThickLine = DetailReportExcel.createCellStyleNumberEven(overviewSheet, true);
         } else {
-            actStyleThickLine = ExcelExport.createCellStyleNumberOdd(overviewSheet, true);
+            actStyleThickLine = DetailReportExcel.createCellStyleNumberOdd(overviewSheet, true);
         }
 
         ///
@@ -238,8 +241,8 @@ public class ExcelExportStream {
         TreeMap<ChannelType, Pair<String, String[]>> titles = folder.getStatisticTitle();
         int column = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
         int startColumnMerge = OVERVIEW_SHEET_START_STATISTIC_COLUMN;
-        CellStyle actStyleThinLine = ExcelExport.createCellStyleHeader(overviewSheet, false);
-        CellStyle actStyleThickLine = ExcelExport.createCellStyleHeader(overviewSheet, true);
+        CellStyle actStyleThinLine = DetailReportExcel.createCellStyleHeader(overviewSheet, false);
+        CellStyle actStyleThickLine = DetailReportExcel.createCellStyleHeader(overviewSheet, true);
         for (Map.Entry<ChannelType, Pair<String, String[]>> value : titles.entrySet()) {
             // Channel Name
             Cell rowNameFirst = rowChName.createCell(column);
@@ -269,22 +272,22 @@ public class ExcelExportStream {
     private static int WriteSummary(XSSFSheet summarySheet, AnalyseSettings settings) {
         int row = 0;
         summarySheet.setDefaultColumnWidth(25);
-        row = ExcelExport.WriteRow(summarySheet, row, "Used program Version", Version.getVersion());
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Used program Version", Version.getVersion());
 
-        row = ExcelExport.WriteRow(summarySheet, row, "Save Cotrol Pictures",
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Save Cotrol Pictures",
                 String.valueOf(settings.mSaveDebugImages));
-        row = ExcelExport.WriteRow(summarySheet, row, "Report Type", String.valueOf(settings.reportType));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Report Type", String.valueOf(settings.reportType));
 
-        row = ExcelExport.WriteRow(summarySheet, row, "Used Function", String.valueOf(settings.mSelectedFunction));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Used Function", String.valueOf(settings.mSelectedFunction));
 
-        row = ExcelExport.WriteRow(summarySheet, row, "Input folder", String.valueOf(settings.mInputFolder));
-        row = ExcelExport.WriteRow(summarySheet, row, "Output folder", String.valueOf(settings.mOutputFolder));
-        row = ExcelExport.WriteRow(summarySheet, row, "Selected Series", String.valueOf(settings.mSelectedSeries));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Input folder", String.valueOf(settings.mInputFolder));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Output folder", String.valueOf(settings.mOutputFolder));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Selected Series", String.valueOf(settings.mSelectedSeries));
 
-        row = ExcelExport.WriteRow(summarySheet, row, "Count EVs per Cells",
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Count EVs per Cells",
                 String.valueOf(settings.countEvsPerCell()));
 
-        row = ExcelExport.WriteRow(summarySheet, row, "Report name", String.valueOf(settings.mReportName));
+        row = DetailReportExcel.WriteRow(summarySheet, row, "Report name", String.valueOf(settings.mReportName));
 
         for (int n = 0; n < settings.channelSettings.size(); n++) {
             row = WriteChannelSettingToSummarySheet(summarySheet, row,
@@ -295,21 +298,21 @@ public class ExcelExportStream {
 
     private static int WriteChannelSettingToSummarySheet(XSSFSheet summarySheet, int row, String chName,
             ChannelSettings ch) {
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " type", String.valueOf(ch.type));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " thresholding", String.valueOf(ch.mThersholdMethod));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " min Circularity",
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " type", String.valueOf(ch.type));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " thresholding", String.valueOf(ch.mThersholdMethod));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " enhance contrast", String.valueOf(ch.enhanceContrast));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " min Threshold", String.valueOf(ch.minThershold));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " max Threshold", String.valueOf(ch.maxThershold));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " min Circularity",
                 String.valueOf(ch.getMinCircularityDouble()));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " Min particle Size",
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " Min particle Size",
                 String.valueOf(ch.getMinParticleSizeDouble()));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " Max particle Size",
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " Max particle Size",
                 String.valueOf(ch.getMaxParticleSizeDouble()));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " Margin crop",
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " Margin crop",
                 String.valueOf(ch.getMarginCropDouble()));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " Z-Projection ", String.valueOf(ch.ZProjector));
-        row = ExcelExport.WriteRow(summarySheet, row, chName + " Preprocessing ", String.valueOf(ch.preProcessing));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " Z-Projection ", String.valueOf(ch.ZProjector));
+        row = DetailReportExcel.WriteRow(summarySheet, row, chName + " Preprocessing ", String.valueOf(ch.preProcessing));
 
         return row;
     }

@@ -993,6 +993,7 @@ public class Dialog extends JFrame {
     class PanelReport extends JPanel {
 
         private JComboBox mComboReportGenerator;
+        private JComboBox mReportFormat;
         private JComboBox mControlPictures;
 
         public PanelReport(Container parent) {
@@ -1025,6 +1026,27 @@ public class Dialog extends JFrame {
             c.gridx = 1;
             c.weightx = 1;
             this.add(mComboReportGenerator, c);
+
+            ////////////////////////////////////////////////////
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 0;
+            c.gridy++;
+            c.weightx = 0;
+            JLabel l2 = new JLabel("Report format:");
+            l2.setIcon(new ImageIcon(getClass().getResource("icons8-google-sheets-16.png")));
+            l2.setMinimumSize(new Dimension(200, l2.getMinimumSize().height));
+            l2.setMaximumSize(new Dimension(200, l2.getMaximumSize().height));
+            l2.setPreferredSize(new Dimension(200, l2.getPreferredSize().height));
+            l2.setSize(new Dimension(200, l2.getSize().height));
+            this.add(l2, c);
+
+            AnalyseSettings.ReportFormat[] reportFormats = { AnalyseSettings.ReportFormat.XLSX,
+                    AnalyseSettings.ReportFormat.CSV };
+                    mReportFormat = new JComboBox<AnalyseSettings.ReportFormat>(reportFormats);
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 1;
+            c.weightx = 1;
+            this.add(mReportFormat, c);
 
             ////////////////////////////////////////////////////
             c.fill = GridBagConstraints.HORIZONTAL;
@@ -1701,6 +1723,7 @@ public class Dialog extends JFrame {
 
         sett.mSaveDebugImages = (AnalyseSettings.CotrolPicture) reportSettings.mControlPictures.getSelectedItem();
         sett.reportType = (AnalyseSettings.ReportType) reportSettings.mComboReportGenerator.getSelectedItem();
+        sett.reportFormat = (AnalyseSettings.ReportFormat) reportSettings.mReportFormat.getSelectedItem();
 
         if (error.length() <= 0) {
 
@@ -1720,6 +1743,7 @@ public class Dialog extends JFrame {
         mFunctionSelection.setSelectedItem(sett.mSelectedFunction);
         reportSettings.mControlPictures.setSelectedItem(sett.mSaveDebugImages);
         reportSettings.mComboReportGenerator.setSelectedItem(sett.reportType);
+        reportSettings.mReportFormat.setSelectedItem(sett.reportFormat);
         mPixelInMicrometer.setValue(sett.mOnePixelInMicroMeter);
         mMinColocFactor.setValue(sett.mMinColocFactor);
 
@@ -1881,6 +1905,11 @@ public class Dialog extends JFrame {
         JOptionPane.showMessageDialog(this, "EVAnalyzer v" + Version.getVersion()
                 + ".\n\nCopyright 2019 - 2022 Joachim Danmayr\nMany thanks to Melanie Schürz and Maria Jaritsch.\n\nLicensed under GPL v3.\nPreferably for use in non-profit research and development.\nIcons from https://icons8.de.\n\n",
                 "About", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    public void TriggerMessageDialog(String message){
+        JOptionPane.showMessageDialog(new JFrame(), message, "Info ...", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

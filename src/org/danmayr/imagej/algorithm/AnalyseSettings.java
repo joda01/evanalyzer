@@ -12,12 +12,14 @@ import org.json.*;
 
 import ij.IJ;
 
-public class AnalyseSettings{
-
-
+public class AnalyseSettings {
 
     public enum ReportType {
         FullReport, FastReport
+    }
+
+    public enum ReportFormat {
+        XLSX, CSV
     }
 
     public enum CotrolPicture {
@@ -51,6 +53,7 @@ public class AnalyseSettings{
 
     public CotrolPicture mSaveDebugImages = CotrolPicture.WithControlPicture;
     public ReportType reportType = ReportType.FullReport;
+    public ReportFormat reportFormat = ReportFormat.XLSX;
     public Function mSelectedFunction;
     public String mInputFolder;
     public String mOutputFolder;
@@ -61,40 +64,36 @@ public class AnalyseSettings{
     public double mMinColocFactor = 1;
     public int mNrOfCpuCoresToUse = 1;
 
-
     /// Autofilled
     boolean mCountEvsPerCell = false;
     boolean mRemoveCellsWithoutNucleus = false;
     boolean mCalcColoc = false;
 
-
-    public boolean calcColoc(){
+    public boolean calcColoc() {
         return mCalcColoc;
     }
 
-
-    public boolean countEvsPerCell(){
+    public boolean countEvsPerCell() {
         return mCountEvsPerCell;
     }
 
-    public boolean removeCellsWithoutNucleus(){
+    public boolean removeCellsWithoutNucleus() {
         return mRemoveCellsWithoutNucleus;
     }
 
-
-    public double minColocFactor(){
+    public double minColocFactor() {
         return mMinColocFactor;
     }
 
-    public String getOutputFolder(){
+    public String getOutputFolder() {
         return mOutputFolder;
     }
 
-    public final ChannelSettings getChannelSettings(int idx){
+    public final ChannelSettings getChannelSettings(int idx) {
         return channelSettings.get(idx);
     }
 
-    public int getNrOfChannelSettings(){
+    public int getNrOfChannelSettings() {
         return channelSettings.size();
     }
 
@@ -114,6 +113,7 @@ public class AnalyseSettings{
         obj.put("note", note);
         obj.put("ctrl_images", mSaveDebugImages);
         obj.put("report_type", reportType);
+        obj.put("report_format", reportFormat);
         obj.put("function", mSelectedFunction);
         obj.put("series", mSelectedSeries);
         obj.put("pixel_in_micrometer", mOnePixelInMicroMeter);
@@ -153,8 +153,13 @@ public class AnalyseSettings{
 
         mSaveDebugImages = CotrolPicture.valueOf(obj.getString("ctrl_images"));
         reportType = ReportType.valueOf(obj.getString("report_type"));
+        try {
+            reportFormat = ReportFormat.valueOf(obj.getString("report_format"));
+        } catch (Exception ex) {
+            reportFormat = ReportFormat.XLSX;
+        }
+
         mSelectedFunction = Function.valueOf(obj.getString("function"));
-        mSelectedSeries = obj.getInt("series");
         mSelectedSeries = obj.getInt("series");
         mOnePixelInMicroMeter = obj.getDouble("pixel_in_micrometer");
 

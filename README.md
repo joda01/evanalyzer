@@ -45,7 +45,7 @@ For development Visual Studio Code is used. Compiling is done within a docker im
 *  Install ```Remote Container``` plugin.
 *  Clone the repository and open the cloned folder in Visual Studio Code.
 *  Reopen the project in Dev Container.
-*  Run ```./src/build.sh``` to compile the project.
+*  Run ```./build.sh``` to compile the project.
 
 
 ## Common issues
