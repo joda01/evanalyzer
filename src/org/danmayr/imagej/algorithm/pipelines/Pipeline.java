@@ -25,9 +25,9 @@ import java.awt.*;
 /// \brief  Channel of a picture
 ///
 abstract public class Pipeline {
-  
+
   public final int PARALLEL_WORKERS;
-  
+
   // protected RoiManager rm = new RoiManager(false);
 
   // Enum which contains the color indexes for a RGBStackMerge
@@ -156,15 +156,16 @@ abstract public class Pipeline {
   /// \author Joachim Danmayr
   ///
   public Image ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
-    //UUID uuid = UUID.randomUUID();
-    //mUUID = uuid.toString();
+    // UUID uuid = UUID.randomUUID();
+    // mUUID = uuid.toString();
     mUUID = removeSpecialCharacters(imageFile.getName());
     // String[] imageTitles = WindowManager.getImageTitles();
 
     File path = new File(getPath(imageFile));
     int cnt = 0;
-    while(path.exists()){
-      mUUID = removeSpecialCharacters(imageFile.getName())+Integer.toString(cnt);
+    // If the filename still exists add a number at the end to make it unique
+    while (path.exists()) {
+      mUUID = removeSpecialCharacters(imageFile.getName()) + "__" + Integer.toString(cnt);
       path = new File(getPath(imageFile));
       cnt++;
     }
@@ -338,7 +339,6 @@ abstract public class Pipeline {
     return getUUID() + java.io.File.separator + getName(file, fileNamePrefix, fileNameSufix);
   }
 
-
   protected String getName(File file, String fileNamePrefix, String fileNameSufix) {
     String name = file.getName().replace(java.io.File.separator, "") + "__" + fileNamePrefix + "__" + fileNameSufix;
     name = name.replace("%", "");
@@ -355,7 +355,7 @@ abstract public class Pipeline {
     return name;
   }
 
-  protected String removeSpecialCharacters(String name){
+  protected String removeSpecialCharacters(String name) {
     name = name.replace("/", "");
     name = name.replace("\\", "");
     name = name.replace("ö", "oe");

@@ -15,6 +15,7 @@ import org.danmayr.imagej.exports.ReportCSV;
 import org.danmayr.imagej.exports.ReportGenerator;
 import org.danmayr.imagej.exports.ReportXLSX;
 import org.danmayr.imagej.gui.Dialog;
+import org.danmayr.imagej.gui.DialogSelectImages;
 import org.danmayr.imagej.performance_analyzer.PerformanceAnalyzer;
 
 import ij.IJ;
@@ -28,10 +29,12 @@ public class FileProcessor extends Thread {
     Dialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
+    boolean mDemo = false;
 
-    public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings) {
+    public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings, boolean demo) {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
+        mDemo = demo;
     }
 
     /**
@@ -73,7 +76,22 @@ public class FileProcessor extends Thread {
             }
         }
 
-        walkThroughFiles(mFoundFiles, reportGenerator);
+        //
+        // Now we let to select which files should be analyzed
+        //
+        if (true == mDemo) {
+            DialogSelectImages d = new DialogSelectImages(this.mDialog);
+            mFoundFiles = d.show(mFoundFiles);
+            mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
+
+        }
+        if (mFoundFiles.size() > 0) {
+
+            //
+            //
+            //
+            walkThroughFiles(mFoundFiles, reportGenerator);
+        }
 
         // String reportFileName = ExcelExport.Export(mAnalyseSettings.mOutputFolder,
         // "report",
@@ -86,7 +104,6 @@ public class FileProcessor extends Thread {
          * mAnalyseSettings.mOutputFolder + File.separator + "statistic_all_over_final";
          * String convertCsvToXls = CsvToExcel.convertCsvToXls(xlsxResult, input);
          */
-
         mDialog.finishedAnalyse(reportGenerator.getFileName());
     }
 

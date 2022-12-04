@@ -2,9 +2,9 @@ package org.danmayr.imagej;
 
 public class Version {
     static final public int major = 8;
-    static final public int minor = 0;
+    static final public int minor = 1;
     static final public int fix = 0;
-    public static String status = "alpha";   // beta, aplha, release
+    public static String status = "beta";   // beta, aplha, release
     public final static long build  = 1667119884;
 
     public static String getVersion() {
