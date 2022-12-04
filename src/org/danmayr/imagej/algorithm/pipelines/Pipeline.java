@@ -5,6 +5,8 @@ import ij.process.*;
 import ij.gui.*;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import ij.plugin.ZProjector;
 import ij.plugin.frame.RoiManager;
@@ -154,11 +156,18 @@ abstract public class Pipeline {
   /// \author Joachim Danmayr
   ///
   public Image ProcessImage(File imageFile, ImagePlus[] imagesLoaded) {
-    UUID uuid = UUID.randomUUID();
-    mUUID = uuid.toString();
+    //UUID uuid = UUID.randomUUID();
+    //mUUID = uuid.toString();
+    mUUID = removeSpecialCharacters(imageFile.getName());
     // String[] imageTitles = WindowManager.getImageTitles();
 
     File path = new File(getPath(imageFile));
+    int cnt = 0;
+    while(path.exists()){
+      mUUID = removeSpecialCharacters(imageFile.getName())+Integer.toString(cnt);
+      path = new File(getPath(imageFile));
+      cnt++;
+    }
     if (path != null && !path.exists()) {
       path.mkdirs();
     }
@@ -343,6 +352,25 @@ abstract public class Pipeline {
     name = name.toLowerCase();
     name = name + ".jpg";
 
+    return name;
+  }
+
+  protected String removeSpecialCharacters(String name){
+    name = name.replace("/", "");
+    name = name.replace("\\", "");
+    name = name.replace("ö", "oe");
+    name = name.replace("ä", "ae");
+    name = name.replace("ü", "ue");
+    name = name.replace("?", "");
+    name = name.replace("%", "");
+    name = name.replace(" ", "");
+    name = name.replace(":", "");
+    name = name.replace("^", "");
+    name = name.replace("+", "");
+    name = name.replace("*", "");
+    name = name.replace("~", "");
+    name = name.replace(".", "_");
+    name = name.toLowerCase();
     return name;
   }
 
