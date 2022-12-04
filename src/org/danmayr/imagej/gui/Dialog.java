@@ -68,7 +68,7 @@ public class Dialog extends JFrame {
     private JButton mbInputFolder;
     private JButton mbOutputFolder;
     private JButton mbStart;
-    private JButton mbStartDemo;
+    private JButton mStartTestRun;
     private JButton mCancle;
 
     private JButton mClose;
@@ -1563,16 +1563,16 @@ public class Dialog extends JFrame {
         mMenu.add(mbStart);
 
         ////////////////////////////////////////////////////
-        mbStartDemo = new JButton();
-        mbStartDemo = new JButton(new ImageIcon(getClass().getResource("icons8-eye-16.png")));
-        mbStartDemo.addActionListener(new java.awt.event.ActionListener() {
+        mStartTestRun = new JButton();
+        mStartTestRun = new JButton(new ImageIcon(getClass().getResource("icons8-eye-16.png")));
+        mStartTestRun.addActionListener(new java.awt.event.ActionListener() {
             // Beim Drücken des Menüpunktes wird actionPerformed aufgerufen
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 startAnalyse(getAnalyzeSettings(true, true), true);
             }
         });
-        mbStartDemo.setText("Run Preview (Alpha)");
-        mMenu.add(mbStartDemo);
+        mStartTestRun.setText("Test Run (Alpha)");
+        mMenu.add(mStartTestRun);
 
         ////////////////////////////////////////////////////
         mOpenResult = new JButton();
@@ -1696,7 +1696,7 @@ public class Dialog extends JFrame {
     // \param[in] forAnalysis set to true if you want to get the settings prepared
     // for analysis
     //
-    AnalyseSettings getAnalyzeSettings(boolean forAnalysis, boolean demoMode) {
+    AnalyseSettings getAnalyzeSettings(boolean forAnalysis, boolean testMode) {
         String error = "";
         AnalyseSettings sett = new AnalyseSettings();
 
@@ -1713,8 +1713,8 @@ public class Dialog extends JFrame {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss");
             LocalDateTime now = LocalDateTime.now();
             String outputFolder = dtf.format(now);
-            if (true == demoMode) {
-                outputFolder = "preview";
+            if (true == testMode) {
+                outputFolder = "test_runs";
             }
 
             sett.mOutputFolder = mOutputFolder.getText() + java.io.File.separator + outputFolder;
@@ -1780,7 +1780,7 @@ public class Dialog extends JFrame {
     ///
     /// Start analyzing
     ///
-    public void startAnalyse(AnalyseSettings sett, boolean demo) {
+    public void startAnalyse(AnalyseSettings sett, boolean testRun) {
         if (null != sett) {
             // Creeate folder if not exists
             final File parentFile = new File(sett.getOutputFolder());
@@ -1792,11 +1792,11 @@ public class Dialog extends JFrame {
                 sett.saveSettings(sett.getOutputFolder() + java.io.File.separator + "settings.json",
                         "auto-save", "-");
                 mbStart.setEnabled(false);
-                mbStartDemo.setEnabled(false);
+                mStartTestRun.setEnabled(false);
                 mCancle.setEnabled(true);
                 mOpenResult.setEnabled(false);
                 tabbedPane.setSelectedIndex(2);
-                mActAnalyzer = new FileProcessor(this, sett, demo);
+                mActAnalyzer = new FileProcessor(this, sett, testRun);
                 mActAnalyzer.start();
             } else {
                 IJ.log("Cannnot create directory: " + parentFile);
@@ -1822,7 +1822,7 @@ public class Dialog extends JFrame {
         mProgressbar.setValue(mProgressbar.getMaximum());
 
         mbStart.setEnabled(true);
-        mbStartDemo.setEnabled(true);
+        mStartTestRun.setEnabled(true);
         mCancle.setEnabled(false);
 
         if (nameOfGeneratedReportFile.length() > 0) {

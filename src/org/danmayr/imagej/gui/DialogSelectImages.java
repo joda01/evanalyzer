@@ -35,6 +35,7 @@ public class DialogSelectImages extends JDialog {
         this.setSize(400, 300);
         this.setModal(true);
         this.setLocationRelativeTo(root);
+        this.setTitle("Test Run");
 
         GridBagLayout layout = new GridBagLayout();
         this.setLayout(layout);

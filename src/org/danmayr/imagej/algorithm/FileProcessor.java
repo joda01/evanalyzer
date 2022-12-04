@@ -29,12 +29,12 @@ public class FileProcessor extends Thread {
     Dialog mDialog;
     boolean mStopping = false;
     AnalyseSettings mAnalyseSettings;
-    boolean mDemo = false;
+    boolean mtestRun = false;
 
-    public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings, boolean demo) {
+    public FileProcessor(final Dialog dialog, final AnalyseSettings analyseSettings, boolean testRun) {
         mDialog = dialog;
         mAnalyseSettings = analyseSettings;
-        mDemo = demo;
+        mtestRun = testRun;
     }
 
     /**
@@ -79,7 +79,7 @@ public class FileProcessor extends Thread {
         //
         // Now we let to select which files should be analyzed
         //
-        if (true == mDemo) {
+        if (true == mtestRun) {
             DialogSelectImages d = new DialogSelectImages(this.mDialog);
             mFoundFiles = d.show(mFoundFiles);
             mDialog.setProgressBarMaxSize(mFoundFiles.size(), "analyzing ...");
