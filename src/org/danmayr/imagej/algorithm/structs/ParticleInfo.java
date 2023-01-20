@@ -137,6 +137,14 @@ public class ParticleInfo {
         }
     }
 
+    public void setStatusInvalid(int status){
+        this.status |= status;
+    }
+
+    public int getStatus(){
+        return this.status;
+    }
+
     public int getRoiNr() {
         return roiName;
     }

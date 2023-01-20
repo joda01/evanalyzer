@@ -219,6 +219,8 @@ public class EVColoc extends Pipeline {
 
                                 // No validity check for coloc
                                 // exosom.validatearticle(0, -1, 0, 0);
+                                int status = particle1.getValue().getStatus() | particle2.getValue().getStatus();
+                                exosom.setStatusInvalid(status);
                                 coloc.addRoi(exosom);
                                 colocNr++;
                                 break; // We have a match. We can continue with the next particle
