@@ -39,7 +39,7 @@ public class EVCountInCells extends EVColoc {
     TreeMap<ChannelType, ColocChannelSet> colocChannelsEvInCells = new TreeMap<>();
 
     public EVCountInCells(AnalyseSettings settings, int parallelWorkers) {
-        super(settings,parallelWorkers);
+        super(settings, parallelWorkers);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class EVCountInCells extends EVColoc {
         PerformanceAnalyzer.stop("CntInCells:EvSeparation");
 
         PerformanceAnalyzer.start("CntInCells:executeColocAlgorithm");
-        EVColoc("coloc_all_evs", colocChannels);
+        EVColoc("coloc_all_evs", colocChannels, 3);
         PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithm");
 
         PerformanceAnalyzer.start("CntInCells:CellShapeDetection");
@@ -70,7 +70,7 @@ public class EVCountInCells extends EVColoc {
         PerformanceAnalyzer.stop("CntInCells:NucleusSeparation");
 
         PerformanceAnalyzer.start("CntInCells:executeColocAlgorithmForEvsInCell");
-        EVColoc("coloc_incell_evs", colocChannelsEvInCells);
+        EVColoc("coloc_incell_evs", colocChannelsEvInCells, 4);
         PerformanceAnalyzer.stop("CntInCells:executeColocAlgorithmForEvsInCell");
 
         for (Map.Entry<ChannelType, Channel> e : mReturnChannels.entrySet()) {
@@ -87,13 +87,16 @@ public class EVCountInCells extends EVColoc {
     ///
     /// EV Coloc
     ///
-    void EVColoc(String title, TreeMap<ChannelType, ColocChannelSet> evChannelsToAnalyze) {
+    void EVColoc(String title, TreeMap<ChannelType, ColocChannelSet> evChannelsToAnalyze, int indexOffset) {
         TreeMap<ChannelType, Channel> ret = executeColocAlgorithm(title, mImage, evChannelsToAnalyze);
         int startIdx = mReturnChannels.size();
         for (Map.Entry<ChannelType, Channel> val : ret.entrySet()) {
-            ChannelType type = ChannelType
-                    .getColocEnum(val.getKey().idx + startIdx + ChannelType.getFirstFreeChannel() * 2);
-
+            int newIdx = startIdx + ChannelType.getFirstFreeChannel() * indexOffset;
+            ChannelType type = ChannelType.getColocEnum(newIdx);
+            while(mReturnChannels.containsKey(type)){
+                newIdx++;
+                type = ChannelType.getColocEnum(newIdx);
+            }
             addReturnChannel(val.getValue(), type, val.getValue().getCtrlImagePath());
         }
     }
@@ -110,7 +113,7 @@ public class EVCountInCells extends EVColoc {
             exec.execute(new EvSeperatorRunner(val));
         }
         exec.shutdown();
-            try {
+        try {
             exec.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -226,14 +229,15 @@ public class EVCountInCells extends EVColoc {
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
                     rm, false);
             chCell.setThershold(in[0], in[1]);
-            addReturnChannel(chCell, cellChannelSetting.getType(), getRelativeImagePath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"));
+            addReturnChannel(chCell, cellChannelSetting.getType(),
+                    getRelativeImagePath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"));
 
             ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
             for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
                 exec.execute(new CellShapeDetectionRunner(val, rm, cellsEdited, cellChannelSetting));
             }
             exec.shutdown();
-                try {
+            try {
                 exec.awaitTermination(1, TimeUnit.HOURS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -402,7 +406,7 @@ public class EVCountInCells extends EVColoc {
                 }
                 // IJ.log("Wait for finsihed");
                 exec.shutdown();
-                    try {
+                try {
                     exec.awaitTermination(1, TimeUnit.HOURS);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -493,7 +497,8 @@ public class EVCountInCells extends EVColoc {
                     getPath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
             roiOverLay.clear();
-            addReturnChannel(evsInCell, inCellEvType, getRelativeImagePath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
+            addReturnChannel(evsInCell, inCellEvType,
+                    getRelativeImagePath(mImage, "03", val.getKey().toString() + "_separated_overlay_cells"));
 
         }
     }

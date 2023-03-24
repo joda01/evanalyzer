@@ -3,9 +3,9 @@ package org.danmayr.imagej;
 public class Version {
     static final public int major = 8;
     static final public int minor = 1;
-    static final public int fix = 1;
+    static final public int fix = 2;
     public static String status = "beta";   // beta, aplha, release
-    public final static long build  = 1667119884;
+    public final static long build  = 1679671190;
 
     public static String getVersion() {
         return major + "." + minor + "." + fix + "-" + status + " " + Long.toString(build);
