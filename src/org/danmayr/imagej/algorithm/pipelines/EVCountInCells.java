@@ -221,6 +221,9 @@ public class EVCountInCells extends EVColoc {
             // Filter.ApplyThershold(cellsEdited, set.mThersholdMethod);
             // Filter.FillHoles(cellsEdited);
             Filter.ApplyThershold(cellsEdited, AutoThresholder.Method.Default, 4, 255, null, true);
+            RoiManager cellRoiFilter = new RoiManager(false);
+            cellsEdited = Filter.AnalyzeParticles(cellsEdited, cellRoiFilter, 2000, -1, 0);
+
             Filter.AddThersholdToROI(cellsEdited, rm);
 
             Filter.SaveImage(cellsEdited, getPath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"),

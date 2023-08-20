@@ -494,7 +494,7 @@ public class Filter {
         }
 
         if (maxSize < 0) {
-            maxSize = 999999;
+            maxSize = 1.79769313486231570e+308;
         }
 
         /*
