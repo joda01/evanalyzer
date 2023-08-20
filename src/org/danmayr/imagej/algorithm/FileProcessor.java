@@ -310,7 +310,9 @@ public class FileProcessor extends Thread {
                         || file.getName().toLowerCase().endsWith(".tiff")
                         || file.getName().toLowerCase().endsWith(".czi")
                         || file.getName().toLowerCase().endsWith(".ics")
-                        || file.getName().toLowerCase().endsWith(".tif")) {
+                        || file.getName().toLowerCase().endsWith(".tif")
+                        || file.getName().toLowerCase().endsWith(".nd2")
+                        ) {
                     foundFiles.add(file);
                 }
             }
