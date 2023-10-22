@@ -292,7 +292,7 @@ public class EVColoc extends Pipeline {
             // Find particles
             //
             ImagePlus analzeImg0 = Filter.AnalyzeParticles(img0Th, rm, 0, -1, img0.getMinCircularityDouble());
-            Channel measCh0 = Filter.MeasureImage(img0.getType().toString(), mSettings, img0, img0BeforeTh, img0Th, rm,
+            Channel measCh0 = Filter.MeasureImage(img0.getType().toString(), mSettings, img0, img0.getImage(), img0Th, rm,
                     true);
             measCh0.setThershold(in0[0], in0[1]);
 
