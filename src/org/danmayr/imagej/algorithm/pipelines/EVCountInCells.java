@@ -186,7 +186,6 @@ public class EVCountInCells extends EVColoc {
         //
         ChannelSettings cellChannelSetting = getCellChannel();
         if (null != cellChannelSetting) {
-            RoiManager rm = new RoiManager(false);
 
             ImagePlus cellsOriginal = cellChannelSetting.getImage();
             ImagePlus cellsEdited = Filter.duplicateImage(cellsOriginal);
@@ -223,21 +222,21 @@ public class EVCountInCells extends EVColoc {
             Filter.ApplyThershold(cellsEdited, AutoThresholder.Method.Default, 4, 255, null, true);
             RoiManager cellRoiFilter = new RoiManager(false);
             cellsEdited = Filter.AnalyzeParticles(cellsEdited, cellRoiFilter, 2000, -1, 0);
-
-            Filter.AddThersholdToROI(cellsEdited, rm);
+            RoiManager fullCellArea = new RoiManager(false);
+            Filter.AddThersholdToROI(cellsEdited, fullCellArea);
 
             Filter.SaveImage(cellsEdited, getPath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"),
-                    rm);
+            cellRoiFilter);
 
             Channel chCell = Filter.MeasureImage("Cell Area", mSettings, cellChannelSetting, cellsOriginal, cellsEdited,
-                    rm, false);
+            cellRoiFilter, false);
             chCell.setThershold(in[0], in[1]);
             addReturnChannel(chCell, cellChannelSetting.getType(),
                     getRelativeImagePath(mImage, "02", cellChannelSetting.getType().toString() + "_cell_area"));
 
             ExecutorService exec = Executors.newFixedThreadPool(PARALLEL_WORKERS);
             for (Map.Entry<ChannelType, ChannelSettings> val : mEditedEvs.entrySet()) {
-                exec.execute(new CellShapeDetectionRunner(val, rm, cellsEdited, cellChannelSetting));
+                exec.execute(new CellShapeDetectionRunner(val, fullCellArea, cellsEdited, cellChannelSetting));
             }
             exec.shutdown();
             try {
