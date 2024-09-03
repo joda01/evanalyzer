@@ -36,7 +36,7 @@ jobs:
       UPDATE_SITE: evanalyzer
     steps:
       - name: Download build from step before
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: EVAnalyzer
       - name: Install ImageJ/Fiji
