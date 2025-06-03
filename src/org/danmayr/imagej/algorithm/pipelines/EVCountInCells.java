@@ -363,9 +363,9 @@ public class EVCountInCells extends EVColoc {
              */
 
             // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_original", rm);
-            Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Yen);
-            // Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg",
-            // nucleusRoiAll);
+            Filter.ApplyThershold(nucleusMask, AutoThresholder.Method.Default,5,65535,null,true);
+           //  Filter.SaveImage(nucleusMask, getPath(mImage) + "_voronoi_grid.jpg",
+           //  nucleusRoiAll);
 
             // Cut the cell area with the voronoi grid to get separated cells
             ImagePlus andImg = Filter.ANDImages(cells, nucleusMask);
