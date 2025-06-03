@@ -13,11 +13,11 @@ jobs:
       image: mcr.microsoft.com/vscode/devcontainers/java:0-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build with Docker
         run: ./build.sh
       - name: Upload EVAnalyzer.jar
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: EVAnalyzer
           path: |
@@ -36,7 +36,7 @@ jobs:
       UPDATE_SITE: evanalyzer
     steps:
       - name: Download build from step before
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: EVAnalyzer
       - name: Install ImageJ/Fiji
