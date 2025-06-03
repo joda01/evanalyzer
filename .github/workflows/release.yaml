@@ -30,7 +30,7 @@ jobs:
     needs: build_release
     runs-on: ubuntu-latest
     env:
-      IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+      IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-latest-linux64-jre.zip
       WIKI_USER: ${{ secrets.FIJI_SITES_USERNAME }}
       UPDATE_PASS: ${{ secrets.FIJI_SITES_PASSWORD }}
       UPDATE_SITE: evanalyzer
@@ -43,14 +43,14 @@ jobs:
         run: |
           ls -l
           wget --no-check-certificate ${IJ_DOWNLOAD_URL}
-          unzip fiji-linux64.zip
+          unzip fiji-latest-linux64-jre.zip
       - name: Update ImageJ
         run: |
-          ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
-          ./Fiji.app/ImageJ-linux64 --headless --update update
+          ./Fiji/fiji-linux-x64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
+          ./Fiji/fiji-linux-x64 --headless --update update
       - name: Release to ImageJ update site
         run: |
-          cp ./bin/EVAnalyzer.jar ./Fiji.app/plugins/EVAnalyzer.jar
-          mkdir -p ./Fiji.app/jars/evanalyzer
-          cp -r ./libs/evanalyzer/* ./Fiji.app/jars/evanalyzer
-          ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
+          cp ./bin/EVAnalyzer.jar ./Fiji/plugins/EVAnalyzer.jar
+          mkdir -p ./Fiji/jars/evanalyzer
+          cp -r ./libs/evanalyzer/* ./Fiji/jars/evanalyzer
+          ./Fiji/fiji-linux-x64 --headless --update upload-complete-site --force ${UPDATE_SITE}
