@@ -1,6 +1,8 @@
 [![Release to Update Site](https://github.com/joda01/evanalyzer/actions/workflows/release.yaml/badge.svg)](https://github.com/joda01/evanalyzer/actions/workflows/release.yaml)
 # EVAnalyzer
 
+Please forward to [EVAnalyzer 2](https://github.com/joda01/imagec) powered by ImageC
+
 
 ![./doc/screenshot_v80.png](./doc/screenshot_v80.png)
 
